@@ -9,7 +9,7 @@ type LoginFormData = {
   password: string
 }
 
-const LoginPage = () => {
+const SingUpPage = () => {
   const { control, handleSubmit } = useForm<LoginFormData>();
 
   const onSubmit = (data: LoginFormData) => {
@@ -39,7 +39,7 @@ const LoginPage = () => {
         </div>
       </section>
 
-      <section className='flex items-center justify-center bg-white w-full min-[970px]:max-w-2xl h-full'>
+      <section className='flex items-center justify-center bg-white w-full min-[970px]:max-w-xl h-full'>
         <div className='w-full min-[520px]:max-w-125 min-[970px]:w-3/4 px-4 min-[970px]:p-0 flex flex-col gap-6'>
           <div className="w-full">
             <h3 className='text-5xl font-bold text-start'>Seja bem-vindo</h3>
@@ -84,4 +84,4 @@ const LoginPage = () => {
   )
 }
 
-export default LoginPage;
+export default SingUpPage;
