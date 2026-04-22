@@ -6,7 +6,20 @@ import { validateEmail } from "@/utils/validation";
 
 // revalidar esse metodo pois deve ser feito port um context porque é um cadatro de 2 etapas, dados basicoa da empresa e endereto da empresa
 interface RegisterCompanyData {
+  name: string;
+  birthFundation: string;
+  phoneNumber: string;
+  website?: string;
+  cnpj: string;
   email: string;
+  password: string;
+
+  cep: string;
+  street: string;
+  district: string;
+  number: string;
+  city: string;
+  state: string;
 }
 
 export function useRegisterCompany() {

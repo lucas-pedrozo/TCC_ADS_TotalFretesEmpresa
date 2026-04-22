@@ -2,7 +2,7 @@ type ButtonDefaultProps = {
   dataTestid?: string
   disabled?: boolean
   onClick?: () => void
-  name?: string
+  children?: React.ReactNode
   className?: string
   type?: "default" | "primary" | "secondary" | "danger"
 }
@@ -23,7 +23,7 @@ export const ButtonDefault = (props: ButtonDefaultProps) => {
         onClick={props.onClick}
         className={props.disabled ? "bg-gray-400 text-white font-bold py-2 px-4 rounded cursor-not-allowed" : BUTTON_STYLES[props.type || "default"]}
       >
-        {props.name}
+        {props.children}
       </button>
     </div>
   )
