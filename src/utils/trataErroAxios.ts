@@ -1,11 +1,20 @@
 import { AxiosError } from "axios";
 
+/**
+ * Extrai uma mensagem de erro legível a partir de diferentes tipos de erro.
+ *
+ * @param error - O erro capturado (AxiosError, Error ou tipo desconhecido).
+ * @returns Uma string com a mensagem de erro mais específica disponível.
+ */
 export function trataErroAxios(error: unknown): string {
   if (error instanceof AxiosError) {
-    return error.response?.data?.message
-      ?? error.response?.data
-      ?? error.message
-      ?? "Erro na requisição";
+    const data = error.response?.data;
+
+    if (typeof data === "string" && data.trim()) return data;
+    if (typeof data?.message === "string" && data.message.trim()) return data.message;
+    if (error.message) return error.message;
+
+    return "Erro na requisição";
   }
 
   if (error instanceof Error) {

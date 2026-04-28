@@ -4,8 +4,20 @@ import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useAuth } from "@/context/AuthContext";
 
 interface CompanyData {
-  id: number;
   name: string;
+  email: string;
+  birthFundation: string;
+  phoneNumber: string;
+  website?: string;
+  cnpj: string;
+  password: string;
+
+  cep: string;
+  street: string;
+  district: string;
+  number: string;
+  city: string;
+  state: string;
 }
 
 export function useGetCompany() {
@@ -16,7 +28,7 @@ export function useGetCompany() {
   const handleGetCompany = useCallback(async () => {
     try {
       setIsLoading(true);
-      if (!id || Number.isNaN(id)) {
+      if (!id) {
         throw new Error("Company ID not found");
       }
       const response = await http.get<CompanyData>(`/company/${id}`);

@@ -1,10 +1,11 @@
 type ButtonDefaultProps = {
+  type: "submit" | "button" | "reset"
   dataTestid?: string
   disabled?: boolean
   onClick?: () => void
   children?: React.ReactNode
   className?: string
-  type?: "default" | "primary" | "secondary" | "danger"
+  color?: "default" | "primary" | "secondary" | "danger"
 }
 
 const BUTTON_STYLES = {
@@ -18,10 +19,11 @@ export const ButtonDefault = (props: ButtonDefaultProps) => {
   return (
     <div className={props.className}>
       <button
+        type={props.type}
         data-testid={props.dataTestid}
         disabled={props.disabled}
         onClick={props.onClick}
-        className={props.disabled ? "bg-gray-400 text-white font-bold py-2 px-4 rounded cursor-not-allowed" : BUTTON_STYLES[props.type || "default"]}
+        className={props.disabled ? "bg-gray-400 text-white font-bold py-2 px-4 rounded cursor-not-allowed" : BUTTON_STYLES[props.color || "default"]}
       >
         {props.children}
       </button>

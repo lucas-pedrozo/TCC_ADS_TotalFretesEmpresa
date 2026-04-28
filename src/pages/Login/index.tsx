@@ -3,6 +3,7 @@ import { useLogin } from '@/hooks/useLogin'
 
 import logo from '@/assets/logototalfretes.png'
 import background from '@/assets/—Pngtree—a white truck drives on_19659555.jpg'
+import { ButtonDefault } from '@/components/custom/buttons/ButtonDefault'
 
 const LoginPage = () => {
   const { HandleLogin, isLoading, Rules, control, handleSubmit, isDisabled } = useLogin()
@@ -61,14 +62,12 @@ const LoginPage = () => {
             </p>
 
             <div className='pt-5'>
-              <button
+             <ButtonDefault
                 type="submit"
+                dataTestid="login-button"
+                children="Entrar"
                 disabled={isDisabled}
-                className='w-full bg-black text-white p-2.5 rounded-lg font-semibold hover:bg-black/80 transition-colors'
-              >
-                Entrar
-                {isLoading && <span className='ml-2 animate-spin'>⏳</span>}
-              </button>
+             />
             </div>
           </form>
         </div>

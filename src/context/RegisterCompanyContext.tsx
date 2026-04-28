@@ -1,6 +1,5 @@
 import { createContext, useContext, useState } from "react";
 
-
 export type RegisterCompanyDataBasic = {
   name: string;
   email: string;

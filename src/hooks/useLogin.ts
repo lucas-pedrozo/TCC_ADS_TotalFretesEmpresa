@@ -12,20 +12,6 @@ interface LoginData {
   password: string;
 }
 
-const extractToken = (payload: unknown): string | null => {
-  if (typeof payload === "string") {
-    return payload;
-  }
-
-  if (payload && typeof payload === "object") {
-    const data = payload as Record<string, unknown>;
-    const candidate = data.token ?? data.accessToken ?? data.authToken;
-    return typeof candidate === "string" ? candidate : null;
-  }
-
-  return null;
-};
-
 export function useLogin() {
   const { control, handleSubmit } = useForm<LoginData>({ mode: "onSubmit" });
   const [isLoading, setIsLoading] = useState(false);
@@ -42,8 +28,8 @@ export function useLogin() {
         throw new Error("No data provided");
       }
 
-      const response = await http.post<unknown>("/auth/login", data);
-      const token = extractToken(response.data);
+      const response = await http.post("/auth/login", data);
+      const token = response.data.token;
 
       if (!token) {
         throw new Error("Token nao encontrado na resposta de login");
