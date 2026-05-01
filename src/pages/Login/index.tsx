@@ -1,20 +1,12 @@
-import { useForm } from 'react-hook-form';
-import { InputDefault } from '@/components/custom/inputs/InputDefault';
+import { InputDefault } from '@/components/custom/inputs/InputDefault'
+import { useLogin } from '@/hooks/useLogin'
 
 import logo from '@/assets/logototalfretes.png'
 import background from '@/assets/—Pngtree—a white truck drives on_19659555.jpg'
-
-type LoginFormData = {
-  email: string
-  password: string
-}
+import { ButtonDefault } from '@/components/custom/buttons/ButtonDefault'
 
 const LoginPage = () => {
-  const { control, handleSubmit } = useForm<LoginFormData>();
-
-  const onSubmit = (data: LoginFormData) => {
-    alert(`Email: ${data.email}\nSenha: ${data.password}`);
-  }
+  const { HandleLogin, isLoading, Rules, control, handleSubmit, isDisabled } = useLogin()
 
   return (
     <main
@@ -46,12 +38,12 @@ const LoginPage = () => {
             <p className='text-base text-start text-black/60'>Faça login para acessar sua conta</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-2 w-full'>
+          <form onSubmit={handleSubmit(HandleLogin)} className='flex flex-col gap-2 w-full'>
             <InputDefault
               name="email"
               placeholder='usuario@exemplo.com.br'
               control={control}
-              rules={{ required: "Email é obrigatório" }}
+              rules={Rules.email}
               label="Email"
               type="email"
             />
@@ -60,7 +52,7 @@ const LoginPage = () => {
               name="password"
               placeholder='Digite sua senha'
               control={control}
-              rules={{ required: "Senha é obrigatória" }}
+              rules={Rules.password}
               label="Senha"
               type="password"
             />
@@ -70,12 +62,12 @@ const LoginPage = () => {
             </p>
 
             <div className='pt-5'>
-              <button
+             <ButtonDefault
                 type="submit"
-                className='w-full bg-black text-white p-2.5 rounded-lg font-semibold hover:bg-black/80 transition-colors'
-              >
-                Entrar
-              </button>
+                dataTestid="login-button"
+                children="Entrar"
+                disabled={isDisabled}
+             />
             </div>
           </form>
         </div>

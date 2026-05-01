@@ -3,6 +3,7 @@ import { InputDefault } from '@/components/custom/inputs/InputDefault';
 
 import logo from '@/assets/logototalfretes.png'
 import background from '@/assets/—Pngtree—a white truck drives on_19659555.jpg'
+import { ButtonDefault } from '@/components/custom/buttons/ButtonDefault';
 
 type LoginFormData = {
   email: string
@@ -10,7 +11,7 @@ type LoginFormData = {
 }
 
 const SingUpPage = () => {
-  const { control, handleSubmit } = useForm<LoginFormData>();
+  const { control, handleSubmit, } = useForm<LoginFormData>();
 
   const onSubmit = (data: LoginFormData) => {
     alert(`Email: ${data.email}\nSenha: ${data.password}`);
@@ -70,12 +71,11 @@ const SingUpPage = () => {
             </p>
 
             <div className='pt-5'>
-              <button
+              <ButtonDefault
                 type="submit"
-                className='w-full bg-black text-white p-2.5 rounded-lg font-semibold hover:bg-black/80 transition-colors'
-              >
-                Entrar
-              </button>
+                dataTestid="login-button"
+                children="Entrar"
+              />
             </div>
           </form>
         </div>
