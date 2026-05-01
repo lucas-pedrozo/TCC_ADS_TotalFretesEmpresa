@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { validatePassword } from "@/utils/validation";
 import { validateEmail } from "@/utils/validation";
-import { http } from "@/service/http";
+import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
