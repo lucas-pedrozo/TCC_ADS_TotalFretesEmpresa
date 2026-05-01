@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react"
-import { http } from "@/service/http";
+import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useAuth } from "@/context/AuthContext";
 
