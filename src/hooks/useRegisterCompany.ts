@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
-import { useRegisterCompanyContext } from "@/context/RegisterCompanyContext";
+import { useRegisterCompanyContext, type RegisterCompanyDraftData } from "@/context/RegisterCompanyContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -11,14 +11,14 @@ export function useRegisterCompany() {
   const [isDisabled, setIsDisabled] = useState(false);
   const navigate = useNavigate();
 
-  const handleRegisterCompany = useCallback(async () => {
+  const handleRegisterCompany = useCallback(async (payload?: RegisterCompanyDraftData) => {
     const toastId = toast.loading("Criando conta...");
     try {
       setIsLoading(true);
       setIsDisabled(true);
 
-      const data = getPayload();
-      await http.post("/company/register", data);
+      const data = payload ?? getPayload();
+      await http.post("/company/end-account/", data);
 
       reset();
       toast.success("Conta criada com sucesso! Faça login para continuar.", { id: toastId });

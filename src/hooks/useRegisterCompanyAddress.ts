@@ -1,10 +1,12 @@
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
-import { useRegisterCompanyContext, type RegisterCompanyDataAddress } from "@/context/RegisterCompanyContext";
+import { useRegisterCompanyContext, type RegisterCompanyDataAddress, type RegisterCompanyDraftData, ACCOUNT_TYPE_COMPANY } from "@/context/RegisterCompanyContext";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 
-export function useRegisterCompanyAddress(onClickNext: () => void) {
-  const { addressData, setDataAddress } = useRegisterCompanyContext();
+export function useRegisterCompanyAddress(
+  onRegister: (payload: RegisterCompanyDraftData) => void | Promise<void>
+) {
+  const { basicData, addressData, setDataAddress } = useRegisterCompanyContext();
   const { control, handleSubmit, formState: { errors } } =
     useForm<RegisterCompanyDataAddress>({ mode: "onSubmit", defaultValues: addressData });
 
@@ -12,12 +14,12 @@ export function useRegisterCompanyAddress(onClickNext: () => void) {
     try {
       handleSubmit((data) => {
         setDataAddress(data);
-        onClickNext();
+        void onRegister({ ...basicData, ...data, account_type_id: ACCOUNT_TYPE_COMPANY });
       })();
     } catch (error) {
       console.log(trataErroAxios(error));
     }
-  }, [handleSubmit, setDataAddress, onClickNext]);
+  }, [handleSubmit, setDataAddress, onRegister, basicData]);
 
   const Rules = {
     cep: {

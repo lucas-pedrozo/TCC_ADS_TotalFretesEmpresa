@@ -43,6 +43,12 @@ const MASKS = {
   cnpj: maskCnpj,
 }
 
+export const UNMASKS = {
+  default: (value: string) => value,
+  phone: (value: string) => value.replace(/\D/g, ""),
+  cnpj: (value: string) => value.replace(/\D/g, ""),
+}
+
 export function InputDefault<T extends FieldValues>({
   name,
   control,
@@ -78,9 +84,12 @@ export function InputDefault<T extends FieldValues>({
             id={name}
             type={type}
             placeholder={placeholder}
-            onChange={(e) => field.onChange(MASKS[mask](e.target.value))}
+            onChange={(e) => {
+              const masked = MASKS[mask](e.target.value)
+              field.onChange(UNMASKS[mask](masked))
+            }}
             onBlur={field.onBlur}
-            value={field.value ?? ""}
+            value={MASKS[mask](field.value ?? "")}
             ref={field.ref}
             maxLength={maxLength}
             disabled={disabled}

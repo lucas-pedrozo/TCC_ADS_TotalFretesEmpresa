@@ -1,5 +1,8 @@
 import { createContext, useContext, useState } from "react";
 
+/** Alinhado ao seed do authentication-service (USER=1, COMPANY=2, ADMIN=3). */
+export const ACCOUNT_TYPE_COMPANY = 2;
+
 export type RegisterCompanyDataBasic = {
   name: string;
   email: string;
@@ -19,7 +22,9 @@ export type RegisterCompanyDataAddress = {
   state: string;
 }
 
-export type RegisterCompanyDraftData = RegisterCompanyDataBasic & RegisterCompanyDataAddress;
+export type RegisterCompanyDraftData = RegisterCompanyDataBasic & RegisterCompanyDataAddress & {
+  account_type_id: number;
+};
 
 type RegisterCompanyContextValue = {
   basicData: RegisterCompanyDataBasic;
@@ -64,7 +69,7 @@ export function RegisterCompanyProvider({ children }: { children: React.ReactNod
   };
 
   const getPayload = () => {
-    return { ...basicData, ...addressData };
+    return { ...basicData, ...addressData, account_type_id: ACCOUNT_TYPE_COMPANY };
   };
 
   const reset = () => {

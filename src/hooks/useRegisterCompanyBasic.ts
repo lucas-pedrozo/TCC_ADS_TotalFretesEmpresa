@@ -2,7 +2,6 @@
 import { useRegisterCompanyContext, type RegisterCompanyDataBasic } from "@/context/RegisterCompanyContext";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { validateCNPJ, validateCPF, validateEmail, validatePassword } from "@/utils/validation";
-import { validatePhoneNumberLength } from "libphonenumber-js";
 import { useCallback } from "react"
 import { useForm } from "react-hook-form";
 

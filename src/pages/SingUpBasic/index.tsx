@@ -56,6 +56,15 @@ const SingUpBasicPage = () => {
         />
 
         <InputDefault
+          name="birthFundation"
+          placeholder="Data de fundação"
+          control={control}
+          rules={Rules.birthFundation}
+          label="Data de fundação"
+          type="date"
+        />
+
+        <InputDefault
           name="password"
           placeholder="Senha"
           control={control}
