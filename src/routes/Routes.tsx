@@ -1,21 +1,34 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import { Navigate } from "react-router-dom";
-import PrivateRoute from "./PrivateRoutes";
 
-import SingUpPage from "@/pages/SingUp";
+import SingUpBasicPage from "@/pages/SingUpBasic";
+import SingUpAddressPage from "@/pages/SingUpAddress";
 import LoginPage from "@/pages/Login";
 import HomePage from "@/pages/Home";
 import PerfilPage from "@/pages/Perfil";
+import StartPage from "@/pages/Start";
 import { SideLayout } from "@/layout/SideLayout";
+import { RegisterCompanyProvider } from "@/context/RegisterCompanyContext";
+
+const RegisterLayout = () => (
+  <RegisterCompanyProvider>
+    <Outlet />
+  </RegisterCompanyProvider>
+)
 
 function WebRoutes() {
   return (
     <Routes>
-      <Route path="/LOGIN" element={<LoginPage />} />
-      <Route path="/SignUp" element={<SingUpPage />} />
+      <Route path="/" element={<StartPage />} />
+      <Route path="/Login" element={<LoginPage />} />
+
+      <Route element={<RegisterLayout />}>
+        <Route path="/SignUp" element={<SingUpBasicPage />} />
+        <Route path="/SignUpAddress" element={<SingUpAddressPage />} />
+      </Route>
 
       <Route element={<SideLayout />}>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/Perfil" element={<PerfilPage />} />
       </Route>
 

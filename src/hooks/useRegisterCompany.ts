@@ -19,7 +19,7 @@ export function useRegisterCompany() {
       await http.post("/company/register", data);
 
       reset();
-      navigate("/Home"); 
+      navigate("/Login");
     } catch (error) {
       console.log(trataErroAxios(error));
     } finally {

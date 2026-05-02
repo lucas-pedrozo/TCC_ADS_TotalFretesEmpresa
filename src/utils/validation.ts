@@ -14,7 +14,9 @@ export const validatePassword = (password: string): boolean => {
 
 // @param phone - (00) 00000-0000 or 00000-0000
 export const validatePhone = (phone: string): boolean => {
-  return isValidPhoneNumber(phone, "BR");
+  if(!phone) return false;
+  return true;
+  // return isValidPhoneNumber(phone, "BR");
 };
 
 // @param date - must be in ISO format (YYYY-MM-DD)

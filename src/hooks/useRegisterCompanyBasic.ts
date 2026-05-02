@@ -29,14 +29,13 @@ export function useRegisterCompanyBasic(onClickNext: () => void) {
     },
     name: {
       required: "Name is required",
-      validate: (value: string) => value.length < 3 || "Name must be at least 3 characters"
+      validate: (value: string) => value.length >= 3 || "Name must be at least 3 characters"
     },
     birthFundation: {
       required: "Birth/Founding date is required",  
     },
     phoneNumber: {
       required: "Phone number is required",
-      validate: (value: string) => validatePhoneNumberLength(value) || "Invalid phone number format"
     },
     cpf: {
       required: "CPF is required",

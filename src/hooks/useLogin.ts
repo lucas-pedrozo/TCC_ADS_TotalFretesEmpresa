@@ -40,6 +40,8 @@ export function useLogin() {
 
     } catch (error) {
       console.log(trataErroAxios(error));
+      console.log("Login error:", error instanceof Error ? error.message : error);
+      alert("Login failed: " + (error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setIsLoading(false);
       setIsDisabled(false);

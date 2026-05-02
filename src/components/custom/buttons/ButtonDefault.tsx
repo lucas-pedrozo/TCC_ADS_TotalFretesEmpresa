@@ -9,8 +9,8 @@ type ButtonDefaultProps = {
 }
 
 const BUTTON_STYLES = {
-  default: "bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded",
-  primary: "bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded",
+  default: "bg-black text-white font-bold p-2 rounded-md w-full hover:opacity-80",
+  primary: "bg-white border-1 border-black text-black font-bold p-2   rounded-md w-full hover:opacity-80",
   secondary: "bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded",
   danger: "bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded",
 } as const
@@ -23,7 +23,7 @@ export const ButtonDefault = (props: ButtonDefaultProps) => {
         data-testid={props.dataTestid}
         disabled={props.disabled}
         onClick={props.onClick}
-        className={props.disabled ? "bg-gray-400 text-white font-bold py-2 px-4 rounded cursor-not-allowed" : BUTTON_STYLES[props.color || "default"]}
+        className={BUTTON_STYLES[props.color || "default"]}
       >
         {props.children}
       </button>
