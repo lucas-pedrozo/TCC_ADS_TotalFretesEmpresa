@@ -6,10 +6,10 @@ import { useNavigate } from 'react-router-dom'
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const { HandleLogin, Rules, control, handleSubmit, isDisabled } = useLogin()
+  const { HandleLogin, Rules, control, handleSubmit, isDisabled, isLoading } = useLogin()
 
   return (
-    <AuthLayout onBack={() => navigate('/')}>
+    <AuthLayout onBack={() => navigate('/')} transparent>
       <div className="w-full">
         <h3 className="text-5xl font-bold text-start">Faça login</h3>
       </div>
@@ -42,6 +42,7 @@ const LoginPage = () => {
             type="submit"
             dataTestid="login-button"
             disabled={isDisabled}
+            isLoading={isLoading}
             color="default"
           >
             Entrar

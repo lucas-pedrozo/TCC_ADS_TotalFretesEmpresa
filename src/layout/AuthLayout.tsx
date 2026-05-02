@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import logo from '@/assets/logototalfretes.png'
+import { HiChevronLeft } from "react-icons/hi";
 import background from '@/assets/—Pngtree—a white truck drives on_19659555.jpg'
 
 type AuthLayoutProps = {
@@ -41,9 +42,9 @@ export const AuthLayout = ({ children, transparent = false, onBack }: AuthLayout
           <button
             type="button"
             onClick={onBack}
-            className="absolute top-5 left-5 flex items-center gap-1 text-sm text-black/50 hover:text-black/80 transition-colors cursor-pointer"
+            className="absolute top-5 left-5 flex items-center gap-1 text-sm text-white hover:text-white/80 transition-colors cursor-pointer bg-black py-1 px-1 rounded-lg"
           >
-            ← Voltar
+            <HiChevronLeft  size={'30'}/>
           </button>
         )}
 

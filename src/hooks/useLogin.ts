@@ -6,6 +6,7 @@ import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 interface LoginData {
   email: string;
@@ -20,6 +21,7 @@ export function useLogin() {
   const { login } = useAuth();
 
   const HandleLogin = useCallback(async (data: LoginData) => {
+    const toastId = toast.loading("Entrando...");
     try {
       setIsLoading(true);
       setIsDisabled(true);
@@ -36,12 +38,11 @@ export function useLogin() {
       }
 
       await login(token);
+      toast.success("Login realizado com sucesso!", { id: toastId });
       navigate("/Home");
 
     } catch (error) {
-      console.log(trataErroAxios(error));
-      console.log("Login error:", error instanceof Error ? error.message : error);
-      alert("Login failed: " + (error instanceof Error ? error.message : "Unknown error"));
+      toast.error(trataErroAxios(error), { id: toastId });
     } finally {
       setIsLoading(false);
       setIsDisabled(false);

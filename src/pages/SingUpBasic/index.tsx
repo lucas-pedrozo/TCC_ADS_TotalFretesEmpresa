@@ -11,7 +11,7 @@ const SingUpBasicPage = () => {
   )
 
   return (
-    <AuthLayout onBack={() => navigate('/')}>
+    <AuthLayout onBack={() => navigate('/')} transparent>
       <div className="w-full">
         <h3 className="text-5xl font-bold text-start">Cadastro</h3>
       </div>

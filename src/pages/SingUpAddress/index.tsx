@@ -7,13 +7,13 @@ import { useNavigate } from 'react-router-dom'
 
 const SingUpAddressPage = () => {
   const navigate = useNavigate()
-  const { handleRegisterCompany, isDisabled } = useRegisterCompany()
+  const { handleRegisterCompany, isDisabled, isLoading } = useRegisterCompany()
   const { Rules, control, handleNextCompanyAddress } = useRegisterCompanyAddress(
     handleRegisterCompany
   )
 
   return (
-    <AuthLayout onBack={() => navigate('/SignUp')}>
+    <AuthLayout onBack={() => navigate('/SignUp')} transparent>
       <div className="w-full">
         <h3 className="text-5xl font-bold text-start">Endereço</h3>
       </div>
@@ -75,6 +75,7 @@ const SingUpAddressPage = () => {
             type="submit"
             dataTestid="signup-address-submit-button"
             disabled={isDisabled}
+            isLoading={isLoading}
             color="default"
           >
             Criar Conta

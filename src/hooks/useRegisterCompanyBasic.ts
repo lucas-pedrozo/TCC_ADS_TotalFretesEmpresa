@@ -25,11 +25,11 @@ export function useRegisterCompanyBasic(onClickNext: () => void) {
   const Rules = {
     email: {
       required: "Email is required",
-      validate: (value: string) => validateEmail(value) || "Invalid email format"
+      validate: (value: string | undefined) => !value || validateEmail(value) || "Invalid email format"
     },
     name: {
       required: "Name is required",
-      validate: (value: string) => value.length >= 3 || "Name must be at least 3 characters"
+      validate: (value: string | undefined) => !value || value.length >= 3 || "Name must be at least 3 characters"
     },
     birthFundation: {
       required: "Birth/Founding date is required",  
@@ -39,15 +39,15 @@ export function useRegisterCompanyBasic(onClickNext: () => void) {
     },
     cpf: {
       required: "CPF is required",
-      validate: (value: string) => validateCPF(value) || "Invalid CPF format"
+      validate: (value: string | undefined) => !value || validateCPF(value) || "Invalid CPF format"
     },
     cnpj: {
       required: "CNPJ is required",
-      validate: (value: string) => validateCNPJ(value) || "Invalid CNPJ format"
+      validate: (value: string | undefined) => !value || validateCNPJ(value) || "Invalid CNPJ format"
     },
     password: {
       required: "Password is required",
-      validate: (value: string) => validatePassword(value) || "Password must be at least 8 characters",
+      validate: (value: string | undefined) => !value || validatePassword(value) || "Password must be at least 8 characters",
     }
   }
 
