@@ -43,6 +43,7 @@ const SingUpBasicPage = () => {
           control={control}
           rules={Rules.cnpj}
           label="CNPJ"
+          mask='cnpj'
         />
 
         <InputDefault
@@ -51,6 +52,7 @@ const SingUpBasicPage = () => {
           control={control}
           rules={Rules.phoneNumber}
           label="Telefone"
+          mask='phone'
         />
 
         <InputDefault
