@@ -28,7 +28,7 @@ function WebRoutes() {
       </Route>
 
       <Route element={<SideLayout />}>
-        <Route path="/home" element={<HomePage />} />
+        <Route path="/Home" element={<HomePage />} />
         <Route path="/Perfil" element={<PerfilPage />} />
       </Route>
 

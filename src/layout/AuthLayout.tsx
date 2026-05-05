@@ -34,7 +34,7 @@ export const AuthLayout = ({ children, transparent = false, onBack }: AuthLayout
       </section>
 
       <section
-        className={`relative flex items-center justify-center w-full min-[970px]:max-w-2xl h-full overflow-y-auto ${
+        className={`relative flex h-full w-full min-[970px]:max-w-2xl items-center justify-center overflow-x-hidden overflow-y-auto ${
           transparent ? 'bg-white/86 backdrop-blur-sm' : 'bg-white'
         }`}
       >
