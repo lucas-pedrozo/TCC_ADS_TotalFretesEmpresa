@@ -14,7 +14,7 @@ const LoginPage = () => {
   })
 
   return (
-    <AuthLayout onBack={() => navigateWithFade('/')} transparent>
+    <AuthLayout onBack={() => navigateWithFade('/')} isExiting={isExiting} transparent>
       <div className={contentClassName}>
         <div className="w-full">
           <h3 className="text-5xl font-bold text-start">Faça login</h3>

@@ -18,7 +18,7 @@ const SingUpAddressPage = () => {
   })
 
   return (
-    <AuthLayout onBack={() => navigateWithFade('/SignUp')} transparent>
+    <AuthLayout onBack={() => navigateWithFade('/SignUp')} isExiting={isExiting} transparent>
       <div className={contentClassName}>
         <div className="w-full">
           <h3 className="text-5xl font-bold text-start">Endereço</h3>

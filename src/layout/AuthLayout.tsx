@@ -2,14 +2,16 @@ import type { ReactNode } from 'react'
 import logo from '@/assets/logototalfretes.png'
 import { HiChevronLeft } from "react-icons/hi";
 import background from '@/assets/—Pngtree—a white truck drives on_19659555.jpg'
+import { fadeExitClassName } from '@/utils/ui';
 
 type AuthLayoutProps = {
   children: ReactNode
   transparent?: boolean
   onBack?: () => void
+  isExiting?: boolean
 }
 
-export const AuthLayout = ({ children, transparent = false, onBack }: AuthLayoutProps) => {
+export const AuthLayout = ({ children, transparent = false, onBack, isExiting }: AuthLayoutProps) => {
   return (
     <main
       className="flex items-center justify-between w-full h-screen"
@@ -42,7 +44,7 @@ export const AuthLayout = ({ children, transparent = false, onBack }: AuthLayout
           <button
             type="button"
             onClick={onBack}
-            className="absolute top-5 left-5 flex items-center gap-1 text-sm text-white hover:text-white/80 transition-colors cursor-pointer bg-black py-1 px-1 rounded-lg"
+            className={fadeExitClassName(!!isExiting, 'absolute top-5 left-5 flex items-center gap-1 text-sm text-white hover:text-white/80 transition-colors cursor-pointer bg-black py-1 px-1 rounded-lg')}
           >
             <HiChevronLeft  size={'30'}/>
           </button>
