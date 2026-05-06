@@ -2,6 +2,7 @@ import { useCallback, useState } from "react"
 import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 interface CompanyData {
   name: string;
@@ -34,7 +35,7 @@ export function useGetCompany() {
       const response = await http.get<CompanyData>(`/company/${id}`);
       setCompanyData(response.data);
     } catch (error) {
-      trataErroAxios(error);
+      toast.error(trataErroAxios(error));
     } finally {
       setIsLoading(false);
     }

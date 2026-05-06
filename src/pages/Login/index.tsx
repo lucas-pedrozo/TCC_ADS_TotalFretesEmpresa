@@ -4,10 +4,12 @@ import { AuthLayout } from '@/layout/AuthLayout'
 import { useLogin } from '@/hooks/useLogin'
 import { useFadeNavigate } from '@/hooks/useFadeNavigate'
 import { useMountFadeIn } from '@/hooks/useMountFadeIn'
+import { useTranslation } from 'react-i18next'
 
 const LoginPage = () => {
   const { isExiting, navigateWithFade } = useFadeNavigate()
   const { HandleLogin, Rules, control, handleSubmit, isDisabled, isLoading } = useLogin()
+  const { t } = useTranslation()
   const contentClassName = useMountFadeIn({
     className: 'flex w-full flex-col gap-6',
     isExiting,
@@ -17,30 +19,30 @@ const LoginPage = () => {
     <AuthLayout onBack={() => navigateWithFade('/')} isExiting={isExiting} transparent>
       <div className={contentClassName}>
         <div className="w-full">
-          <h3 className="text-5xl font-bold text-start">Faça login</h3>
+          <h3 className="text-5xl font-bold text-start">{t('pages.login.title')}</h3>
         </div>
 
         <form onSubmit={handleSubmit(HandleLogin)} className="flex flex-col gap-2 w-full">
           <InputDefault
             name="email"
-            placeholder="usuario@exemplo.com.br"
+            placeholder={t('pages.login.emailPlaceholder')}
             control={control}
             rules={Rules.email}
-            label="Email"
+            label={t('pages.login.emailLabel')}
             type="email"
           />
 
           <InputDefault
             name="password"
-            placeholder="Digite sua senha"
+            placeholder={t('pages.login.passwordPlaceholder')}
             control={control}
             rules={Rules.password}
-            label="Senha"
+            label={t('pages.login.passwordLabel')}
             type="password"
           />
 
           <p className="underline hover:text-stone-600 cursor-pointer pl-2.5">
-            Esqueci minha senha
+            {t('pages.login.forgotPassword')}
           </p>
 
           <div className="pt-5">
@@ -51,7 +53,7 @@ const LoginPage = () => {
               isLoading={isLoading}
               color="default"
             >
-              Entrar
+              {t('common.login')}
             </ButtonDefault>
           </div>
         </form>

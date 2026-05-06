@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { useRegisterCompanyContext, type RegisterCompanyDataAddress, type RegisterCompanyDraftData, ACCOUNT_TYPE_COMPANY } from "@/context/RegisterCompanyContext";
 import { trataErroAxios } from "@/utils/trataErroAxios";
+import { toast } from "sonner";
 
 export function useRegisterCompanyAddress(
   onRegister: (payload: RegisterCompanyDraftData) => void | Promise<void>
@@ -17,7 +18,7 @@ export function useRegisterCompanyAddress(
         void onRegister({ ...basicData, ...data, account_type_id: ACCOUNT_TYPE_COMPANY });
       })();
     } catch (error) {
-      console.log(trataErroAxios(error));
+      toast.error(trataErroAxios(error));
     }
   }, [handleSubmit, setDataAddress, onRegister, basicData]);
 

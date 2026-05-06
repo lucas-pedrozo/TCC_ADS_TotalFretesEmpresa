@@ -4,6 +4,7 @@ import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useRegisterCompanyContext, type RegisterCompanyDraftData } from "@/context/RegisterCompanyContext";
 import { useNavigate, type NavigateFunction } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export function useRegisterCompany(navigateOverride?: NavigateFunction) {
   const { getPayload, reset } = useRegisterCompanyContext();
@@ -11,9 +12,10 @@ export function useRegisterCompany(navigateOverride?: NavigateFunction) {
   const [isDisabled, setIsDisabled] = useState(false);
   const navigateDefault = useNavigate();
   const navigate = navigateOverride ?? navigateDefault;
+  const { t } = useTranslation();
 
   const handleRegisterCompany = useCallback(async (payload?: RegisterCompanyDraftData) => {
-    const toastId = toast.loading("Criando conta...");
+    const toastId = toast.loading(t("register.loading"));
     try {
       setIsLoading(true);
       setIsDisabled(true);
@@ -22,7 +24,7 @@ export function useRegisterCompany(navigateOverride?: NavigateFunction) {
       await http.post("/company/end-account/", data);
 
       reset();
-      toast.success("Conta criada com sucesso! Faça login para continuar.", { id: toastId });
+      toast.success(t("register.success"), { id: toastId });
       navigate("/Login");
     } catch (error) {
       toast.error(trataErroAxios(error), { id: toastId });
@@ -30,7 +32,7 @@ export function useRegisterCompany(navigateOverride?: NavigateFunction) {
       setIsLoading(false);
       setIsDisabled(false);
     }
-  }, [getPayload, reset, navigate]);
+  }, [getPayload, reset, navigate, t]);
 
   return {
     handleRegisterCompany,

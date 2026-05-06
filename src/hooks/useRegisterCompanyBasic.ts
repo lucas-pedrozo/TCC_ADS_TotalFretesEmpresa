@@ -4,6 +4,7 @@ import { trataErroAxios } from "@/utils/trataErroAxios";
 import { validateCNPJ, validateCPF, validateEmail, validatePassword } from "@/utils/validation";
 import { useCallback } from "react"
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export function useRegisterCompanyBasic(onClickNext: () => void) {
   const { basicData, setDataBasic } = useRegisterCompanyContext();
@@ -17,7 +18,7 @@ export function useRegisterCompanyBasic(onClickNext: () => void) {
         onClickNext();
       })();
     } catch (error) {
-      console.log(trataErroAxios(error));
+      toast.error(trataErroAxios(error));
     }
   }, [handleSubmit, setDataBasic, onClickNext])
 

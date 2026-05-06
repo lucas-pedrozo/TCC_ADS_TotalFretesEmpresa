@@ -1,4 +1,5 @@
 import { AxiosError } from "axios";
+import i18n from "@/i18n";
 
 /**
  * Extrai uma mensagem de erro legível a partir de diferentes tipos de erro.
@@ -14,12 +15,12 @@ export function trataErroAxios(error: unknown): string {
     if (typeof data?.message === "string" && data.message.trim()) return data.message;
     if (error.message) return error.message;
 
-    return "Erro na requisição";
+    return i18n.t("errors.request");
   }
 
   if (error instanceof Error) {
     return error.message;
   }
 
-  return "Erro desconhecido";
+  return i18n.t("errors.unknown");
 }

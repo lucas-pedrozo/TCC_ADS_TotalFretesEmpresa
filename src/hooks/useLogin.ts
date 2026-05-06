@@ -7,6 +7,7 @@ import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface LoginData {
   email: string;
@@ -19,9 +20,10 @@ export function useLogin() {
   const [isDisabled, setIsDisabled] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useTranslation();
 
   const HandleLogin = useCallback(async (data: LoginData) => {
-    const toastId = toast.loading("Entrando...");
+    const toastId = toast.loading(t("pages.login.loading"));
     try {
       setIsLoading(true);
       setIsDisabled(true);
@@ -38,7 +40,7 @@ export function useLogin() {
       }
 
       await login(token);
-      toast.success("Login realizado com sucesso!", { id: toastId });
+      toast.success(t("pages.login.success"), { id: toastId });
       navigate("/Home");
 
     } catch (error) {
@@ -47,7 +49,7 @@ export function useLogin() {
       setIsLoading(false);
       setIsDisabled(false);
     }
-  }, [login, navigate]);
+  }, [login, navigate, t]);
 
   const Rules = {
     email: {
