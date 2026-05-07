@@ -4,12 +4,15 @@ import { AuthLayout } from '@/layout/AuthLayout'
 import { useLogin } from '@/hooks/useLogin'
 import { useFadeNavigate } from '@/hooks/useFadeNavigate'
 import { useMountFadeIn } from '@/hooks/useMountFadeIn'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
 const LoginPage = () => {
   const { isExiting, navigateWithFade } = useFadeNavigate()
   const { HandleLogin, Rules, control, handleSubmit, isDisabled, isLoading } = useLogin()
   const { t } = useTranslation()
+  const [showPassword, setShowPassword] = useState(false)
   const contentClassName = useMountFadeIn({
     className: 'flex w-full flex-col gap-6',
     isExiting,
@@ -38,7 +41,17 @@ const LoginPage = () => {
             control={control}
             rules={Rules.password}
             label={t('pages.login.passwordLabel')}
-            type="password"
+            type={showPassword ? 'text' : 'password'}
+            rightElement={
+              <button
+                type="button"
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                onClick={() => setShowPassword((current) => !current)}
+                className="text-black/70 hover:text-black cursor-pointer"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            }
           />
 
           <p className="underline hover:text-stone-600 cursor-pointer pl-2.5">

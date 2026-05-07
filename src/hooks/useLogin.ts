@@ -29,14 +29,14 @@ export function useLogin() {
       setIsDisabled(true);
 
       if (!data) {
-        throw new Error("No data provided");
+        throw new Error(t('pages.login.noDataProvided'));
       }
 
       const response = await http.post("/auth/login", data);
       const token = response.data.token;
 
       if (!token) {
-        throw new Error("Token nao encontrado na resposta de login");
+        throw new Error(t('pages.login.tokenNotFound'));
       }
 
       await login(token);
@@ -53,11 +53,11 @@ export function useLogin() {
 
   const Rules = {
     email: {
-      required: "Email is required",
+      required: t('pages.login.emailRequired'),
       validate: (value: string) => validateEmail(value)
     },
     password: {
-      required: "Password is required",
+      required: t('pages.login.passwordRequired'),
       validate: (value: string) => validatePassword(value)
     },
   };

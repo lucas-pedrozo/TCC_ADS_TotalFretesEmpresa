@@ -4,8 +4,10 @@ import { AuthLayout } from '@/layout/AuthLayout'
 import { useRegisterCompanyBasic } from '@/hooks/useRegisterCompanyBasic'
 import { useFadeNavigate } from '@/hooks/useFadeNavigate'
 import { useMountFadeIn } from '@/hooks/useMountFadeIn'
+import { useTranslation } from 'react-i18next'
 
 const SingUpBasicPage = () => {
+  const { t } = useTranslation()
   const { isExiting, navigateWithFade } = useFadeNavigate()
   const { Rules, control, handleNextCompanyBasic } = useRegisterCompanyBasic(() =>
     navigateWithFade('/SignUpAddress'),
@@ -19,7 +21,7 @@ const SingUpBasicPage = () => {
     <AuthLayout onBack={() => navigateWithFade('/')} isExiting={isExiting} transparent>
       <div className={contentClassName}>
         <div className="w-full">
-          <h3 className="text-5xl font-bold text-start">Cadastro</h3>
+          <h3 className="text-5xl font-bold text-start">{t('pages.singupBasic.title')}</h3>
         </div>
 
         <form
@@ -31,54 +33,54 @@ const SingUpBasicPage = () => {
         >
           <InputDefault
             name="name"
-            placeholder="Nome Completo"
+            placeholder={t('pages.singupBasic.namePlaceholder')}
             control={control}
             rules={Rules.name}
-            label="Nome Completo"
+            label={t('pages.singupBasic.nameLabel')}
           />
 
           <InputDefault
             name="email"
-            placeholder="usuario@exemplo.com"
+            placeholder={t('pages.singupBasic.emailPlaceholder')}
             control={control}
             rules={Rules.email}
-            label="Email"
+            label={t('pages.singupBasic.emailLabel')}
             type="email"
           />
 
           <InputDefault
             name="cnpj"
-            placeholder="00.000.000/0000-00"
+            placeholder={t('pages.singupBasic.cnpjPlaceholder')}
             control={control}
             rules={Rules.cnpj}
-            label="CNPJ"
+            label={t('pages.singupBasic.cnpjLabel')}
             mask="cnpj"
           />
 
           <InputDefault
             name="phoneNumber"
-            placeholder="(00) 000000000"
+            placeholder={t('pages.singupBasic.phoneNumberPlaceholder')}
             control={control}
             rules={Rules.phoneNumber}
-            label="Telefone"
+            label={t('pages.singupBasic.phoneNumberLabel')}
             mask="phone"
           />
 
           <InputDefault
             name="birthFundation"
-            placeholder="Data de fundação"
+            placeholder={t('pages.singupBasic.birthFundationPlaceholder')}
             control={control}
             rules={Rules.birthFundation}
-            label="Data de fundação"
+            label={t('pages.singupBasic.birthFundationLabel')}
             type="date"
           />
 
           <InputDefault
             name="password"
-            placeholder="Senha"
+            placeholder={t('pages.singupBasic.passwordPlaceholder')}
             control={control}
             rules={Rules.password}
-            label="Senha"
+            label={t('pages.singupBasic.passwordLabel')}
             type="password"
           />
 
@@ -88,7 +90,7 @@ const SingUpBasicPage = () => {
               dataTestid="signup-basic-next-button"
               color="default"
             >
-              Próximo
+              {t('pages.singupBasic.nextButton')}
             </ButtonDefault>
           </div>
         </form>

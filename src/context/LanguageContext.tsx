@@ -1,6 +1,14 @@
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useTranslation } from "react-i18next";
-import i18n, { normalizeLanguage } from "@/i18n";
+import { normalizeLanguage } from "@/i18n";
 import { DEFAULT_LANGUAGE, type AppLanguage } from "@/i18n/resources";
 
 const LANGUAGE_STORAGE_KEY = "app_language";
@@ -17,14 +25,31 @@ type LanguageProviderProps = {
 };
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  useTranslation();
+  const { i18n: i18nInstance } = useTranslation();
 
-  const language = normalizeLanguage(i18n.language);
+  const [language, setLanguage] = useState<AppLanguage>(() =>
+    normalizeLanguage(i18nInstance.language)
+  );
 
-  const changeLanguage = useCallback(async (nextLanguage: AppLanguage) => {
-    await i18n.changeLanguage(nextLanguage);
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
-  }, []);
+  useEffect(() => {
+    const syncFromI18n = (lng: string) => {
+      setLanguage(normalizeLanguage(lng));
+    };
+
+    syncFromI18n(i18nInstance.language);
+    i18nInstance.on("languageChanged", syncFromI18n);
+    return () => {
+      i18nInstance.off("languageChanged", syncFromI18n);
+    };
+  }, [i18nInstance]);
+
+  const changeLanguage = useCallback(
+    async (nextLanguage: AppLanguage) => {
+      await i18nInstance.changeLanguage(nextLanguage);
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+    },
+    [i18nInstance]
+  );
 
   const value = useMemo(
     () => ({
