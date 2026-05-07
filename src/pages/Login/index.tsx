@@ -14,7 +14,7 @@ const LoginPage = () => {
   const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
   const contentClassName = useMountFadeIn({
-    className: 'flex w-full flex-col gap-6',
+    className: 'flex w-full min-h-full flex-col justify-center gap-6',
     isExiting,
   })
 

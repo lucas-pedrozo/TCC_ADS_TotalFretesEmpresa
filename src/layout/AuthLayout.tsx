@@ -36,7 +36,7 @@ export const AuthLayout = ({ children, transparent = false, onBack, isExiting }:
       </section>
 
       <section
-        className={`relative flex h-full w-full min-[970px]:max-w-2xl items-center justify-center overflow-x-hidden overflow-y-auto ${
+        className={`relative flex h-full w-full min-[970px]:max-w-2xl items-start justify-center overflow-x-hidden overflow-y-auto ${
           transparent ? 'bg-white/86 backdrop-blur-sm' : 'bg-white'
         }`}
       >
@@ -44,13 +44,17 @@ export const AuthLayout = ({ children, transparent = false, onBack, isExiting }:
           <button
             type="button"
             onClick={onBack}
-            className={fadeExitClassName(!!isExiting, 'absolute top-5 left-5 flex items-center gap-1 text-sm text-white cursor-pointer bg-brand-green hover:bg-brand-green-dark hover:text-white transition-all duration-200 py-1 px-1 rounded-lg')}
+            className={fadeExitClassName(!!isExiting, 'absolute z-20 top-5 left-5 flex items-center gap-1 text-sm text-white cursor-pointer bg-brand-green hover:bg-brand-green-dark hover:text-white transition-all duration-200 py-1 px-1 rounded-lg')}
           >
             <HiChevronLeft  size={'30'}/>
           </button>
         )}
 
-        <div className="w-full min-[520px]:max-w-125 min-[970px]:w-3/4 px-4 min-[970px]:p-0 flex flex-col gap-6 py-8">
+        <div
+          className={`w-full min-h-full min-[520px]:max-w-125 min-[970px]:w-3/4 px-4 min-[970px]:px-0 flex flex-col gap-6 pb-8 min-[970px]:pt-8 ${
+            onBack ? 'pt-20' : 'pt-8'
+          }`}
+        >
           {children}
         </div>
       </section>

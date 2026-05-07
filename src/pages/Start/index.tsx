@@ -10,8 +10,13 @@ const StartPage = () => {
 
   return (
     <AuthLayout transparent>
-      <div className={fadeExitClassName(isExiting, 'flex w-full flex-col gap-6')}>
-        <h3 className="mb-20 text-center text-5xl font-bold">{t('pages.start.welcome')}</h3>
+      <div
+        className={fadeExitClassName(
+          isExiting,
+          'flex w-full min-h-[calc(100dvh-7rem)] flex-col justify-center gap-6',
+        )}
+      >
+        <h3 className="mb-8 text-center text-5xl font-bold">{t('pages.start.welcome')}</h3>
         <ButtonDefault
           type="button"
           dataTestid="login-button"
