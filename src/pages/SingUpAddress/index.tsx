@@ -1,19 +1,31 @@
 import { InputDefault } from '@/components/custom/inputs/InputDefault'
+import { SelectDefault } from '@/components/custom/inputs/SelectDefault'
 import { ButtonDefault } from '@/components/custom/buttons/ButtonDefault'
 import { AuthLayout } from '@/layout/AuthLayout'
 import { useRegisterCompanyAddress } from '@/hooks/useRegisterCompanyAddress'
 import { useRegisterCompany } from '@/hooks/useRegisterCompany'
 import { useFadeNavigate } from '@/hooks/useFadeNavigate'
 import { useMountFadeIn } from '@/hooks/useMountFadeIn'
+import { useTranslation } from 'react-i18next'
 
 const SingUpAddressPage = () => {
+  const { t } = useTranslation()
   const { isExiting, navigateWithFade } = useFadeNavigate()
   const { handleRegisterCompany, isDisabled, isLoading } = useRegisterCompany(navigateWithFade)
-  const { Rules, control, handleNextCompanyAddress } = useRegisterCompanyAddress(
+  const {
+    Rules,
+    control,
+    country,
+    countryOptions,
+    stateOptions,
+    hasStateOptions,
+    isSearchingCep,
+    handleNextCompanyAddress,
+  } = useRegisterCompanyAddress(
     handleRegisterCompany,
   )
   const contentClassName = useMountFadeIn({
-    className: 'flex w-full flex-col gap-6',
+    className: 'flex w-full min-h-[calc(100dvh-7rem)] py-4 min-[970px]:py-6 flex-col justify-center gap-6',
     isExiting,
   })
 
@@ -21,7 +33,7 @@ const SingUpAddressPage = () => {
     <AuthLayout onBack={() => navigateWithFade('/SignUp')} isExiting={isExiting} transparent>
       <div className={contentClassName}>
         <div className="w-full">
-          <h3 className="text-5xl font-bold text-start">Endereço</h3>
+          <h3 className="text-5xl font-bold text-start">{t('pages.singupAddress.title')}</h3>
         </div>
 
         <form
@@ -31,53 +43,80 @@ const SingUpAddressPage = () => {
           }}
           className="flex flex-col gap-2 w-full"
         >
-          <InputDefault
-            name="cep"
-            placeholder="00000-000"
+          <SelectDefault
+            name="country"
             control={control}
-            rules={Rules.cep}
-            label="CEP"
+            rules={Rules.country}
+            label={t('pages.singupAddress.countryLabel')}
+            options={countryOptions}
           />
 
           <InputDefault
+            name="cep"
+            placeholder={t('pages.singupAddress.cepPlaceholder')}
+            control={control}
+            rules={Rules.cep}
+            label={t('pages.singupAddress.cepLabel')}
+            mask={country === 'BR' ? 'cep' : 'default'}
+            maxLength={country === 'BR' ? 9 : undefined}
+          />
+
+          {isSearchingCep && (
+            <span className="pl-2.5 text-sm text-black/60">
+              {t('pages.singupAddress.searchingCep')}
+            </span>
+          )}
+
+          <InputDefault
             name="city"
-            placeholder="Nome da Cidade"
+            placeholder={t('pages.singupAddress.cityPlaceholder')}
             control={control}
             rules={Rules.city}
-            label="Cidade"
+            label={t('pages.singupAddress.cityLabel')}
           />
 
           <InputDefault
             name="street"
-            placeholder="Exemplo: Rua São Paulo"
+            placeholder={t('pages.singupAddress.streetPlaceholder')}
             control={control}
             rules={Rules.street}
-            label="Rua"
+            label={t('pages.singupAddress.streetLabel')}
           />
 
           <InputDefault
             name="number"
-            placeholder="Ex: 123"
+            placeholder={t('pages.singupAddress.numberPlaceholder')}
             control={control}
             rules={Rules.number}
-            label="Número"
+            label={t('pages.singupAddress.numberLabel')}
           />
 
           <InputDefault
             name="district"
-            placeholder="Exemplo: Centro"
+            placeholder={t('pages.singupAddress.districtPlaceholder')}
             control={control}
             rules={Rules.district}
-            label="Bairro"
+            label={t('pages.singupAddress.districtLabel')}
           />
 
-          <InputDefault
-            name="state"
-            placeholder="Nenhum"
-            control={control}
-            rules={Rules.state}
-            label="Estado"
-          />
+          {hasStateOptions ? (
+            <SelectDefault
+              name="state"
+              control={control}
+              rules={Rules.state}
+              label={t('pages.singupAddress.stateLabel')}
+              placeholder={t('pages.singupAddress.statePlaceholder')}
+              options={stateOptions}
+            />
+          ) : (
+            <InputDefault
+              name="state"
+              placeholder={t('pages.singupAddress.statePlaceholder')}
+              control={control}
+              rules={Rules.state}
+              label={t('pages.singupAddress.stateLabel')}
+            />
+          )}
 
           <div className="pt-5">
             <ButtonDefault
@@ -87,7 +126,7 @@ const SingUpAddressPage = () => {
               isLoading={isLoading}
               color="default"
             >
-              Criar Conta
+              {t('pages.singupAddress.submitButton')}
             </ButtonDefault>
           </div>
         </form>

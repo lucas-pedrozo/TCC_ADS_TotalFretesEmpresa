@@ -6,7 +6,7 @@ const http = axios.create({
 });
 
 http.interceptors.request.use((config) => {
-  const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem("auth_token");
   const language = normalizeLanguage(i18n.language);
 
   if (token) {

@@ -32,7 +32,10 @@ export function useLogin() {
         throw new Error(t('pages.login.noDataProvided'));
       }
 
-      const response = await http.post("/auth/login", data);
+      const response = await http.post("/auth/login", {
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+      });
       const token = response.data.token;
 
       if (!token) {
@@ -54,11 +57,11 @@ export function useLogin() {
   const Rules = {
     email: {
       required: t('pages.login.emailRequired'),
-      validate: (value: string) => validateEmail(value)
+      validate: (value: string) => validateEmail(value) || t("validation.emailInvalid")
     },
     password: {
       required: t('pages.login.passwordRequired'),
-      validate: (value: string) => validatePassword(value)
+      validate: (value: string) => validatePassword(value) || t("validation.passwordInvalid")
     },
   };
 

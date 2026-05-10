@@ -14,7 +14,7 @@ const LoginPage = () => {
   const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
   const contentClassName = useMountFadeIn({
-    className: 'flex w-full min-h-full flex-col justify-center gap-6',
+    className: 'flex w-full min-h-[calc(100dvh-7rem)] flex-col justify-center gap-6',
     isExiting,
   })
 
@@ -33,6 +33,7 @@ const LoginPage = () => {
             rules={Rules.email}
             label={t('pages.login.emailLabel')}
             type="email"
+            mask="email"
           />
 
           <InputDefault
@@ -54,9 +55,13 @@ const LoginPage = () => {
             }
           />
 
-          <p className="underline hover:text-stone-600 cursor-pointer pl-2.5">
+          <button
+            type="button"
+            onClick={() => navigateWithFade('/ForgotPassword')}
+            className="w-fit underline hover:text-stone-600 cursor-pointer pl-2.5"
+          >
             {t('pages.login.forgotPassword')}
-          </p>
+          </button>
 
           <div className="pt-5">
             <ButtonDefault

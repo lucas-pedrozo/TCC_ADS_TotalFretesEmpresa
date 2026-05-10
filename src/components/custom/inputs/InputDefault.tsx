@@ -6,7 +6,7 @@ import {
   type RegisterOptions,
 } from "react-hook-form"
 import type { ReactNode } from "react"
-import { maskCnpj, maskPhone } from "@/utils/mask"
+import { maskCep, maskCnpj, maskEmail, maskPhone, maskUf } from "@/utils/mask"
 
 type InputDefaultProps<T extends FieldValues> = {
   name: Path<T>
@@ -17,7 +17,7 @@ type InputDefaultProps<T extends FieldValues> = {
   placeholder?: string
   maxLength?: number
   disabled?: boolean
-  mask?: "default" | "phone" | "cnpj"
+  mask?: "default" | "phone" | "cnpj" | "cep" | "email" | "uf"
   rightElement?: ReactNode
 }
 
@@ -43,12 +43,18 @@ const MASKS = {
   default: (value: string) => value,
   phone: maskPhone,
   cnpj: maskCnpj,
+  cep: maskCep,
+  email: maskEmail,
+  uf: maskUf,
 }
 
 export const UNMASKS = {
   default: (value: string) => value,
   phone: (value: string) => value.replace(/\D/g, ""),
   cnpj: (value: string) => value.replace(/\D/g, ""),
+  cep: (value: string) => value.replace(/\D/g, ""),
+  email: maskEmail,
+  uf: maskUf,
 }
 
 export function InputDefault<T extends FieldValues>({

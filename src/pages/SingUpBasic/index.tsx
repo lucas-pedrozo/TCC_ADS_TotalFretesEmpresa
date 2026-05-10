@@ -4,7 +4,9 @@ import { AuthLayout } from '@/layout/AuthLayout'
 import { useRegisterCompanyBasic } from '@/hooks/useRegisterCompanyBasic'
 import { useFadeNavigate } from '@/hooks/useFadeNavigate'
 import { useMountFadeIn } from '@/hooks/useMountFadeIn'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
 const SingUpBasicPage = () => {
     const { t } = useTranslation()
@@ -12,8 +14,10 @@ const SingUpBasicPage = () => {
     const { Rules, control, handleNextCompanyBasic } = useRegisterCompanyBasic(() =>
         navigateWithFade('/SignUpAddress'),
     )
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const contentClassName = useMountFadeIn({
-        className: 'flex w-full py-4 min-[970px]:py-6 flex-col gap-6',
+        className: 'flex w-full min-h-[calc(100dvh-7rem)] py-4 min-[970px]:py-6 flex-col justify-center gap-6',
         isExiting,
     })
 
@@ -48,6 +52,7 @@ const SingUpBasicPage = () => {
                         rules={Rules.email}
                         label={t('pages.singupBasic.emailLabel')}
                         type="email"
+                        mask="email"
                     />
 
                     <InputDefault
@@ -57,6 +62,7 @@ const SingUpBasicPage = () => {
                         rules={Rules.cnpj}
                         label={t('pages.singupBasic.cnpjLabel')}
                         mask="cnpj"
+                        maxLength={18}
                     />
 
                     <InputDefault
@@ -66,6 +72,7 @@ const SingUpBasicPage = () => {
                         rules={Rules.phoneNumber}
                         label={t('pages.singupBasic.phoneNumberLabel')}
                         mask="phone"
+                        maxLength={15}
                     />
 
                     <InputDefault
@@ -83,7 +90,36 @@ const SingUpBasicPage = () => {
                         control={control}
                         rules={Rules.password}
                         label={t('pages.singupBasic.passwordLabel')}
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
+                        rightElement={
+                            <button
+                                type="button"
+                                aria-label={showPassword ? t('common.hidePassword') : t('common.showPassword')}
+                                onClick={() => setShowPassword((current) => !current)}
+                                className="text-black/70 hover:text-black cursor-pointer"
+                            >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                        }
+                    />
+
+                    <InputDefault
+                        name="confirmPassword"
+                        placeholder={t('pages.singupBasic.confirmPasswordPlaceholder')}
+                        control={control}
+                        rules={Rules.confirmPassword}
+                        label={t('pages.singupBasic.confirmPasswordLabel')}
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        rightElement={
+                            <button
+                                type="button"
+                                aria-label={showConfirmPassword ? t('common.hidePassword') : t('common.showPassword')}
+                                onClick={() => setShowConfirmPassword((current) => !current)}
+                                className="text-black/70 hover:text-black cursor-pointer"
+                            >
+                                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                        }
                     />
 
                     <div className="pt-5">

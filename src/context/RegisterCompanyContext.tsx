@@ -11,9 +11,11 @@ export type RegisterCompanyDataBasic = {
   website?: string;
   cnpj: string;
   password: string;
+  confirmPassword: string;
 }
 
 export type RegisterCompanyDataAddress = {
+  country: string;
   cep: string;
   street: string;
   district: string;
@@ -43,9 +45,11 @@ const defultBasicData: RegisterCompanyDataBasic = {
   phoneNumber: "",
   cnpj: "",
   password: "",
+  confirmPassword: "",
 }
 
 const defaultAddressData: RegisterCompanyDataAddress = {
+  country: "BR",
   cep: "",
   street: "",
   district: "",

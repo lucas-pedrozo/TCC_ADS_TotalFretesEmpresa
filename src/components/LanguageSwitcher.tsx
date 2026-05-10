@@ -37,7 +37,7 @@ export function LanguageSwitcher() {
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="flex items-center gap-2 rounded-full bg-black px-4 py-2 text-sm text-white shadow-lg hover:bg-stone-800"
+          className="flex items-center gap-2 rounded-full border border-brand-green-dark bg-brand-green px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-200 hover:bg-brand-green-dark hover:text-white"
           aria-label={t("common.language")}
         >
           <Languages size={16} />

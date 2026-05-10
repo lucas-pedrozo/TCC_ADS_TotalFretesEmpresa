@@ -6,6 +6,30 @@ import { useNavigate, type NavigateFunction } from "react-router-dom";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
+const onlyDigits = (value: string) => value.replace(/\D/g, "");
+
+const normalizeCompanyPayload = (data: RegisterCompanyDraftData) => {
+  const payload: Partial<RegisterCompanyDraftData> = { ...data };
+  delete payload.confirmPassword;
+
+  return {
+    ...payload,
+    name: data.name.trim(),
+    email: data.email.trim().toLowerCase(),
+    birthFundation: data.birthFundation,
+    phoneNumber: onlyDigits(data.phoneNumber),
+    cnpj: onlyDigits(data.cnpj),
+    password: data.password,
+    country: data.country.trim().toUpperCase(),
+    cep: data.country === "BR" ? onlyDigits(data.cep) : data.cep.trim(),
+    street: data.street.trim(),
+    district: data.district.trim(),
+    number: data.number.trim(),
+    city: data.city.trim(),
+    state: data.state.trim().toUpperCase(),
+  };
+};
+
 export function useRegisterCompany(navigateOverride?: NavigateFunction) {
   const { getPayload, reset } = useRegisterCompanyContext();
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +44,7 @@ export function useRegisterCompany(navigateOverride?: NavigateFunction) {
       setIsLoading(true);
       setIsDisabled(true);
 
-      const data = payload ?? getPayload();
+      const data = normalizeCompanyPayload(payload ?? getPayload());
       await http.post("/company/end-account/", data);
 
       reset();
