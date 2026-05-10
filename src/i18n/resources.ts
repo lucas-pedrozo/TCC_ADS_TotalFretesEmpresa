@@ -13,6 +13,9 @@ export const resources = {
         language: "Idioma",
         showPassword: "Mostrar senha",
         hidePassword: "Ocultar senha",
+        logoutRedirectNotice:
+          "Você saiu da conta. Redirecionando para o login…",
+        authSessionLoading: "Verificando sessão…",
       },
       pages: {
         start: {
@@ -107,9 +110,24 @@ export const resources = {
         },
       },
       sidebar: {
+        brandName: "Total Fretes Empresas",
         home: "Home",
+        freights: "Fretes",
+        proposals: "Propostas",
+        history: "Histórico",
         profile: "Perfil",
         logout: "Sair",
+      },
+      header: {
+        homeTitle: "Dashboard",
+        profileTitle: "Perfil",
+        notifications: "Notificações",
+        editProfile: "Editar perfil",
+        companyNameFallback: "Sua empresa",
+        companyLabel: "Empresa",
+        roleCompany: "Empresa",
+        roleAdmin: "Administrador",
+        roleGuest: "Conta",
       },
       register: {
         loading: "Criando conta...",
@@ -164,6 +182,8 @@ export const resources = {
         CNPJ_ALREADY_EXISTS: "Já existe uma empresa com este CNPJ",
         PHONE_NUMBER_ALREADY_EXISTS: "Já existe uma empresa com este telefone",
         NOT_FOUND: "Empresa não encontrada",
+        COMPANY_NOT_FOUND: "Empresa não encontrada",
+        COMPANY_NAME_FALLBACK: "Sua empresa",
       },
       USER: {
         ALREADY_EXISTS: "Cadastro já existente",
@@ -213,6 +233,8 @@ export const resources = {
         language: "Language",
         showPassword: "Show password",
         hidePassword: "Hide password",
+        logoutRedirectNotice: "You have signed out. Redirecting to sign in…",
+        authSessionLoading: "Checking session…",
       },
       pages: {
         start: {
@@ -307,9 +329,24 @@ export const resources = {
         },
       },
       sidebar: {
+        brandName: "Total Fretes Empresas",
         home: "Home",
+        freights: "Freights",
+        proposals: "Proposals",
+        history: "History",
         profile: "Profile",
-        logout: "Sign out",
+        logout: "Logout",
+      },
+      header: {
+        homeTitle: "Dashboard",
+        profileTitle: "Profile",
+        notifications: "Notifications",
+        editProfile: "Edit profile",
+        companyNameFallback: "Your company",
+        companyLabel: "Company",
+        roleCompany: "Company",
+        roleAdmin: "Administrator",
+        roleGuest: "Account",
       },
       register: {
         loading: "Creating account...",
@@ -364,6 +401,7 @@ export const resources = {
         CNPJ_ALREADY_EXISTS: "A company with this CNPJ already exists",
         PHONE_NUMBER_ALREADY_EXISTS: "A company with this phone number already exists",
         NOT_FOUND: "Company not found",
+        COMPANY_NAME_FALLBACK: "Your company",
       },
       USER: {
         ALREADY_EXISTS: "Registration already exists",

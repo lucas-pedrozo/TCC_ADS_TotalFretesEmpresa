@@ -4,13 +4,22 @@ import { AuthLayout } from '@/layout/AuthLayout'
 import { useLogin } from '@/hooks/useLogin'
 import { useFadeNavigate } from '@/hooks/useFadeNavigate'
 import { useMountFadeIn } from '@/hooks/useMountFadeIn'
-import { useState } from 'react'
+import { AUTH_REDIRECT_DELAY_MS } from '@/utils/ui'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
 const LoginPage = () => {
   const { isExiting, navigateWithFade } = useFadeNavigate()
-  const { HandleLogin, Rules, control, handleSubmit, isDisabled, isLoading } = useLogin()
+  const goHomeWithFade = useCallback(
+    () => navigateWithFade('/Home'),
+    [navigateWithFade]
+  )
+  const { HandleLogin, Rules, control, handleSubmit, isDisabled, isLoading } =
+    useLogin({
+      navigateToHome: goHomeWithFade,
+      successDelayMs: AUTH_REDIRECT_DELAY_MS,
+    })
   const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
   const contentClassName = useMountFadeIn({

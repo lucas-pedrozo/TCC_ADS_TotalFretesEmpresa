@@ -8,22 +8,33 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { AUTH_REDIRECT_DELAY_MS } from "@/utils/ui";
 
 interface LoginData {
   email: string;
   password: string;
 }
 
-export function useLogin() {
+export type UseLoginOptions = {
+  /** Após o toast de sucesso e o delay, chame ex. `() => navigateWithFade('/Home')`. */
+  navigateToHome?: () => void;
+  /** Padrão: {@link AUTH_REDIRECT_DELAY_MS}. */
+  successDelayMs?: number;
+};
+
+export function useLogin(options?: UseLoginOptions) {
   const { control, handleSubmit } = useForm<LoginData>({ mode: "onSubmit" });
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
   const { t } = useTranslation();
+  const delayMs = options?.successDelayMs ?? AUTH_REDIRECT_DELAY_MS;
+  const goHome = options?.navigateToHome ?? (() => navigate("/Home"));
 
   const HandleLogin = useCallback(async (data: LoginData) => {
     const toastId = toast.loading(t("pages.login.loading"));
+    let reenableForm = true;
     try {
       setIsLoading(true);
       setIsDisabled(true);
@@ -43,16 +54,21 @@ export function useLogin() {
       }
 
       await login(token);
-      toast.success(t("pages.login.success"), { id: toastId });
-      navigate("/Home");
-
+      toast.success(t("pages.login.success"), {
+        id: toastId,
+        duration: delayMs,
+      });
+      setIsLoading(false);
+      reenableForm = false;
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      goHome();
     } catch (error) {
       toast.error(trataErroAxios(error), { id: toastId });
     } finally {
       setIsLoading(false);
-      setIsDisabled(false);
+      if (reenableForm) setIsDisabled(false);
     }
-  }, [login, navigate, t]);
+  }, [login, goHome, t, delayMs]);
 
   const Rules = {
     email: {
