@@ -7,6 +7,7 @@ import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface LoginData {
   email: string;
@@ -19,26 +20,30 @@ export function useLogin() {
   const [isDisabled, setIsDisabled] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useTranslation();
 
   const HandleLogin = useCallback(async (data: LoginData) => {
-    const toastId = toast.loading("Entrando...");
+    const toastId = toast.loading(t("pages.login.loading"));
     try {
       setIsLoading(true);
       setIsDisabled(true);
 
       if (!data) {
-        throw new Error("No data provided");
+        throw new Error(t('pages.login.noDataProvided'));
       }
 
-      const response = await http.post("/auth/login", data);
+      const response = await http.post("/auth/login", {
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+      });
       const token = response.data.token;
 
       if (!token) {
-        throw new Error("Token nao encontrado na resposta de login");
+        throw new Error(t('pages.login.tokenNotFound'));
       }
 
       await login(token);
-      toast.success("Login realizado com sucesso!", { id: toastId });
+      toast.success(t("pages.login.success"), { id: toastId });
       navigate("/Home");
 
     } catch (error) {
@@ -47,16 +52,16 @@ export function useLogin() {
       setIsLoading(false);
       setIsDisabled(false);
     }
-  }, [login, navigate]);
+  }, [login, navigate, t]);
 
   const Rules = {
     email: {
-      required: "Email is required",
-      validate: (value: string) => validateEmail(value)
+      required: t('pages.login.emailRequired'),
+      validate: (value: string) => validateEmail(value) || t("validation.emailInvalid")
     },
     password: {
-      required: "Password is required",
-      validate: (value: string) => validatePassword(value)
+      required: t('pages.login.passwordRequired'),
+      validate: (value: string) => validatePassword(value) || t("validation.passwordInvalid")
     },
   };
 

@@ -19,6 +19,18 @@ body {
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: 'Inter Variable', sans-serif;
+  --color-brand-green: #086E46;
+  --color-brand-green-dark: #065437;
+  --color-brand-green-light: #D1F9E2;
+  --color-brand-green-light2: #a2beae;
+
+  --color-green-1: #0eb939;
+  --color-green-2: #10a267;
+  --color-green-3: #0c9057;
+  --color-green-4: #087f48;
+  --color-green-5: #046d38;
+  --color-green-6: #005b28;
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

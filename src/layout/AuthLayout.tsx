@@ -2,14 +2,16 @@ import type { ReactNode } from 'react'
 import logo from '@/assets/logototalfretes.png'
 import { HiChevronLeft } from "react-icons/hi";
 import background from '@/assets/—Pngtree—a white truck drives on_19659555.jpg'
+import { fadeExitClassName } from '@/utils/ui';
 
 type AuthLayoutProps = {
   children: ReactNode
   transparent?: boolean
   onBack?: () => void
+  isExiting?: boolean
 }
 
-export const AuthLayout = ({ children, transparent = false, onBack }: AuthLayoutProps) => {
+export const AuthLayout = ({ children, transparent = false, onBack, isExiting }: AuthLayoutProps) => {
   return (
     <main
       className="flex items-center justify-between w-full h-screen"
@@ -34,7 +36,7 @@ export const AuthLayout = ({ children, transparent = false, onBack }: AuthLayout
       </section>
 
       <section
-        className={`relative flex items-center justify-center w-full min-[970px]:max-w-2xl h-full overflow-y-auto ${
+        className={`relative flex h-full w-full min-[970px]:max-w-2xl items-start justify-center overflow-x-hidden overflow-y-auto ${
           transparent ? 'bg-white/86 backdrop-blur-sm' : 'bg-white'
         }`}
       >
@@ -42,13 +44,17 @@ export const AuthLayout = ({ children, transparent = false, onBack }: AuthLayout
           <button
             type="button"
             onClick={onBack}
-            className="absolute top-5 left-5 flex items-center gap-1 text-sm text-white hover:text-white/80 transition-colors cursor-pointer bg-black py-1 px-1 rounded-lg"
+            className={fadeExitClassName(!!isExiting, 'absolute z-20 top-5 left-5 flex items-center gap-1 text-sm text-white cursor-pointer bg-brand-green hover:bg-brand-green-dark hover:text-white transition-all duration-200 py-1 px-1 rounded-lg')}
           >
             <HiChevronLeft  size={'30'}/>
           </button>
         )}
 
-        <div className="w-full min-[520px]:max-w-125 min-[970px]:w-3/4 px-4 min-[970px]:p-0 flex flex-col gap-6 py-8">
+        <div
+          className={`w-full min-h-full min-[520px]:max-w-125 min-[970px]:w-3/4 px-4 min-[970px]:px-0 flex flex-col gap-6 pb-8 min-[970px]:pt-8 ${
+            onBack ? 'pt-20' : 'pt-8'
+          }`}
+        >
           {children}
         </div>
       </section>

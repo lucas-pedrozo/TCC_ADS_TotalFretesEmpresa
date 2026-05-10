@@ -5,7 +5,8 @@ import {
   type Path,
   type RegisterOptions,
 } from "react-hook-form"
-import { maskCnpj, maskPhone } from "@/utils/mask"
+import type { ReactNode } from "react"
+import { maskCep, maskCnpj, maskEmail, maskPhone, maskUf } from "@/utils/mask"
 
 type InputDefaultProps<T extends FieldValues> = {
   name: Path<T>
@@ -16,7 +17,8 @@ type InputDefaultProps<T extends FieldValues> = {
   placeholder?: string
   maxLength?: number
   disabled?: boolean
-  mask?: "default" | "phone" | "cnpj"
+  mask?: "default" | "phone" | "cnpj" | "cep" | "email" | "uf"
+  rightElement?: ReactNode
 }
 
 export const INPUT_STYLES = {
@@ -41,12 +43,18 @@ const MASKS = {
   default: (value: string) => value,
   phone: maskPhone,
   cnpj: maskCnpj,
+  cep: maskCep,
+  email: maskEmail,
+  uf: maskUf,
 }
 
 export const UNMASKS = {
   default: (value: string) => value,
   phone: (value: string) => value.replace(/\D/g, ""),
   cnpj: (value: string) => value.replace(/\D/g, ""),
+  cep: (value: string) => value.replace(/\D/g, ""),
+  email: maskEmail,
+  uf: maskUf,
 }
 
 export function InputDefault<T extends FieldValues>({
@@ -59,54 +67,65 @@ export function InputDefault<T extends FieldValues>({
   maxLength,
   disabled,
   mask = "default",
+  rightElement,
 }: InputDefaultProps<T>) {
   return (
     <Controller
       name={name}
       control={control}
       rules={rules}
-      render={({ field, fieldState: { error } }) => (
-        <div className="flex flex-col gap-1">
-          <label
-            htmlFor={name}
-            className={
-              disabled
-                ? INPUT_STYLES.disabled.label
-                : error
-                  ? INPUT_STYLES.error.label
-                  : INPUT_STYLES.default.label
-            }
-          >
-            {label}
-          </label>
+      render={({ field, fieldState: { error } }) => {
+        const inputClassName = disabled
+          ? INPUT_STYLES.disabled.input
+          : error
+            ? INPUT_STYLES.error.input
+            : INPUT_STYLES.default.input
 
-          <input
-            id={name}
-            type={type}
-            placeholder={placeholder}
-            onChange={(e) => {
-              const masked = MASKS[mask](e.target.value)
-              field.onChange(UNMASKS[mask](masked))
-            }}
-            onBlur={field.onBlur}
-            value={MASKS[mask](field.value ?? "")}
-            ref={field.ref}
-            maxLength={maxLength}
-            disabled={disabled}
-            className={
-              disabled
-                ? INPUT_STYLES.disabled.input
-                : error
-                  ? INPUT_STYLES.error.input
-                  : INPUT_STYLES.default.input
-            }
-          />
+        return (
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor={name}
+              className={
+                disabled
+                  ? INPUT_STYLES.disabled.label
+                  : error
+                    ? INPUT_STYLES.error.label
+                    : INPUT_STYLES.default.label
+              }
+            >
+              {label}
+            </label>
 
-          {error && (
-            <span className="pl-2.5 text-red-500 text-sm">{error.message}</span>
-          )}
-        </div>
-      )}
+            <div className="relative">
+              <input
+                id={name}
+                type={type}
+                placeholder={placeholder}
+                onChange={(e) => {
+                  const masked = MASKS[mask](e.target.value)
+                  field.onChange(UNMASKS[mask](masked))
+                }}
+                onBlur={field.onBlur}
+                value={MASKS[mask](field.value ?? "")}
+                ref={field.ref}
+                maxLength={maxLength}
+                disabled={disabled}
+                className={`${inputClassName} ${rightElement ? "pr-10" : ""}`}
+              />
+
+              {rightElement && (
+                <div className="absolute inset-y-0 right-3 flex items-center">
+                  {rightElement}
+                </div>
+              )}
+            </div>
+
+            {error && (
+              <span className="pl-2.5 text-red-500 text-sm">{error.message}</span>
+            )}
+          </div>
+        )
+      }}
     />
   )
 }

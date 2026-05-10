@@ -2,26 +2,53 @@ import { useCallback, useState } from "react";
 import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useRegisterCompanyContext, type RegisterCompanyDraftData } from "@/context/RegisterCompanyContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, type NavigateFunction } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
-export function useRegisterCompany() {
+const onlyDigits = (value: string) => value.replace(/\D/g, "");
+
+const normalizeCompanyPayload = (data: RegisterCompanyDraftData) => {
+  const payload: Partial<RegisterCompanyDraftData> = { ...data };
+  delete payload.confirmPassword;
+
+  return {
+    ...payload,
+    name: data.name.trim(),
+    email: data.email.trim().toLowerCase(),
+    birthFundation: data.birthFundation,
+    phoneNumber: onlyDigits(data.phoneNumber),
+    cnpj: onlyDigits(data.cnpj),
+    password: data.password,
+    country: data.country.trim().toUpperCase(),
+    cep: data.country === "BR" ? onlyDigits(data.cep) : data.cep.trim(),
+    street: data.street.trim(),
+    district: data.district.trim(),
+    number: data.number.trim(),
+    city: data.city.trim(),
+    state: data.state.trim().toUpperCase(),
+  };
+};
+
+export function useRegisterCompany(navigateOverride?: NavigateFunction) {
   const { getPayload, reset } = useRegisterCompanyContext();
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
-  const navigate = useNavigate();
+  const navigateDefault = useNavigate();
+  const navigate = navigateOverride ?? navigateDefault;
+  const { t } = useTranslation();
 
   const handleRegisterCompany = useCallback(async (payload?: RegisterCompanyDraftData) => {
-    const toastId = toast.loading("Criando conta...");
+    const toastId = toast.loading(t("register.loading"));
     try {
       setIsLoading(true);
       setIsDisabled(true);
 
-      const data = payload ?? getPayload();
+      const data = normalizeCompanyPayload(payload ?? getPayload());
       await http.post("/company/end-account/", data);
 
       reset();
-      toast.success("Conta criada com sucesso! Faça login para continuar.", { id: toastId });
+      toast.success(t("register.success"), { id: toastId });
       navigate("/Login");
     } catch (error) {
       toast.error(trataErroAxios(error), { id: toastId });
@@ -29,7 +56,7 @@ export function useRegisterCompany() {
       setIsLoading(false);
       setIsDisabled(false);
     }
-  }, [getPayload, reset, navigate]);
+  }, [getPayload, reset, navigate, t]);
 
   return {
     handleRegisterCompany,

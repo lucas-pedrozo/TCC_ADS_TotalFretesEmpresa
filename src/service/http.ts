@@ -1,14 +1,20 @@
 import axios from "axios";
+import i18n, { normalizeLanguage } from "@/i18n";
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
 http.interceptors.request.use((config) => {
-  const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem("auth_token");
+  const language = normalizeLanguage(i18n.language);
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  config.headers["accept-language"] = language;
+
   return config;
 });
 

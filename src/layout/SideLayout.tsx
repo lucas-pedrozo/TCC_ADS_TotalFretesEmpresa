@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { HomeIcon, UserIcon, LogOutIcon, TruckIcon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 import {
   Sidebar,
@@ -20,14 +21,14 @@ import {
 
 import Header  from "@/components/custom/Header";
 
-const navItems = [
-  { label: "Home", icon: HomeIcon, to: "/Home" },
-  { label: "Perfil", icon: UserIcon, to: "/Perfil" },
-];
-
 export const SideLayout = () => {
   const location = useLocation();
   const { logout } = useAuth();
+  const { t } = useTranslation();
+  const navItems = [
+    { label: t("sidebar.home"), icon: HomeIcon, to: "/Home" },
+    { label: t("sidebar.profile"), icon: UserIcon, to: "/Perfil" },
+  ];
 
   return (
     <SidebarProvider>
@@ -69,11 +70,11 @@ export const SideLayout = () => {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                tooltip="Sair"
+                tooltip={t("sidebar.logout")}
                 onClick={logout}
               >
                 <LogOutIcon />
-                <span>Sair</span>
+                <span>{t("sidebar.logout")}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
