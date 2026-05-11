@@ -14,8 +14,8 @@ import { SideLayout } from "@/layout/SideLayout";
 import { RegisterCompanyProvider } from "@/context/RegisterCompanyContext";
 import PrivateRoute from "./PrivateRoutes";
 import FreightsPage from "@/pages/Freights";
-import FreightNewPage from "@/pages/Freights/New";
-import FreightDetailPage from "@/pages/Freights/Detail";
+import FreightNewPage from "@/pages/FreightNew";
+import FreightDetailPage from "@/pages/FreightDetail";
 import HistoryPage from "@/pages/History";
 import ProposalsPage from "@/pages/Proposals";
 

@@ -3,6 +3,12 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
+import { FreightForm } from "@/components/ui/freightForm";
+import {
+  FREIGHT_STATUS_LABEL_KEY,
+  parseStatusSlug,
+  statusBadgeClass,
+} from "@/components/ui/freightStatusUi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,8 +20,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { AppLanguage } from "@/i18n/resources";
-import http from "@/service/http";
 import { cn } from "@/lib/utils";
+import http from "@/service/http";
 import type {
   CargoTypeDto,
   FreightDto,
@@ -24,13 +30,6 @@ import type {
 } from "@/types/freight";
 import { haversineKm } from "@/utils/haversineKm";
 import { trataErroAxios } from "@/utils/trataErroAxios";
-
-import { FreightForm } from "./FreightForm";
-import {
-  FREIGHT_STATUS_LABEL_KEY,
-  parseStatusSlug,
-  statusBadgeClass,
-} from "./freightStatusUi";
 
 function formatCurrency(value: number, locale: AppLanguage): string {
   const tag = locale === "en" ? "en-US" : "pt-BR";
@@ -134,7 +133,7 @@ const FreightDetailPage = () => {
 
   if (loading && !freight) {
     return (
-      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
         <p className="text-sm text-muted-foreground">{t("pages.freightDetail.loading")}</p>
       </div>
     );
@@ -142,7 +141,7 @@ const FreightDetailPage = () => {
 
   if (!freight) {
     return (
-      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
         <Button variant="outline" className="w-fit rounded-lg" onClick={() => navigate("/Freights")}>
           {t("pages.freightDetail.back")}
         </Button>
@@ -159,7 +158,7 @@ const FreightDetailPage = () => {
     freight.destination_lng
   );
   const displayValue = freight.finalValue ?? freight.originalValue;
-  const weightKg = freight.CargoType?.weight;
+  const weightKg = freight.weight;
 
   const initialForm = {
     cargoType_id: freight.cargoType_id,
@@ -170,12 +169,13 @@ const FreightDetailPage = () => {
     destination_lat: freight.destination_lat,
     destination_lng: freight.destination_lng,
     originalValue: freight.originalValue,
+    weight: freight.weight ?? undefined,
     daysLimit: freight.daysLimit ?? undefined,
     status_id: freight.status_id ?? undefined,
   };
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Button
           type="button"

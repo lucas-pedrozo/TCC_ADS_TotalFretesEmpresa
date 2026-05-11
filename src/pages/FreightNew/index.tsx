@@ -3,12 +3,11 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { FreightForm } from "@/components/ui/freightForm";
 import { Button } from "@/components/ui/button";
 import http from "@/service/http";
-import { trataErroAxios } from "@/utils/trataErroAxios";
 import type { CargoTypeDto, FreightCreateBody, FreightDto } from "@/types/freight";
-
-import { FreightForm } from "./FreightForm";
+import { trataErroAxios } from "@/utils/trataErroAxios";
 
 type CreateResponse = {
   message?: string;
@@ -54,7 +53,7 @@ const FreightNewPage = () => {
   }
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Button
           type="button"

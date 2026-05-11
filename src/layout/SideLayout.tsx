@@ -158,14 +158,14 @@ export const SideLayout = () => {
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset className="min-w-0 overflow-x-hidden">
+      <SidebarInset className="min-w-0 flex-1">
         <Header
           companyData={companyData}
           isCompanyLoading={isCompanyLoading}
           onLogout={logoutAndRedirect}
         />
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-col">
           <Outlet context={outletContext} />
         </div>
       </SidebarInset>

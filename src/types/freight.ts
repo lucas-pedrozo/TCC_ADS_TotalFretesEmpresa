@@ -13,7 +13,6 @@ export type FreightStatusSlug = (typeof FREIGHT_STATUS_SLUGS)[number];
 export type CargoTypeDto = {
   id: number;
   name: string;
-  weight?: number | null;
   vehicleType?: string;
   imageCargo_id?: number | null;
 };
@@ -38,6 +37,8 @@ export type FreightDto = {
   daysLimit?: number | null;
   originalValue: number;
   finalValue?: number | null;
+  /** Peso da carga do frete (kg). */
+  weight?: number | null;
   createdAt?: string;
   updatedAt?: string;
   CargoType?: CargoTypeDto;
@@ -53,6 +54,8 @@ export type FreightCreateBody = {
   destination_lat: number;
   destination_lng: number;
   originalValue: number;
+  /** Peso da carga (kg), obrigatório na criação. */
+  weight: number;
   daysLimit?: number;
   /** Incluso só na edição (empresa), não no primeiro POST. */
   status_id?: number;

@@ -52,6 +52,9 @@ export function FreightForm({
   const [originalValue, setOriginalValue] = useState(
     initial?.originalValue != null ? String(initial.originalValue) : ""
   );
+  const [weight, setWeight] = useState(
+    initial?.weight != null ? String(initial.weight) : ""
+  );
   const [daysLimit, setDaysLimit] = useState(
     initial?.daysLimit != null ? String(initial.daysLimit) : ""
   );
@@ -81,6 +84,7 @@ export function FreightForm({
     setOriginalValue(
       initial.originalValue != null ? String(initial.originalValue) : ""
     );
+    setWeight(initial.weight != null ? String(initial.weight) : "");
     setDaysLimit(
       initial.daysLimit != null ? String(initial.daysLimit) : ""
     );
@@ -97,6 +101,7 @@ export function FreightForm({
     const dlat = Number(destination_lat);
     const dlng = Number(destination_lng);
     const val = Number(originalValue);
+    const wkg = Number(weight);
     const dl = daysLimit.trim() ? Number(daysLimit) : undefined;
     const sid = status_id.trim() ? Number(status_id) : undefined;
 
@@ -109,6 +114,7 @@ export function FreightForm({
       destination_lat: dlat,
       destination_lng: dlng,
       originalValue: val,
+      weight: wkg,
     };
     if (dl !== undefined && !Number.isNaN(dl)) body.daysLimit = dl;
     if (showStatus && sid !== undefined && !Number.isNaN(sid)) {
@@ -236,6 +242,18 @@ export function FreightForm({
           step="0.01"
           value={originalValue}
           onChange={(e) => setOriginalValue(e.target.value)}
+        />
+      </div>
+      <div className={field}>
+        <Label htmlFor="freight-weight">{t("pages.freightForm.weightKg")}</Label>
+        <Input
+          id="freight-weight"
+          required
+          type="number"
+          min={0.01}
+          step="any"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
         />
       </div>
       <div className={field}>

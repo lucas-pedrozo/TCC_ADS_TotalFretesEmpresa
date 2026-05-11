@@ -44,7 +44,7 @@ import {
   FREIGHT_STATUS_SLUGS,
   parseStatusSlug,
   statusBadgeClass,
-} from "./freightStatusUi";
+} from "@/components/ui/freightStatusUi";
 
 type ChipFilter = "all" | FreightStatusSlug;
 type DriverFilter = "all" | "with" | "without";
@@ -198,7 +198,7 @@ const FreightsPage = () => {
       if (minV !== undefined && displayValue < minV) return false;
       if (maxV !== undefined && displayValue > maxV) return false;
 
-      const weightKg = row.CargoType?.weight;
+      const weightKg = row.weight;
       if (minW !== undefined || maxW !== undefined) {
         if (weightKg == null || Number.isNaN(Number(weightKg))) return false;
         const w = Number(weightKg);
@@ -259,7 +259,7 @@ const FreightsPage = () => {
   const to = total === 0 ? 0 : Math.min(page * pageSize, total);
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
       <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
         <div className="flex flex-col gap-4 border-b border-border p-4 sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -307,7 +307,7 @@ const FreightsPage = () => {
                       {t("pages.freights.filterPanelHint")}
                     </PopoverDescription>
                   </PopoverHeader>
-                  <div className="flex max-h-[min(32rem,calc(100vh-6rem))] flex-col gap-4 overflow-y-auto pr-0.5">
+                  <div className="scrollbar-brand flex max-h-[min(32rem,calc(100vh-6rem))] flex-col gap-4 overflow-y-auto overscroll-y-contain pr-1">
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-foreground">
                         {t("pages.freights.filterSectionStatus")}
@@ -650,7 +650,7 @@ const FreightsPage = () => {
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
-                        {formatWeightKg(row.CargoType?.weight, lang)}
+                        {formatWeightKg(row.weight, lang)}
                       </span>
                     </TableCell>
                     <TableCell>

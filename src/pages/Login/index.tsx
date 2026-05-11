@@ -34,7 +34,12 @@ const LoginPage = () => {
           <h3 className="text-5xl font-bold text-start">{t('pages.login.title')}</h3>
         </div>
 
-        <form onSubmit={handleSubmit(HandleLogin)} className="flex flex-col gap-2 w-full">
+        <form
+          method="post"
+          autoComplete="on"
+          onSubmit={handleSubmit(HandleLogin)}
+          className="flex flex-col gap-2 w-full"
+        >
           <InputDefault
             name="email"
             placeholder={t('pages.login.emailPlaceholder')}
@@ -43,6 +48,7 @@ const LoginPage = () => {
             label={t('pages.login.emailLabel')}
             type="email"
             mask="email"
+            autoComplete="username"
           />
 
           <InputDefault
@@ -52,6 +58,7 @@ const LoginPage = () => {
             rules={Rules.password}
             label={t('pages.login.passwordLabel')}
             type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
             rightElement={
               <button
                 type="button"

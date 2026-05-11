@@ -20,7 +20,8 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api': {
-          target: env.VITE_API_URL,
+          // Origem do gateway (nginx), sem path — ex.: http://127.0.0.1:80
+          target: env.VITE_GATEWAY_URL || 'http://127.0.0.1:80',
           changeOrigin: true,
           secure: false,
         },

@@ -7,6 +7,7 @@ import {
 } from "react-hook-form"
 import type { ReactNode } from "react"
 import { maskCep, maskCnpj, maskEmail, maskPhone, maskUf } from "@/utils/mask"
+import { parseCnpjInput } from "@/utils/cnpjInRfb2229"
 
 type InputDefaultProps<T extends FieldValues> = {
   name: Path<T>
@@ -19,6 +20,8 @@ type InputDefaultProps<T extends FieldValues> = {
   disabled?: boolean
   mask?: "default" | "phone" | "cnpj" | "cep" | "email" | "uf"
   rightElement?: ReactNode
+  /** Importante para gerenciadores de senha do navegador (ex.: login: username + current-password). */
+  autoComplete?: string
 }
 
 export const INPUT_STYLES = {
@@ -51,7 +54,7 @@ const MASKS = {
 export const UNMASKS = {
   default: (value: string) => value,
   phone: (value: string) => value.replace(/\D/g, ""),
-  cnpj: (value: string) => value.replace(/\D/g, ""),
+  cnpj: (value: string) => parseCnpjInput(value ?? ""),
   cep: (value: string) => value.replace(/\D/g, ""),
   email: maskEmail,
   uf: maskUf,
@@ -68,6 +71,7 @@ export function InputDefault<T extends FieldValues>({
   disabled,
   mask = "default",
   rightElement,
+  autoComplete,
 }: InputDefaultProps<T>) {
   return (
     <Controller
@@ -81,10 +85,12 @@ export function InputDefault<T extends FieldValues>({
             ? INPUT_STYLES.error.input
             : INPUT_STYLES.default.input
 
+        const inputId = String(name)
+
         return (
           <div className="flex flex-col gap-1">
             <label
-              htmlFor={name}
+              htmlFor={inputId}
               className={
                 disabled
                   ? INPUT_STYLES.disabled.label
@@ -98,8 +104,10 @@ export function InputDefault<T extends FieldValues>({
 
             <div className="relative">
               <input
-                id={name}
+                id={inputId}
+                name={field.name}
                 type={type}
+                autoComplete={autoComplete}
                 placeholder={placeholder}
                 onChange={(e) => {
                   const masked = MASKS[mask](e.target.value)
