@@ -1,9 +1,9 @@
 const PerfilPage = () => {
   return (
-    <main className='w-screen h-screen flex items-center justify-center bg-cover bg-center'>
+    <div className="flex w-full min-w-0 flex-1 flex-col items-center justify-center bg-cover bg-center">
       <h1>Perfil</h1>
-    </main>
-  )
-}
+    </div>
+  );
+};
 
 export default PerfilPage;

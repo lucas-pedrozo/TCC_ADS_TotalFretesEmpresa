@@ -3,8 +3,9 @@ import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
-interface CompanyData {
+export interface CompanyData {
   name: string;
   email: string;
   birthFundation: string;
@@ -30,7 +31,7 @@ export function useGetCompany() {
     try {
       setIsLoading(true);
       if (!id) {
-        throw new Error("Company ID not found");
+        throw new Error(i18n.t("COMPANY.COMPANY_NOT_FOUND"));
       }
       const response = await http.get<CompanyData>(`/company/${id}`);
       setCompanyData(response.data);

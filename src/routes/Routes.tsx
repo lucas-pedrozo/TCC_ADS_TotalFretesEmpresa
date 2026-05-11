@@ -12,6 +12,12 @@ import PerfilPage from "@/pages/Perfil";
 import StartPage from "@/pages/Start";
 import { SideLayout } from "@/layout/SideLayout";
 import { RegisterCompanyProvider } from "@/context/RegisterCompanyContext";
+import PrivateRoute from "./PrivateRoutes";
+import FreightsPage from "@/pages/Freights";
+import FreightNewPage from "@/pages/FreightNew";
+import FreightDetailPage from "@/pages/FreightDetail";
+import HistoryPage from "@/pages/History";
+import ProposalsPage from "@/pages/Proposals";
 
 const RegisterLayout = () => (
   <RegisterCompanyProvider>
@@ -33,9 +39,16 @@ function WebRoutes() {
         <Route path="/SignUpAddress" element={<SingUpAddressPage />} />
       </Route>
 
-      <Route element={<SideLayout />}>
-        <Route path="/Home" element={<HomePage />} />
-        <Route path="/Perfil" element={<PerfilPage />} />
+      <Route element={<PrivateRoute />}>
+        <Route element={<SideLayout />}>
+          <Route path="/Home" element={<HomePage />} />
+          <Route path="/Perfil" element={<PerfilPage />} />
+          <Route path="/Freights/new" element={<FreightNewPage />} />
+          <Route path="/Freights/:id" element={<FreightDetailPage />} />
+          <Route path="/Freights" element={<FreightsPage />} />
+          <Route path="/History" element={<HistoryPage />} />
+          <Route path="/Proposals" element={<ProposalsPage />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

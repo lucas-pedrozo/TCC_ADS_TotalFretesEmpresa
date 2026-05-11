@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { cpf, cnpj } from "cpf-cnpj-validator";
+import { cpf } from "cpf-cnpj-validator";
+import { isValidCnpjInRfb2229 } from "./cnpjInRfb2229";
 import { isValidPhoneNumber } from "libphonenumber-js";
 
 
@@ -64,7 +65,7 @@ export const validateCPF = (value: string): boolean => {
   return cpf.isValid(value);
 };
 
-// @param cnpj - 00.000.000/0000-00 or 00000000000000
+// @param cnpj — numérico (legado) ou alfanumérico (IN RFB nº 2.229/2024)
 export const validateCNPJ = (value: string): boolean => {
-  return cnpj.isValid(value);
+  return isValidCnpjInRfb2229(value);
 };

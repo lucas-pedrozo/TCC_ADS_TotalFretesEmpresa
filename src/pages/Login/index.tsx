@@ -4,13 +4,22 @@ import { AuthLayout } from '@/layout/AuthLayout'
 import { useLogin } from '@/hooks/useLogin'
 import { useFadeNavigate } from '@/hooks/useFadeNavigate'
 import { useMountFadeIn } from '@/hooks/useMountFadeIn'
-import { useState } from 'react'
+import { AUTH_REDIRECT_DELAY_MS } from '@/utils/ui'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
 const LoginPage = () => {
   const { isExiting, navigateWithFade } = useFadeNavigate()
-  const { HandleLogin, Rules, control, handleSubmit, isDisabled, isLoading } = useLogin()
+  const goHomeWithFade = useCallback(
+    () => navigateWithFade('/Home'),
+    [navigateWithFade]
+  )
+  const { HandleLogin, Rules, control, handleSubmit, isDisabled, isLoading } =
+    useLogin({
+      navigateToHome: goHomeWithFade,
+      successDelayMs: AUTH_REDIRECT_DELAY_MS,
+    })
   const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
   const contentClassName = useMountFadeIn({
@@ -25,7 +34,12 @@ const LoginPage = () => {
           <h3 className="text-5xl font-bold text-start">{t('pages.login.title')}</h3>
         </div>
 
-        <form onSubmit={handleSubmit(HandleLogin)} className="flex flex-col gap-2 w-full">
+        <form
+          method="post"
+          autoComplete="on"
+          onSubmit={handleSubmit(HandleLogin)}
+          className="flex flex-col gap-2 w-full"
+        >
           <InputDefault
             name="email"
             placeholder={t('pages.login.emailPlaceholder')}
@@ -34,6 +48,7 @@ const LoginPage = () => {
             label={t('pages.login.emailLabel')}
             type="email"
             mask="email"
+            autoComplete="username"
           />
 
           <InputDefault
@@ -43,6 +58,7 @@ const LoginPage = () => {
             rules={Rules.password}
             label={t('pages.login.passwordLabel')}
             type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
             rightElement={
               <button
                 type="button"

@@ -37,7 +37,7 @@ export const AuthLayout = ({ children, transparent = false, onBack, isExiting }:
 
       <section
         className={`relative flex h-full w-full min-[970px]:max-w-2xl items-start justify-center overflow-x-hidden overflow-y-auto ${
-          transparent ? 'bg-white/86 backdrop-blur-sm' : 'bg-white'
+          transparent ? 'bg-white/40 backdrop-blur-sm min-[970px]:border-l-4 border-brand-green shadow-left-[10px] shadow-black shadow-xl' : 'bg-white'
         }`}
       >
         {onBack && (
@@ -49,7 +49,6 @@ export const AuthLayout = ({ children, transparent = false, onBack, isExiting }:
             <HiChevronLeft  size={'30'}/>
           </button>
         )}
-
         <div
           className={`w-full min-h-full min-[520px]:max-w-125 min-[970px]:w-3/4 px-4 min-[970px]:px-0 flex flex-col gap-6 pb-8 min-[970px]:pt-8 ${
             onBack ? 'pt-20' : 'pt-8'
