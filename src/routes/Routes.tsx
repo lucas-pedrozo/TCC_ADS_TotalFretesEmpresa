@@ -14,6 +14,8 @@ import { SideLayout } from "@/layout/SideLayout";
 import { RegisterCompanyProvider } from "@/context/RegisterCompanyContext";
 import PrivateRoute from "./PrivateRoutes";
 import FreightsPage from "@/pages/Freights";
+import FreightNewPage from "@/pages/Freights/New";
+import FreightDetailPage from "@/pages/Freights/Detail";
 import HistoryPage from "@/pages/History";
 import ProposalsPage from "@/pages/Proposals";
 
@@ -41,6 +43,8 @@ function WebRoutes() {
         <Route element={<SideLayout />}>
           <Route path="/Home" element={<HomePage />} />
           <Route path="/Perfil" element={<PerfilPage />} />
+          <Route path="/Freights/new" element={<FreightNewPage />} />
+          <Route path="/Freights/:id" element={<FreightDetailPage />} />
           <Route path="/Freights" element={<FreightsPage />} />
           <Route path="/History" element={<HistoryPage />} />
           <Route path="/Proposals" element={<ProposalsPage />} />

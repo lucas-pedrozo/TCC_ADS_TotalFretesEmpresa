@@ -1,6 +1,7 @@
 import { Bell, LogOut, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import type { AppLanguage } from "@/i18n/resources";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -20,7 +21,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/context/AuthContext";
 import type { CompanyData } from "@/hooks/useGetCompany";
 import { cn } from "@/lib/utils";
 
@@ -39,17 +39,20 @@ function headerTitle(pathname: string, t: (key: string) => string) {
   if (pathname.startsWith("/Perfil")) {
     return t("header.profileTitle");
   }
+  if (pathname.startsWith("/Freights")) {
+    return t("header.freightsTitle");
+  }
   return t("header.homeTitle");
 }
 
-function accessRoleLabel(
-  accessLevel: string | null,
-  t: (key: string) => string
-) {
-  const u = accessLevel?.toUpperCase() ?? "";
-  if (u === "ADMIN") return t("header.roleAdmin");
-  if (u === "COMPANY") return t("header.roleCompany");
-  return t("header.roleGuest");
+function freightsHeaderDate(locale: string): string {
+  const tag = locale === "en" ? "en-US" : "pt-BR";
+  return new Intl.DateTimeFormat(tag, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
 }
 
 type HeaderProps = {
@@ -59,15 +62,17 @@ type HeaderProps = {
 };
 
 const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
-  const { accessLevel } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const title = headerTitle(pathname, t);
+  const isFreights = pathname.startsWith("/Freights");
+  const freightsDateLine = isFreights
+    ? freightsHeaderDate(i18n.language as AppLanguage)
+    : null;
 
   const displayName = companyData?.name?.trim() ?? "";
   const email = companyData?.email?.trim() ?? "";
-  const roleLine = accessRoleLabel(accessLevel, t);
 
   return (
     <header className="flex min-w-0 max-w-full shrink-0 items-center justify-between gap-2 border-b bg-background px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:gap-4 md:px-8">
@@ -82,6 +87,11 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
           <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
             {title}
           </h1>
+          {freightsDateLine ? (
+            <p className="mt-0.5 truncate text-xs capitalize text-muted-foreground sm:text-sm">
+              {freightsDateLine}
+            </p>
+          ) : null}
         </div>
       </div>
 
