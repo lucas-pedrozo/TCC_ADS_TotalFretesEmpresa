@@ -61,4 +61,10 @@ export type FreightCreateBody = {
   status_id?: number;
 };
 
+/** Etapa final do wizard de novo frete (sem origem/destino). */
+export type FreightCargoStepBody = Pick<
+  FreightCreateBody,
+  "cargoType_id" | "originalValue" | "weight" | "daysLimit"
+> & { status_id?: number };
+
 export type FreightUpdateBody = Partial<FreightCreateBody>;

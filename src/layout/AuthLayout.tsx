@@ -37,7 +37,7 @@ export const AuthLayout = ({ children, transparent = false, onBack, isExiting }:
 
       <section
         className={`relative flex h-full w-full min-[970px]:max-w-2xl items-start justify-center overflow-x-hidden overflow-y-auto ${
-          transparent ? 'bg-white/40 backdrop-blur-sm min-[970px]:border-l-4 border-brand-green shadow-left-[10px] shadow-black shadow-xl' : 'bg-white'
+          transparent ? 'bg-white/86 backdrop-blur-sm min-[970px]:border-l-4 border-brand-green shadow-left-[10px] shadow-black shadow-xl' : 'bg-white'
         }`}
       >
         {onBack && (

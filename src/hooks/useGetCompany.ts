@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useState } from "react";
 import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useAuth } from "@/context/AuthContext";
@@ -23,7 +23,7 @@ export interface CompanyData {
 }
 
 export function useGetCompany() {
-  const [companyData, setCompanyData] = useState<CompanyData | null>(null);
+  const [companyData, setCompanyData] = useState<CompanyData | null> (null);
   const [isLoading, setIsLoading] = useState(false);
   const { id } = useAuth();
 
@@ -34,6 +34,7 @@ export function useGetCompany() {
         throw new Error(i18n.t("COMPANY.COMPANY_NOT_FOUND"));
       }
       const response = await http.get<CompanyData>(`/company/${id}`);
+
       setCompanyData(response.data);
     } catch (error) {
       toast.error(trataErroAxios(error));

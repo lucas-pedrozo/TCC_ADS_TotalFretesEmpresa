@@ -29,7 +29,7 @@ import Header from "@/components/custom/Header";
 
 const sidebarNavButtonClass =
   "min-h-11 h-auto min-w-0 touch-manipulation rounded-lg py-2.5 text-sm font-semibold shadow-none transition-all duration-200 md:min-h-10 md:py-2 " +
-  "border border-brand-green-dark/35 bg-brand-green-light/45 text-brand-green-dark " +
+  "border border-brand-green-dark/30 bg-transparent text-brand-green-dark " +
   "hover:border-brand-green-dark hover:bg-brand-green-dark hover:text-white " +
   "data-active:border-brand-green-dark data-active:bg-brand-green data-active:text-white " +
   "focus-visible:ring-2 focus-visible:ring-brand-green/40 " +

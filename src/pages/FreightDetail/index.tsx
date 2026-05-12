@@ -29,7 +29,7 @@ import type {
   FreightUpdateBody,
 } from "@/types/freight";
 import { haversineKm } from "@/utils/haversineKm";
-import { trataErroAxios } from "@/utils/trataErroAxios";
+import { traduzMensagemApi, trataErroAxios } from "@/utils/trataErroAxios";
 
 function formatCurrency(value: number, locale: AppLanguage): string {
   const tag = locale === "en" ? "en-US" : "pt-BR";
@@ -102,7 +102,7 @@ const FreightDetailPage = () => {
         `/freight/${id}`,
         body
       );
-      toast.success(data.message ?? t("pages.freightDetail.savedOk"));
+      toast.success(traduzMensagemApi(data.message) ?? t("pages.freightDetail.savedOk"));
       setFreight(data.freight);
       setEditing(false);
     } catch (e) {
@@ -117,7 +117,7 @@ const FreightDetailPage = () => {
     try {
       setDeleting(true);
       const { data } = await http.delete<{ message?: string }>(`/freight/${id}`);
-      toast.success(data.message ?? t("pages.freightDetail.deletedOk"));
+      toast.success(traduzMensagemApi(data.message) ?? t("pages.freightDetail.deletedOk"));
       setDeleteOpen(false);
       navigate("/Freights", { replace: true });
     } catch (e) {
