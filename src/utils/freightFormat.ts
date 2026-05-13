@@ -17,6 +17,16 @@ export function formatFreightWeightAmount(kg: number, locale: AppLanguage): stri
   return new Intl.NumberFormat(tag, { maximumFractionDigits: 0 }).format(kg);
 }
 
+export function formatFreightWeightKg(kg: number, locale: AppLanguage): string {
+  return `${formatFreightWeightAmount(kg, locale)} kg`;
+}
+
+export function formatFreightDistanceKm(km: number, locale: AppLanguage): string {
+  const tag = locale === "en" ? "en-US" : "pt-BR";
+  const n = new Intl.NumberFormat(tag, { maximumFractionDigits: 0 }).format(km);
+  return `${n} km`;
+}
+
 const MAX_CENT_DIGITS = 14;
 const MAX_WEIGHT_DIGITS = 9;
 
