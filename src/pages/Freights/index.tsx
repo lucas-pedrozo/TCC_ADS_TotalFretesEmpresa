@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { Filter, MoreHorizontal, Plus, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -41,248 +39,59 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { AppLanguage } from "@/i18n/resources";
+import { useFreightsListPage } from "@/hooks/useFreightsListPage";
 import { cn } from "@/lib/utils";
-import http from "@/service/http";
-import type { FreightDto, FreightStatusSlug } from "@/types/freight";
+import type { ChipFilter, DriverFilter } from "@/types/freight";
+import { formatDateShortLabel } from "@/utils/dateFormat";
+import {
+  formatFreightCurrencyAmount,
+  formatFreightDistanceKm,
+  formatFreightWeightKg,
+} from "@/utils/freightFormat";
 import { haversineKm } from "@/utils/haversineKm";
-import { traduzMensagemApi, trataErroAxios } from "@/utils/trataErroAxios";
 
 import {
   FREIGHT_STATUS_LABEL_KEY,
-  FREIGHT_STATUS_SLUGS,
   parseStatusSlug,
   statusBadgeClass,
 } from "@/components/ui/freightStatusUi";
-
-type ChipFilter = "all" | FreightStatusSlug;
-type DriverFilter = "all" | "with" | "without";
-
-function parseBound(s: string): number | undefined {
-  const t = s.trim().replace(",", ".");
-  if (!t) return undefined;
-  const n = Number(t);
-  return Number.isFinite(n) ? n : undefined;
-}
-
-function formatDate(iso: string | undefined, locale: AppLanguage): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  const tag = locale === "en" ? "en-US" : "pt-BR";
-  return d.toLocaleDateString(tag, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(value: number, locale: AppLanguage): string {
-  const tag = locale === "en" ? "en-US" : "pt-BR";
-  const currency = locale === "en" ? "USD" : "BRL";
-  return new Intl.NumberFormat(tag, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatWeightKg(kg: number | null | undefined, locale: AppLanguage) {
-  if (kg == null || Number.isNaN(kg)) return "—";
-  const tag = locale === "en" ? "en-US" : "pt-BR";
-  const n = new Intl.NumberFormat(tag, { maximumFractionDigits: 0 }).format(kg);
-  return `${n} kg`;
-}
-
-function formatDistanceKm(km: number, locale: AppLanguage): string {
-  const tag = locale === "en" ? "en-US" : "pt-BR";
-  const n = new Intl.NumberFormat(tag, { maximumFractionDigits: 0 }).format(km);
-  return `${n} km`;
-}
 
 const FreightsPage = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language as AppLanguage;
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [chip, setChip] = useState<ChipFilter>("all");
-  const [filterMinValue, setFilterMinValue] = useState("");
-  const [filterMaxValue, setFilterMaxValue] = useState("");
-  const [filterMinWeight, setFilterMinWeight] = useState("");
-  const [filterMaxWeight, setFilterMaxWeight] = useState("");
-  const [filterMinDistance, setFilterMinDistance] = useState("");
-  const [filterMaxDistance, setFilterMaxDistance] = useState("");
-  const [filterDriver, setFilterDriver] = useState<DriverFilter>("all");
-  const [rows, setRows] = useState<FreightDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [freightToDelete, setFreightToDelete] = useState<FreightDto | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const loadFreights = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data } = await http.get<FreightDto[]>("/freight");
-      setRows(Array.isArray(data) ? data : []);
-    } catch (e) {
-      toast.error(trataErroAxios(e));
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadFreights();
-  }, [loadFreights]);
-
-  async function handleConfirmDelete() {
-    if (!freightToDelete) return;
-    const id = freightToDelete.id;
-    try {
-      setDeleting(true);
-      const { data } = await http.delete<{ message?: string }>(`/freight/${id}`);
-      toast.success(traduzMensagemApi(data.message) ?? t("pages.freightDetail.deletedOk"));
-      setFreightToDelete(null);
-      setRows((prev) => prev.filter((r) => r.id !== id));
-    } catch (e) {
-      toast.error(trataErroAxios(e));
-    } finally {
-      setDeleting(false);
-    }
-  }
-
-  const chips: { id: ChipFilter; label: string }[] = useMemo(
-    () => [
-      { id: "all", label: t("pages.freights.chipAll") },
-      ...FREIGHT_STATUS_SLUGS.map((slug) => ({
-        id: slug,
-        label: t(FREIGHT_STATUS_LABEL_KEY[slug]),
-      })),
-    ],
-    [t]
-  );
-
-  const activeFilterCount = useMemo(() => {
-    let n = 0;
-    if (chip !== "all") n += 1;
-    if (
-      parseBound(filterMinValue) !== undefined ||
-      parseBound(filterMaxValue) !== undefined
-    ) {
-      n += 1;
-    }
-    if (
-      parseBound(filterMinWeight) !== undefined ||
-      parseBound(filterMaxWeight) !== undefined
-    ) {
-      n += 1;
-    }
-    if (
-      parseBound(filterMinDistance) !== undefined ||
-      parseBound(filterMaxDistance) !== undefined
-    ) {
-      n += 1;
-    }
-    if (filterDriver !== "all") n += 1;
-    return n;
-  }, [
-    chip,
-    filterMinValue,
-    filterMaxValue,
-    filterMinWeight,
-    filterMaxWeight,
-    filterMinDistance,
-    filterMaxDistance,
-    filterDriver,
-  ]);
-
-  function clearAllFilters() {
-    setChip("all");
-    setFilterMinValue("");
-    setFilterMaxValue("");
-    setFilterMinWeight("");
-    setFilterMaxWeight("");
-    setFilterMinDistance("");
-    setFilterMaxDistance("");
-    setFilterDriver("all");
-  }
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const minV = parseBound(filterMinValue);
-    const maxV = parseBound(filterMaxValue);
-    const minW = parseBound(filterMinWeight);
-    const maxW = parseBound(filterMaxWeight);
-    const minD = parseBound(filterMinDistance);
-    const maxD = parseBound(filterMaxDistance);
-
-    return rows.filter((row) => {
-      const statusName = row.FreightStatusType?.name;
-      const slug = parseStatusSlug(statusName);
-      if (chip !== "all" && slug !== chip) return false;
-
-      const displayValue = row.finalValue ?? row.originalValue;
-      if (minV !== undefined && displayValue < minV) return false;
-      if (maxV !== undefined && displayValue > maxV) return false;
-
-      const weightKg = row.weight;
-      if (minW !== undefined || maxW !== undefined) {
-        if (weightKg == null || Number.isNaN(Number(weightKg))) return false;
-        const w = Number(weightKg);
-        if (minW !== undefined && w < minW) return false;
-        if (maxW !== undefined && w > maxW) return false;
-      }
-
-      const distKm = haversineKm(
-        row.origin_lat,
-        row.origin_lng,
-        row.destination_lat,
-        row.destination_lng
-      );
-      if (minD !== undefined && distKm < minD) return false;
-      if (maxD !== undefined && distKm > maxD) return false;
-
-      if (filterDriver === "with" && row.assignedDriver_id == null) {
-        return false;
-      }
-      if (filterDriver === "without" && row.assignedDriver_id != null) {
-        return false;
-      }
-
-      if (!q) return true;
-      const driverBit =
-        row.assignedDriver_id != null
-          ? String(row.assignedDriver_id)
-          : "";
-      const blob = [
-        row.CargoType?.name,
-        driverBit,
-        row.origin_label,
-        row.destination_label,
-        statusName,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return blob.includes(q);
-    });
-  }, [
-    rows,
+  const {
     search,
+    setSearch,
     chip,
+    setChip,
     filterMinValue,
+    setFilterMinValue,
     filterMaxValue,
+    setFilterMaxValue,
     filterMinWeight,
+    setFilterMinWeight,
     filterMaxWeight,
+    setFilterMaxWeight,
     filterMinDistance,
+    setFilterMinDistance,
     filterMaxDistance,
+    setFilterMaxDistance,
     filterDriver,
-  ]);
-
-  const total = filtered.length;
-  const page = 1;
-  const pageSize = 10;
-  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const to = total === 0 ? 0 : Math.min(page * pageSize, total);
+    setFilterDriver,
+    loading,
+    deleting,
+    chips,
+    activeFilterCount,
+    clearAllFilters,
+    filtered,
+    total,
+    from,
+    to,
+    freightToDelete,
+    setFreightToDelete,
+    handleConfirmDelete,
+  } = useFreightsListPage();
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
@@ -635,6 +444,11 @@ const FreightsPage = () => {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold leading-snug text-foreground">
+                            {row.name?.trim()
+                              ? row.name.trim()
+                              : t("pages.freights.freightTitleFallback", { id: row.id })}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
                             {row.CargoType?.name ?? "—"}
                           </p>
                           <p className="mt-1 text-xs text-muted-foreground">
@@ -696,7 +510,7 @@ const FreightsPage = () => {
                             {row.origin_label}
                           </dd>
                           <dd className="text-xs text-muted-foreground">
-                            {formatDate(row.createdAt, lang)}
+                            {formatDateShortLabel(row.createdAt, lang)}
                           </dd>
                         </div>
                         <div className="min-w-0">
@@ -707,19 +521,19 @@ const FreightsPage = () => {
                             {row.destination_label}
                           </dd>
                           <dd className="text-xs text-muted-foreground">
-                            {formatDate(row.updatedAt, lang)}
+                            {formatDateShortLabel(row.updatedAt, lang)}
                           </dd>
                         </div>
                       </dl>
                       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-border pt-3 text-sm">
                         <span className="font-semibold tabular-nums text-foreground">
-                          {formatCurrency(displayValue, lang)}
+                          {formatFreightCurrencyAmount(displayValue, lang)}
                         </span>
                         <span className="text-muted-foreground">
-                          {formatWeightKg(row.weight, lang)}
+                          {row.weight == null ? "—" : formatFreightWeightKg(row.weight, lang)}
                         </span>
                         <span className="text-muted-foreground">
-                          {formatDistanceKm(Math.round(distKm), lang)}
+                          {formatFreightDistanceKm(Math.round(distKm), lang)}
                         </span>
                       </div>
                     </div>
@@ -791,9 +605,16 @@ const FreightsPage = () => {
                       >
                         <TableCell className="pl-4" />
                         <TableCell>
-                          <span className="font-semibold text-foreground">
-                            {row.CargoType?.name ?? "—"}
-                          </span>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-semibold text-foreground">
+                              {row.name?.trim()
+                                ? row.name.trim()
+                                : t("pages.freights.freightTitleFallback", { id: row.id })}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {row.CargoType?.name ?? "—"}
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <span className="text-foreground">
@@ -810,7 +631,7 @@ const FreightsPage = () => {
                               {row.origin_label}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {formatDate(row.createdAt, lang)}
+                              {formatDateShortLabel(row.createdAt, lang)}
                             </span>
                           </div>
                         </TableCell>
@@ -820,7 +641,7 @@ const FreightsPage = () => {
                               {row.destination_label}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {formatDate(row.updatedAt, lang)}
+                              {formatDateShortLabel(row.updatedAt, lang)}
                             </span>
                           </div>
                         </TableCell>
@@ -837,17 +658,17 @@ const FreightsPage = () => {
                         </TableCell>
                         <TableCell>
                           <span className="font-semibold tabular-nums text-foreground">
-                            {formatCurrency(displayValue, lang)}
+                            {formatFreightCurrencyAmount(displayValue, lang)}
                           </span>
                         </TableCell>
                         <TableCell>
                           <span className="text-sm text-muted-foreground">
-                            {formatWeightKg(row.weight, lang)}
+                            {row.weight == null ? "—" : formatFreightWeightKg(row.weight, lang)}
                           </span>
                         </TableCell>
                         <TableCell>
                           <span className="text-sm text-muted-foreground">
-                            {formatDistanceKm(Math.round(distKm), lang)}
+                            {formatFreightDistanceKm(Math.round(distKm), lang)}
                           </span>
                         </TableCell>
                         <TableCell

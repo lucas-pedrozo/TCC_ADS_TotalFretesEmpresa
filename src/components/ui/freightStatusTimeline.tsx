@@ -16,6 +16,11 @@ const PIPELINE: readonly FreightStatusSlug[] = [
   "concluido",
 ] as const;
 
+export type FreightStatusTimelineEntry = {
+  slug: FreightStatusSlug;
+  occurredAt: string;
+};
+
 function formatStepDate(iso: string | undefined, locale: AppLanguage): string {
   if (!iso) return "";
   const d = new Date(iso);
@@ -35,10 +40,37 @@ function pipelineIndex(slug: FreightStatusSlug): number {
   return i >= 0 ? i : 0;
 }
 
+function resolveStepDate(
+  step: FreightStatusSlug,
+  index: number,
+  currentIdx: number,
+  opts: {
+    createdAt?: string;
+    updatedAt?: string;
+    history?: FreightStatusTimelineEntry[];
+    lang: AppLanguage;
+  }
+): string {
+  const { createdAt, updatedAt, history, lang } = opts;
+  const lastUpdated = updatedAt ?? createdAt;
+
+  if (history && history.length > 0) {
+    const hit = history.find((h) => h.slug === step);
+    if (hit?.occurredAt) return formatStepDate(hit.occurredAt, lang);
+    return "";
+  }
+
+  if (index === currentIdx) return formatStepDate(lastUpdated, lang);
+  if (index < currentIdx && index === 0) return formatStepDate(createdAt, lang);
+  return "";
+}
+
 export type FreightStatusTimelineProps = {
   slug: FreightStatusSlug;
   createdAt?: string;
   updatedAt?: string;
+  /** Datas reais por status (vem do backend). Sem isso, usa o fallback antigo (createdAt / updatedAt). */
+  history?: FreightStatusTimelineEntry[];
   lang: AppLanguage;
 };
 
@@ -46,23 +78,31 @@ export function FreightStatusTimeline({
   slug,
   createdAt,
   updatedAt,
+  history,
   lang,
 }: FreightStatusTimelineProps) {
   const { t } = useTranslation();
 
   if (slug === "cancelado") {
+    const cancelAt =
+      history && history.length > 0
+        ? [...history].reverse().find((h) => h.slug === "cancelado")?.occurredAt
+        : undefined;
+    const dateText = formatStepDate(cancelAt ?? updatedAt ?? createdAt, lang);
     return (
       <div
         className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         role="status"
       >
-        {t("pages.freightDetail.timelineCancelled")}
+        <p>{t("pages.freightDetail.timelineCancelled")}</p>
+        {dateText ? (
+          <p className="mt-2 text-xs tabular-nums text-destructive/90">{dateText}</p>
+        ) : null}
       </div>
     );
   }
 
   const currentIdx = pipelineIndex(slug);
-  const lastUpdated = updatedAt ?? createdAt;
 
   return (
     <div
@@ -76,10 +116,12 @@ export function FreightStatusTimeline({
           const isCurrent = index === currentIdx;
           const isFuture = index > currentIdx;
           const label = t(FREIGHT_STATUS_LABEL_KEY[step]);
-
-          let dateText = "";
-          if (isCurrent) dateText = formatStepDate(lastUpdated, lang);
-          else if (isPast && index === 0) dateText = formatStepDate(createdAt, lang);
+          const dateText = resolveStepDate(step, index, currentIdx, {
+            createdAt,
+            updatedAt,
+            history,
+            lang,
+          });
 
           return (
             <li
@@ -137,10 +179,12 @@ export function FreightStatusTimeline({
           const isCurrent = index === currentIdx;
           const isFuture = index > currentIdx;
           const label = t(FREIGHT_STATUS_LABEL_KEY[step]);
-
-          let dateText = "";
-          if (isCurrent) dateText = formatStepDate(lastUpdated, lang);
-          else if (isPast && index === 0) dateText = formatStepDate(createdAt, lang);
+          const dateText = resolveStepDate(step, index, currentIdx, {
+            createdAt,
+            updatedAt,
+            history,
+            lang,
+          });
 
           return (
             <li

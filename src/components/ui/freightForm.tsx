@@ -29,6 +29,11 @@ type FreightFormBase = {
   initial?: Partial<FreightCreateBody> & { status_id?: number | null };
   submitLabel: string;
   isSubmitting?: boolean;
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+    disabled?: boolean;
+  };
 };
 
 export type FreightFormProps =
@@ -49,6 +54,7 @@ export function FreightForm(props: FreightFormProps) {
     initial,
     submitLabel,
     isSubmitting = false,
+    secondaryAction,
   } = props;
   const cargoFieldsOnly = props.cargoFieldsOnly === true;
   const onSubmit = props.onSubmit;
@@ -60,6 +66,7 @@ export function FreightForm(props: FreightFormProps) {
   const [cargoType_id, setCargoTypeId] = useState(
     String(initial?.cargoType_id ?? "")
   );
+  const [freightName, setFreightName] = useState(initial?.name?.trim() ?? "");
   const [origin_label, setOriginLabel] = useState(initial?.origin_label ?? "");
   const [origin_lat, setOriginLat] = useState(
     initial?.origin_lat != null ? String(initial.origin_lat) : ""
@@ -100,6 +107,7 @@ export function FreightForm(props: FreightFormProps) {
     setCargoTypeId(
       initial.cargoType_id != null ? String(initial.cargoType_id) : ""
     );
+    setFreightName(initial.name != null ? String(initial.name).trim() : "");
     setValueCentsDigits(
       initial.originalValue != null && Number.isFinite(initial.originalValue)
         ? amountToCentsDigits(initial.originalValue)
@@ -158,6 +166,7 @@ export function FreightForm(props: FreightFormProps) {
     if (cargoFieldsOnly) {
       const body: FreightCargoStepBody = {
         cargoType_id: cid,
+        name: freightName.trim(),
         originalValue: val,
         weight: wkg,
       };
@@ -177,6 +186,7 @@ export function FreightForm(props: FreightFormProps) {
 
     const body: FreightCreateBody = {
       cargoType_id: cid,
+      name: freightName.trim(),
       origin_label: origin_label.trim(),
       origin_lat: olat,
       origin_lng: olng,
@@ -215,6 +225,19 @@ export function FreightForm(props: FreightFormProps) {
           <div className={cargoSectionShell}>
             <p className={sectionTitle}>{t("pages.freightForm.sectionMain")}</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className={`${field} md:col-span-2`}>
+                <Label htmlFor="freight-name">{t("pages.freightForm.freightName")}</Label>
+                <Input
+                  id="freight-name"
+                  required
+                  maxLength={255}
+                  autoComplete="off"
+                  className={touchInput}
+                  value={freightName}
+                  onChange={(e) => setFreightName(e.target.value)}
+                  placeholder={t("pages.freightForm.freightNamePlaceholder")}
+                />
+              </div>
               <div className={field}>
                 <Label htmlFor="freight-cargo-type">{t("pages.freightForm.cargoType")}</Label>
                 <select
@@ -316,10 +339,34 @@ export function FreightForm(props: FreightFormProps) {
             >
               {submitLabel}
             </Button>
+            {secondaryAction ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={secondaryAction.disabled ?? isSubmitting}
+                onClick={secondaryAction.onClick}
+                className="min-h-11 w-full rounded-lg md:min-h-9 md:w-auto"
+              >
+                {secondaryAction.label}
+              </Button>
+            ) : null}
           </div>
         </>
       ) : (
         <>
+          <div className={`${field} md:col-span-2`}>
+            <Label htmlFor="freight-name-full">{t("pages.freightForm.freightName")}</Label>
+            <Input
+              id="freight-name-full"
+              required
+              maxLength={255}
+              autoComplete="off"
+              className={touchInput}
+              value={freightName}
+              onChange={(e) => setFreightName(e.target.value)}
+              placeholder={t("pages.freightForm.freightNamePlaceholder")}
+            />
+          </div>
           <div className={field}>
             <Label htmlFor="freight-cargo-type">{t("pages.freightForm.cargoType")}</Label>
             <select
@@ -485,6 +532,17 @@ export function FreightForm(props: FreightFormProps) {
             >
               {submitLabel}
             </Button>
+            {secondaryAction ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={secondaryAction.disabled ?? isSubmitting}
+                onClick={secondaryAction.onClick}
+                className="min-h-11 w-full rounded-lg md:min-h-9 md:w-auto"
+              >
+                {secondaryAction.label}
+              </Button>
+            ) : null}
           </div>
         </>
       )}

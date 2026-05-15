@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -11,6 +11,7 @@ import {
   Package,
   Scale,
   Star,
+  Tag,
   Truck,
   User,
   X,
@@ -20,6 +21,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { FreightForm } from "@/components/ui/freightForm";
+import { AddressMapPicker, type MapPinValue } from "@/components/maps/AddressMapPicker";
 import {
   FREIGHT_STATUS_LABEL_KEY,
   parseStatusSlug,
@@ -37,12 +39,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { AppLanguage } from "@/i18n/resources";
+import { useFreightDetail } from "@/hooks/useFreightDetail";
 import { cn } from "@/lib/utils";
-import http from "@/service/http";
 import type {
-  CargoTypeDto,
-  FreightDto,
-  FreightStatusTypeDto,
+  FreightCargoStepBody,
   FreightUpdateBody,
 } from "@/types/freight";
 import {
@@ -51,29 +51,10 @@ import {
   formatFreightWeightKg,
 } from "@/utils/freightFormat";
 import { haversineKm } from "@/utils/haversineKm";
+import { isValidMapPin } from "@/utils/freightCreate";
 import { getFreightDetailProposalsMock, pickBestProposal } from "@/mocks/freightDetailProposalsMock";
-import { traduzMensagemApi, trataErroAxios } from "@/utils/trataErroAxios";
-
-function formatDate(iso: string | undefined, locale: AppLanguage): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  const tag = locale === "en" ? "en-US" : "pt-BR";
-  return d.toLocaleDateString(tag, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
-}
+import { formatDateTimeLabel } from "@/utils/dateFormat";
+import { initialsFromName } from "@/utils/person";
 
 function DetailField({
   icon: Icon,
@@ -125,6 +106,7 @@ function ValueSummaryRow({
 }
 
 const cardShell = "rounded-xl border border-border bg-card shadow-sm";
+const MAPBOX_PK = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
 
 const FreightDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -132,81 +114,37 @@ const FreightDetailPage = () => {
   const lang = i18n.language as AppLanguage;
   const navigate = useNavigate();
 
-  const [freight, setFreight] = useState<FreightDto | null>(null);
-  const [cargoTypes, setCargoTypes] = useState<CargoTypeDto[]>([]);
-  const [statusTypes, setStatusTypes] = useState<FreightStatusTypeDto[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-
-  const loadAll = useCallback(async () => {
-    if (!id) return;
-    try {
-      setLoading(true);
-      const [freightRes, cargoRes, statusRes] = await Promise.all([
-        http.get<FreightDto>(`/freight/${id}`),
-        http.get<CargoTypeDto[]>("/cargo-type"),
-        http.get<FreightStatusTypeDto[]>("/freight-status-type"),
-      ]);
-      setFreight(freightRes.data);
-      setCargoTypes(Array.isArray(cargoRes.data) ? cargoRes.data : []);
-      setStatusTypes(Array.isArray(statusRes.data) ? statusRes.data : []);
-    } catch (e) {
-      toast.error(trataErroAxios(e));
-      setFreight(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const [editOrigin, setEditOrigin] = useState<MapPinValue | null>(null);
+  const [editDestination, setEditDestination] = useState<MapPinValue | null>(null);
+  const {
+    freight,
+    cargoTypes,
+    statusTypes,
+    loading,
+    saving,
+    deleting,
+    statusTimelineHistory,
+    proposalsMock,
+    bestProposalRow,
+    handleUpdate,
+    handleDelete,
+  } = useFreightDetail({ id });
 
   useEffect(() => {
-    void loadAll();
-  }, [loadAll]);
-
-  const proposalsMock = useMemo(() => {
-    if (!freight) return null;
-    return getFreightDetailProposalsMock(freight);
-  }, [freight]);
-
-  const bestProposalRow = useMemo(() => {
-    if (!proposalsMock) return undefined;
-    return pickBestProposal(proposalsMock);
-  }, [proposalsMock]);
-
-  async function handleUpdate(body: FreightUpdateBody) {
-    if (!id) return;
-    try {
-      setSaving(true);
-      const { data } = await http.put<{ message?: string; freight: FreightDto }>(
-        `/freight/${id}`,
-        body
-      );
-      toast.success(traduzMensagemApi(data.message) ?? t("pages.freightDetail.savedOk"));
-      setFreight(data.freight);
-      setEditing(false);
-    } catch (e) {
-      toast.error(trataErroAxios(e));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!id) return;
-    try {
-      setDeleting(true);
-      const { data } = await http.delete<{ message?: string }>(`/freight/${id}`);
-      toast.success(traduzMensagemApi(data.message) ?? t("pages.freightDetail.deletedOk"));
-      setDeleteOpen(false);
-      navigate("/Freights", { replace: true });
-    } catch (e) {
-      toast.error(trataErroAxios(e));
-    } finally {
-      setDeleting(false);
-    }
-  }
+    if (!editing || !freight) return;
+    setEditOrigin({
+      label: freight.origin_label,
+      lat: freight.origin_lat,
+      lng: freight.origin_lng,
+    });
+    setEditDestination({
+      label: freight.destination_label,
+      lat: freight.destination_lat,
+      lng: freight.destination_lng,
+    });
+  }, [editing, freight]);
 
   if (!id) {
     return null;
@@ -244,6 +182,7 @@ const FreightDetailPage = () => {
   const mockDriverName = t("pages.freightDetail.mockDriverName");
 
   const initialForm = {
+    name: freight.name ?? "",
     cargoType_id: freight.cargoType_id,
     origin_label: freight.origin_label,
     origin_lat: freight.origin_lat,
@@ -265,15 +204,40 @@ const FreightDetailPage = () => {
   const bestAmount = featuredProposal?.amount ?? displayValue;
   const savingsDisplay = Math.max(0, Math.round((displayValue - bestAmount) * 100) / 100);
 
+  async function onSubmitUpdate(body: FreightCargoStepBody) {
+    if (!isValidMapPin(editOrigin) || !isValidMapPin(editDestination)) {
+      toast.error(t("pages.freightWizard.pinRequired"));
+      return;
+    }
+
+    const nextBody: FreightUpdateBody = {
+      ...body,
+      origin_label: editOrigin.label.trim(),
+      origin_lat: editOrigin.lat,
+      origin_lng: editOrigin.lng,
+      destination_label: editDestination.label.trim(),
+      destination_lat: editDestination.lat,
+      destination_lng: editDestination.lng,
+    };
+
+    const ok = await handleUpdate(nextBody);
+    if (ok) setEditing(false);
+  }
+
+  async function onConfirmDelete() {
+    const ok = await handleDelete();
+    if (ok) setDeleteOpen(false);
+  }
+
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
       <Button
         type="button"
         variant="ghost"
-        className="mb-3 h-auto min-h-10 w-fit justify-start gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground hover:text-foreground"
+        className="bg-brand-green text-white hover:bg-brand-green-dark hover:text-white mb-3 h-auto min-h-10 w-fit justify-start gap-2 rounded-lg px-2 py-2 text-sm"
         onClick={() => navigate("/Freights")}
       >
-        <ArrowLeft className="size-4 shrink-0" aria-hidden />
+        <ArrowLeft className="size-4 shrink-0 text-white" aria-hidden />
         {t("pages.freightDetail.backToList")}
       </Button>
 
@@ -281,7 +245,9 @@ const FreightDetailPage = () => {
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2 gap-y-2">
             <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-              {t("pages.freightDetail.title", { id: freight.id })}
+              {freight.name?.trim()
+                ? freight.name.trim()
+                : t("pages.freightDetail.title", { id: freight.id })}
             </h1>
             <Badge
               variant="outline"
@@ -292,8 +258,8 @@ const FreightDetailPage = () => {
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">{routeSubtitle}</p>
           <p className="text-xs text-muted-foreground">
-            {t("pages.freightDetail.updatedAt")}{" "}
-            {formatDate(freight.updatedAt ?? freight.createdAt, lang)}
+            {t("pages.freightDetail.createdAtLabel")}{" "}
+            {formatDateTimeLabel(freight.createdAt ?? freight.updatedAt, lang)}
           </p>
         </div>
 
@@ -324,6 +290,7 @@ const FreightDetailPage = () => {
             slug={slug}
             createdAt={freight.createdAt}
             updatedAt={freight.updatedAt}
+            history={statusTimelineHistory}
             lang={lang}
           />
 
@@ -334,6 +301,9 @@ const FreightDetailPage = () => {
                   {t("pages.freightDetail.sectionInfo")}
                 </h2>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-7">
+                  <DetailField icon={Tag} label={t("pages.freightDetail.fieldFreightName")}>
+                    {freight.name?.trim() ? freight.name.trim() : "—"}
+                  </DetailField>
                   <DetailField icon={Package} label={t("pages.freightDetail.fieldCargoType")}>
                     {freight.CargoType?.name ?? "—"}
                   </DetailField>
@@ -358,7 +328,7 @@ const FreightDetailPage = () => {
                     {formatFreightDistanceKm(Math.round(distKm), lang)}
                   </DetailField>
                   <DetailField icon={CalendarDays} label={t("pages.freightDetail.fieldPublishedAt")}>
-                    {freight.createdAt ? formatDate(freight.createdAt, lang) : "—"}
+                    {freight.createdAt ? formatDateTimeLabel(freight.createdAt, lang) : "—"}
                   </DetailField>
                   {freight.daysLimit != null ? (
                     <DetailField icon={CalendarDays} label={t("pages.freightForm.daysLimit")}>
@@ -374,16 +344,6 @@ const FreightDetailPage = () => {
                     </DetailField>
                   </div>
                 ) : null}
-
-                <div className="mt-6 border-t border-border pt-6">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {t("pages.freightDetail.observations")}
-                  </p>
-                  <p className="mt-2 text-sm font-semibold leading-relaxed text-foreground">
-                    {t("pages.freightDetail.observationsMockText")}
-                  </p>
-                  <p className="mt-2 text-xs italic text-muted-foreground">{t("pages.freightDetail.observationsMockHint")}</p>
-                </div>
               </section>
 
               <section className={cn(cardShell, "p-4 sm:p-5")}>
@@ -407,7 +367,13 @@ const FreightDetailPage = () => {
 
                 <div className="mt-5 space-y-3">
                   <ValueSummaryRow label={t("pages.freightDetail.proposalsReceived")} value={proposalCount} />
-                  <ValueSummaryRow
+                </div>
+
+                <div className="my-4 h-px bg-border" />
+
+                <div className="space-y-3">
+
+                <ValueSummaryRow
                     label={t("pages.freightDetail.bestProposal")}
                     value={formatFreightCurrencyAmount(bestAmount, lang)}
                     valueClassName="text-brand-green-dark dark:text-brand-green-light"
@@ -416,19 +382,6 @@ const FreightDetailPage = () => {
                     label={t("pages.freightDetail.potentialSavings")}
                     value={formatFreightCurrencyAmount(savingsDisplay, lang)}
                     valueClassName="text-brand-green-dark dark:text-brand-green-light"
-                  />
-                </div>
-
-                <div className="my-4 h-px bg-border" />
-
-                <div className="space-y-3">
-                  <ValueSummaryRow
-                    label={t("pages.freightDetail.tolls")}
-                    value={formatFreightCurrencyAmount(proposalsData.tollsAmount, lang)}
-                  />
-                  <ValueSummaryRow
-                    label={t("pages.freightDetail.cargoInsurance")}
-                    value={formatFreightCurrencyAmount(proposalsData.insuranceAmount, lang)}
                   />
                 </div>
               </section>
@@ -528,26 +481,46 @@ const FreightDetailPage = () => {
           <h2 className="mb-4 text-sm font-semibold text-foreground">
             {t("pages.freightDetail.editSectionTitle")}
           </h2>
-          <div className="mb-4 flex flex-col gap-2 sm:flex-row">
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11 w-full rounded-lg sm:min-h-9 sm:w-auto"
-              onClick={() => setEditing(false)}
-              disabled={saving}
-            >
-              {t("pages.freightDetail.cancelEdit")}
-            </Button>
+
+          <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <section className="rounded-xl border border-border/80 bg-muted/25 p-3 sm:p-4">
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("pages.freightWizard.stepOrigin")}
+              </h3>
+              <AddressMapPicker
+                accessToken={MAPBOX_PK}
+                value={editOrigin}
+                onChange={setEditOrigin}
+              />
+            </section>
+
+            <section className="rounded-xl border border-border/80 bg-muted/25 p-3 sm:p-4">
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("pages.freightWizard.stepDestination")}
+              </h3>
+              <AddressMapPicker
+                accessToken={MAPBOX_PK}
+                value={editDestination}
+                onChange={setEditDestination}
+              />
+            </section>
           </div>
+
           <FreightForm
             key={freight.id}
             cargoTypes={cargoTypes}
             statusTypes={statusTypes}
+            cargoFieldsOnly
             showStatus
             initial={initialForm}
-            onSubmit={handleUpdate}
+            onSubmit={onSubmitUpdate}
             submitLabel={t("pages.freightForm.save")}
             isSubmitting={saving}
+            secondaryAction={{
+              label: t("pages.freightDetail.cancelEdit"),
+              onClick: () => setEditing(false),
+              disabled: saving,
+            }}
           />
         </div>
       )}
@@ -573,7 +546,7 @@ const FreightDetailPage = () => {
               variant="destructive"
               className="rounded-lg"
               disabled={deleting}
-              onClick={() => void handleDelete()}
+              onClick={() => void onConfirmDelete()}
             >
               {t("pages.freightDetail.confirmDelete")}
             </Button>

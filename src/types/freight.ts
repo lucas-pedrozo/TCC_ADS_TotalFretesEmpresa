@@ -22,10 +22,22 @@ export type FreightStatusTypeDto = {
   name: string;
 };
 
+/** Uma entrada do histórico de status (API `FreightStatusHistories`). */
+export type FreightStatusHistoryDto = {
+  id: number;
+  freight_id: number;
+  status_id: number;
+  occurred_at?: string;
+  occurredAt?: string;
+  FreightStatusType?: FreightStatusTypeDto | null;
+};
+
 export type FreightDto = {
   id: number;
   company_id: number;
   cargoType_id: number;
+  /** Nome identificador do frete (listagem e cabeçalho do detalhe). */
+  name?: string | null;
   origin_label: string;
   origin_lat: number;
   origin_lng: number;
@@ -43,10 +55,30 @@ export type FreightDto = {
   updatedAt?: string;
   CargoType?: CargoTypeDto;
   FreightStatusType?: FreightStatusTypeDto | null;
+  /** Ordem cronológica (mais antigo primeiro), quando a API envia o histórico. */
+  FreightStatusHistories?: FreightStatusHistoryDto[];
+};
+
+export type FreightListResponse = FreightDto[];
+
+export type FreightCreateResponse = {
+  message?: string;
+  freight: FreightDto;
+};
+
+export type FreightUpdateResponse = {
+  message?: string;
+  freight: FreightDto;
+};
+
+export type FreightDeleteResponse = {
+  message?: string;
 };
 
 export type FreightCreateBody = {
   cargoType_id: number;
+  /** Nome do frete (obrigatório na API). */
+  name: string;
   origin_label: string;
   origin_lat: number;
   origin_lng: number;
@@ -64,7 +96,11 @@ export type FreightCreateBody = {
 /** Etapa final do wizard de novo frete (sem origem/destino). */
 export type FreightCargoStepBody = Pick<
   FreightCreateBody,
-  "cargoType_id" | "originalValue" | "weight" | "daysLimit"
+  "cargoType_id" | "name" | "originalValue" | "weight" | "daysLimit"
 > & { status_id?: number };
 
 export type FreightUpdateBody = Partial<FreightCreateBody>;
+
+export type ChipFilter = "all" | FreightStatusSlug;
+export type DriverFilter = "all" | "with" | "without";
+export type FreightWizardStep = 1 | 2 | 3;

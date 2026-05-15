@@ -1,161 +1,33 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
-import { AddressMapPicker, type MapPinValue } from "@/components/maps/AddressMapPicker";
+import { AddressMapPicker } from "@/components/maps/AddressMapPicker";
 import { FreightForm } from "@/components/ui/freightForm";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
-import { useGetCompany, type CompanyData } from "@/hooks/useGetCompany";
-import http from "@/service/http";
+import { useFreightCreateWizard } from "@/hooks/useFreightCreateWizard";
 import type {
-  CargoTypeDto,
-  FreightCargoStepBody,
-  FreightCreateBody,
-  FreightDto,
+  FreightWizardStep,
 } from "@/types/freight";
-import { traduzMensagemApi, trataErroAxios } from "@/utils/trataErroAxios";
-
-function formatCompanyAddressLine(c: CompanyData | null): string | null {
-  if (!c) return null;
-  try {
-    const rawCep = c.cep != null ? String(c.cep) : "";
-    const cepDigits = rawCep.replace(/\D/g, "");
-    const cepFormatted =
-      cepDigits.length === 8
-        ? `${cepDigits.slice(0, 5)}-${cepDigits.slice(5)}`
-        : rawCep.trim();
-    const street = c.street != null ? String(c.street).trim() : "";
-    const number = c.number != null ? String(c.number).trim() : "";
-    const line1 =
-      street && number ? `${street}, ${number}` : street || number || "";
-    const district = c.district != null ? String(c.district).trim() : "";
-    const city = c.city != null ? String(c.city).trim() : "";
-    const state = c.state != null ? String(c.state).trim() : "";
-    const cityState = [city, state].filter(Boolean).join(", ");
-    const parts = [line1, district, cityState, cepFormatted, "Brazil"]
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0);
-    const s = parts.join(", ");
-    return s.length > 2 ? s : null;
-  } catch {
-    return null;
-  }
-}
-
-function isValidPin(v: MapPinValue | null): boolean {
-  if (!v?.label?.trim()) return false;
-  return (
-    Number.isFinite(v.lat) &&
-    Number.isFinite(v.lng) &&
-    v.lat >= -90 &&
-    v.lat <= 90 &&
-    v.lng >= -180 &&
-    v.lng <= 180
-  );
-}
-
-type CreateResponse = {
-  message?: string;
-  freight: FreightDto;
-};
 
 const MAPBOX_PK = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
 
 const FreightNewPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { id: companyId } = useAuth();
-  const { companyData, handleGetCompany } = useGetCompany();
-
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [origin, setOrigin] = useState<MapPinValue | null>(null);
-  const [destination, setDestination] = useState<MapPinValue | null>(null);
-
-  const [cargoTypes, setCargoTypes] = useState<CargoTypeDto[]>([]);
-  const [loadingMeta, setLoadingMeta] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-
-  const loadMeta = useCallback(async () => {
-    try {
-      setLoadingMeta(true);
-      const { data } = await http.get<CargoTypeDto[]>("/cargo-type");
-      setCargoTypes(Array.isArray(data) ? data : []);
-    } catch (e) {
-      toast.error(trataErroAxios(e));
-    } finally {
-      setLoadingMeta(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadMeta();
-  }, [loadMeta]);
-
-  useEffect(() => {
-    if (companyId) void handleGetCompany();
-  }, [companyId, handleGetCompany]);
-
-  const initialOriginQuery = useMemo(() => {
-    try {
-      return formatCompanyAddressLine(companyData);
-    } catch {
-      return null;
-    }
-  }, [companyData]);
-
-  async function handleCreate(cargo: FreightCargoStepBody) {
-    if (!isValidPin(origin) || !isValidPin(destination)) {
-      toast.error(t("pages.freightWizard.pinRequired"));
-      return;
-    }
-    const body: FreightCreateBody = {
-      ...cargo,
-      origin_label: origin!.label.trim(),
-      origin_lat: origin!.lat,
-      origin_lng: origin!.lng,
-      destination_label: destination!.label.trim(),
-      destination_lat: destination!.lat,
-      destination_lng: destination!.lng,
-    };
-    try {
-      setSubmitting(true);
-      const { data } = await http.post<CreateResponse>("/freight", body);
-      toast.success(traduzMensagemApi(data.message) ?? t("pages.freightDetail.createdOk"));
-      const bid = data.freight?.id;
-      if (bid != null) navigate(`/Freights/${bid}`, { replace: true });
-      else navigate("/Freights", { replace: true });
-    } catch (e) {
-      toast.error(trataErroAxios(e));
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  function handleStepNext() {
-    if (step === 1) {
-      if (!isValidPin(origin)) {
-        toast.error(t("pages.freightWizard.pinRequired"));
-        return;
-      }
-      setStep(2);
-      return;
-    }
-    if (step === 2) {
-      if (!isValidPin(destination)) {
-        toast.error(t("pages.freightWizard.pinRequired"));
-        return;
-      }
-      setStep(3);
-    }
-  }
-
-  function handleStepBack() {
-    if (step === 1) navigate("/Freights");
-    else if (step === 2) setStep(1);
-    else setStep(2);
-  }
+  const {
+    step,
+    origin,
+    destination,
+    cargoTypes,
+    loadingMeta,
+    submitting,
+    initialOriginQuery,
+    syncOrigin,
+    syncDestination,
+    handleCreate,
+    handleStepNext,
+    handleStepBack,
+  } = useFreightCreateWizard();
 
   const stepTitle =
     step === 1
@@ -186,7 +58,7 @@ const FreightNewPage = () => {
             key={n}
             className={
               "shrink-0 snap-start rounded-full px-3 py-2 text-center text-xs font-medium sm:py-1 " +
-              (step === n
+              (step === (n as FreightWizardStep)
                 ? "bg-brand-green text-white"
                 : "bg-muted text-muted-foreground")
             }
@@ -213,48 +85,17 @@ const FreightNewPage = () => {
               accessToken={MAPBOX_PK}
               initialSearchQuery={initialOriginQuery}
               value={origin}
-              onChange={(next) => {
-                setOrigin((prev) => {
-                  if (prev === next) return prev;
-                  if (
-                    prev &&
-                    next &&
-                    prev.label === next.label &&
-                    prev.lat === next.lat &&
-                    prev.lng === next.lng
-                  ) {
-                    return prev;
-                  }
-                  return next;
-                });
-              }}
+              onChange={syncOrigin}
             />
           ) : step === 2 ? (
             <AddressMapPicker
               key="wizard-destination"
               accessToken={MAPBOX_PK}
               value={destination}
-              onChange={(next) => {
-                setDestination((prev) => {
-                  if (prev === next) return prev;
-                  if (
-                    prev &&
-                    next &&
-                    prev.label === next.label &&
-                    prev.lat === next.lat &&
-                    prev.lng === next.lng
-                  ) {
-                    return prev;
-                  }
-                  return next;
-                });
-              }}
+              onChange={syncDestination}
             />
           ) : (
             <div className="flex flex-col gap-4">
-              <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                {t("pages.freightWizard.cargoStepHint")}
-              </p>
               <FreightForm
                 cargoTypes={cargoTypes}
                 cargoFieldsOnly
