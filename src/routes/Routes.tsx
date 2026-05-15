@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Outlet } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 
@@ -14,10 +15,11 @@ import { SideLayout } from "@/layout/SideLayout";
 import { RegisterCompanyProvider } from "@/context/RegisterCompanyContext";
 import PrivateRoute from "./PrivateRoutes";
 import FreightsPage from "@/pages/Freights";
-import FreightNewPage from "@/pages/FreightNew";
 import FreightDetailPage from "@/pages/FreightDetail";
 import HistoryPage from "@/pages/History";
 import ProposalsPage from "@/pages/Proposals";
+
+const FreightNewPage = lazy(() => import("@/pages/FreightNew"));
 
 const RegisterLayout = () => (
   <RegisterCompanyProvider>
@@ -43,7 +45,20 @@ function WebRoutes() {
         <Route element={<SideLayout />}>
           <Route path="/Home" element={<HomePage />} />
           <Route path="/Perfil" element={<PerfilPage />} />
-          <Route path="/Freights/new" element={<FreightNewPage />} />
+          <Route
+            path="/Freights/new"
+            element={
+              <Suspense
+                fallback={
+                  <div className="flex flex-1 items-center justify-center p-6 text-sm text-muted-foreground">
+                    Carregando…
+                  </div>
+                }
+              >
+                <FreightNewPage />
+              </Suspense>
+            }
+          />
           <Route path="/Freights/:id" element={<FreightDetailPage />} />
           <Route path="/Freights" element={<FreightsPage />} />
           <Route path="/History" element={<HistoryPage />} />

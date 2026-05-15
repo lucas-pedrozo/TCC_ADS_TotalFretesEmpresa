@@ -25,7 +25,7 @@ const PrivateRoute = () => {
     isAuthenticated === true && (level === "COMPANY" || level === "ADMIN");
 
   if (!hasAccess) {
-    return <Navigate to="/Login" replace />;
+    return <Navigate to="/Start" replace />;
   }
 
   return <Outlet />;

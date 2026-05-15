@@ -6,15 +6,24 @@ type ApiErrorResponse = {
   errors?: Array<{ message?: string }>;
 };
 
+/** Chaves no estilo `FREIGHT.DELETED_SUCCESSFULLY` enviadas pela API. */
+function looksLikeDottedApiMessageKey(s: string): boolean {
+  return /^[A-Z][A-Z0-9_]*(?:\.[A-Z][A-Z0-9_]*)+$/.test(s);
+}
+
 export function traduzMensagemApi(message: unknown): string | undefined {
   if (typeof message !== "string") return undefined;
 
   const normalizedMessage = message.trim();
   if (!normalizedMessage) return undefined;
 
-  return i18n.exists(normalizedMessage)
-    ? i18n.t(normalizedMessage)
-    : normalizedMessage;
+  if (i18n.exists(normalizedMessage)) {
+    return i18n.t(normalizedMessage);
+  }
+  if (looksLikeDottedApiMessageKey(normalizedMessage)) {
+    return undefined;
+  }
+  return normalizedMessage;
 }
 
 /**

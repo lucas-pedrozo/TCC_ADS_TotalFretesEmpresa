@@ -22,6 +22,6 @@ export function useLogoutRedirect(navigateWithFade: NavigateWithFade) {
       duration: AUTH_REDIRECT_DELAY_MS,
     });
     await new Promise((resolve) => setTimeout(resolve, AUTH_REDIRECT_DELAY_MS));
-    navigateWithFade("/Login", { replace: true });
+    navigateWithFade("/Start", { replace: true });
   }, [logout, navigateWithFade, t]);
 }
