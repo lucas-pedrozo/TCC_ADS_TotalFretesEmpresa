@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   FREIGHT_STATUS_LABEL_KEY,
   FREIGHT_STATUS_SLUGS,
-  parseStatusSlug,
+  resolveFreightStatusSlug,
 } from "@/components/ui/freightStatusUi";
 import http from "@/service/http";
 import type {
@@ -135,8 +135,11 @@ export function useFreightsListPage() {
     const maxD = parseBound(filterMaxDistance);
 
     return rows.filter((row) => {
-      const statusName = row.FreightStatusType?.name;
-      const slug = parseStatusSlug(statusName);
+      const statusName = row.FreightStatusType?.name ?? row.status?.name;
+      const slug = resolveFreightStatusSlug({
+        statusId: row.status_id,
+        statusName,
+      });
       if (chip !== "all" && slug !== chip) return false;
 
       const displayValue = row.finalValue ?? row.originalValue;

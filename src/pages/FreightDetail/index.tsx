@@ -6,11 +6,9 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
-  Clock,
   MapPin,
   Package,
   Scale,
-  Star,
   Tag,
   Truck,
   User,
@@ -24,7 +22,7 @@ import { FreightForm } from "@/components/ui/freightForm";
 import { AddressMapPicker, type MapPinValue } from "@/components/maps/AddressMapPicker";
 import {
   FREIGHT_STATUS_LABEL_KEY,
-  parseStatusSlug,
+  resolveFreightStatusSlug,
   statusBadgeClass,
 } from "@/components/ui/freightStatusUi";
 import { FreightStatusTimeline } from "@/components/ui/freightStatusTimeline";
@@ -52,7 +50,6 @@ import {
 } from "@/utils/freightFormat";
 import { haversineKm } from "@/utils/haversineKm";
 import { isValidMapPin } from "@/utils/freightCreate";
-import { getFreightDetailProposalsMock, pickBestProposal } from "@/mocks/freightDetailProposalsMock";
 import { formatDateTimeLabel } from "@/utils/dateFormat";
 import { initialsFromName } from "@/utils/person";
 
@@ -125,11 +122,19 @@ const FreightDetailPage = () => {
     loading,
     saving,
     deleting,
+    completing,
     statusTimelineHistory,
-    proposalsMock,
-    bestProposalRow,
+    proposals,
+    bestProposal,
+    driverProfilesById,
+    featuredDriverName,
+    featuredDriverVehicle,
+    proposalActionId,
     handleUpdate,
     handleDelete,
+    handleCompleteFreight,
+    handleAcceptProposal,
+    handleRejectProposal,
   } = useFreightDetail({ id });
 
   useEffect(() => {
@@ -169,7 +174,10 @@ const FreightDetailPage = () => {
     );
   }
 
-  const slug = parseStatusSlug(freight.FreightStatusType?.name);
+  const slug = resolveFreightStatusSlug({
+    statusId: freight.status_id,
+    statusName: freight.FreightStatusType?.name ?? freight.status?.name,
+  });
   const distKm = haversineKm(
     freight.origin_lat,
     freight.origin_lng,
@@ -178,8 +186,6 @@ const FreightDetailPage = () => {
   );
   const displayValue = freight.finalValue ?? freight.originalValue;
   const weightKg = freight.weight;
-
-  const mockDriverName = t("pages.freightDetail.mockDriverName");
 
   const initialForm = {
     name: freight.name ?? "",
@@ -198,11 +204,13 @@ const FreightDetailPage = () => {
 
   const routeSubtitle = `${freight.origin_label} → ${freight.destination_label} · ${formatFreightDistanceKm(Math.round(distKm), lang)}`;
 
-  const proposalsData = proposalsMock ?? getFreightDetailProposalsMock(freight);
-  const featuredProposal = bestProposalRow ?? pickBestProposal(proposalsData);
-  const proposalCount = proposalsData.proposals.length;
-  const bestAmount = featuredProposal?.amount ?? displayValue;
+  const featuredProposal = bestProposal;
+  const proposalCount = proposals.length;
+  const proposalsSorted = [...proposals].sort((a, b) => a.value - b.value);
+  const bestAmount = featuredProposal?.value ?? displayValue;
   const savingsDisplay = Math.max(0, Math.round((displayValue - bestAmount) * 100) / 100);
+  const assignedDriverProfile =
+    freight.assignedDriver_id != null ? driverProfilesById[freight.assignedDriver_id] : undefined;
 
   async function onSubmitUpdate(body: FreightCargoStepBody) {
     if (!isValidMapPin(editOrigin) || !isValidMapPin(editDestination)) {
@@ -265,6 +273,16 @@ const FreightDetailPage = () => {
 
         {!editing ? (
           <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:max-w-xs sm:flex-row sm:justify-end">
+            {slug === "entregue" ? (
+              <Button
+                type="button"
+                className="min-h-11 w-full rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 sm:min-h-9 sm:w-auto"
+                disabled={completing}
+                onClick={() => void handleCompleteFreight()}
+              >
+                {t("pages.freightDetail.completeFreight")}
+              </Button>
+            ) : null}
             <Button
               type="button"
               className="min-h-11 w-full rounded-lg bg-brand-green text-white hover:bg-brand-green-dark sm:min-h-9 sm:w-auto"
@@ -339,9 +357,19 @@ const FreightDetailPage = () => {
 
                 {freight.assignedDriver_id != null ? (
                   <div className="mt-6 border-t border-border pt-6">
-                    <DetailField icon={User} label={t("pages.freights.columnName")}>
-                      {t("pages.freightDetail.driverId", { id: freight.assignedDriver_id })}
-                    </DetailField>
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-7">
+                      <DetailField
+                        icon={User}
+                        label={t("pages.freights.columnName")}
+                        sub={t("pages.freightDetail.driverId", { id: freight.assignedDriver_id })}
+                      >
+                        {assignedDriverProfile?.name ??
+                          t("pages.freightDetail.driverId", { id: freight.assignedDriver_id })}
+                      </DetailField>
+                      <DetailField icon={Truck} label={t("pages.freightDetail.proposalVehicleLabel")}>
+                        {assignedDriverProfile?.vehicle ?? t("pages.freightDetail.vehicleUnavailable")}
+                      </DetailField>
+                    </div>
                   </div>
                 ) : null}
               </section>
@@ -387,93 +415,114 @@ const FreightDetailPage = () => {
               </section>
             </div>
 
-            {featuredProposal ? (
-              <section className={cn(cardShell, "p-4 sm:p-5")}>
-                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <h2 className="text-base font-bold tracking-tight text-foreground">
-                    {t("pages.freightDetail.proposalsSectionTitle", { count: proposalCount })}
-                  </h2>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-10 w-full shrink-0 gap-1.5 rounded-lg border-border sm:w-auto"
-                    onClick={() => navigate("/Proposals")}
-                  >
-                    {t("pages.freightDetail.viewAllProposals")}
-                    <ArrowRight className="size-4" aria-hidden />
-                  </Button>
+            <section className={cn(cardShell, "p-4 sm:p-5")}>
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-base font-bold tracking-tight text-foreground">
+                  {t("pages.freightDetail.proposalsSectionTitle", { count: proposalCount })}
+                </h2>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-full shrink-0 gap-1.5 rounded-lg border-border sm:w-auto"
+                  onClick={() => navigate("/Proposals")}
+                >
+                  {t("pages.freightDetail.viewAllProposals")}
+                  <ArrowRight className="size-4" aria-hidden />
+                </Button>
+              </div>
+
+              {featuredProposal ? (
+                <div className="space-y-3">
+                  {proposalsSorted.map((proposal, index) => {
+                    const isBest = index === 0;
+                    const canActOnProposal =
+                      (proposal.ProposalStatusType?.name ?? "").toLowerCase() === "enviada";
+                    const proposalDriverName =
+                      driverProfilesById[proposal.driver_id]?.name ??
+                      t("pages.freightDetail.driverId", { id: proposal.driver_id });
+                    const proposalVehicle =
+                      driverProfilesById[proposal.driver_id]?.vehicle ??
+                      t("pages.freightDetail.vehicleUnavailable");
+
+                    return (
+                      <div
+                        key={proposal.id}
+                        className="relative rounded-xl border-2 border-brand-green/45 bg-card p-4 shadow-sm sm:p-5"
+                      >
+                        {isBest ? (
+                          <span className="absolute right-3 top-3 rounded-full bg-brand-green/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-green-dark dark:text-brand-green-light">
+                            {t("pages.freightDetail.bestProposalBadge")}
+                          </span>
+                        ) : null}
+
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                          <div
+                            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-muted-foreground"
+                            aria-hidden
+                          >
+                            {initialsFromName(proposalDriverName)}
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-1 pr-2 sm:pr-24">
+                            <p className="text-base font-bold text-foreground">{proposalDriverName}</p>
+                            <p className="text-sm text-muted-foreground">{proposalVehicle}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-5 grid grid-cols-1 gap-4 border-t border-border pt-5 sm:grid-cols-2">
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              {t("pages.freightDetail.proposalValueLabel")}
+                            </p>
+                            <p className="mt-1 text-lg font-bold tabular-nums text-foreground">
+                              {formatFreightCurrencyAmount(proposal.value, lang)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              {t("pages.freightDetail.proposalSentAtLabel")}
+                            </p>
+                            <p className="mt-1 flex items-center gap-1.5 text-lg font-bold tabular-nums text-foreground">
+                              <CalendarDays className="size-4 text-muted-foreground" aria-hidden />
+                              {formatDateTimeLabel(proposal.createdAt, lang)}
+                            </p>
+                          </div>
+                        </div>
+
+                        {canActOnProposal ? (
+                          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="min-h-11 w-full gap-2 rounded-lg border-destructive/70 text-destructive hover:bg-destructive/10 sm:min-h-10 sm:w-auto"
+                              disabled={proposalActionId === proposal.id}
+                              onClick={() => void handleRejectProposal(proposal.id)}
+                            >
+                              <X className="size-4 shrink-0" aria-hidden />
+                              {t("pages.freightDetail.rejectProposal")}
+                            </Button>
+                            <Button
+                              type="button"
+                              className="min-h-11 w-full gap-2 rounded-lg bg-brand-green text-white hover:bg-brand-green-dark sm:min-h-10 sm:w-auto"
+                              disabled={proposalActionId === proposal.id}
+                              onClick={() => void handleAcceptProposal(proposal.id)}
+                            >
+                              <Check className="size-4 shrink-0" aria-hidden />
+                              {t("pages.freightDetail.acceptProposal")}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
-
-                <div className="relative rounded-xl border-2 border-brand-green/45 bg-card p-4 shadow-sm sm:p-5">
-                  {featuredProposal.isBest ? (
-                    <span className="absolute right-3 top-3 rounded-full bg-brand-green/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-green-dark dark:text-brand-green-light">
-                      {t("pages.freightDetail.bestProposalBadge")}
-                    </span>
-                  ) : null}
-
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                    <div
-                      className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-muted-foreground"
-                      aria-hidden
-                    >
-                      {initialsFromName(mockDriverName)}
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-1 pr-2 sm:pr-24">
-                      <p className="text-base font-bold text-foreground">{mockDriverName}</p>
-                      <p className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
-                        <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden />
-                        <span>
-                          {t("pages.freightDetail.ratingTrips", { rating: "4.6", count: 87 })}
-                        </span>
-                      </p>
-                      <p className="text-sm text-muted-foreground">{t("pages.freightDetail.mockVehicleType")}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-1 gap-4 border-t border-border pt-5 sm:grid-cols-2">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        {t("pages.freightDetail.proposalValueLabel")}
-                      </p>
-                      <p className="mt-1 text-lg font-bold tabular-nums text-foreground">
-                        {formatFreightCurrencyAmount(featuredProposal.amount, lang)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        {t("pages.freightDetail.proposalDeadlineLabel")}
-                      </p>
-                      <p className="mt-1 flex items-center gap-1.5 text-lg font-bold tabular-nums text-foreground">
-                        <Clock className="size-4 text-muted-foreground" aria-hidden />
-                        {t("pages.freightDetail.proposalDeadlineValue", {
-                          days: featuredProposal.deadlineDays,
-                        })}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11 w-full gap-2 rounded-lg border-destructive/70 text-destructive hover:bg-destructive/10 sm:min-h-10 sm:w-auto"
-                      onClick={() => toast.info(t("pages.freightDetail.proposalActionPlaceholder"))}
-                    >
-                      <X className="size-4 shrink-0" aria-hidden />
-                      {t("pages.freightDetail.rejectProposal")}
-                    </Button>
-                    <Button
-                      type="button"
-                      className="min-h-11 w-full gap-2 rounded-lg bg-brand-green text-white hover:bg-brand-green-dark sm:min-h-10 sm:w-auto"
-                      onClick={() => toast.info(t("pages.freightDetail.proposalActionPlaceholder"))}
-                    >
-                      <Check className="size-4 shrink-0" aria-hidden />
-                      {t("pages.freightDetail.acceptProposal")}
-                    </Button>
-                  </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-8 text-center">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {t("pages.freightDetail.noProposalsYet")}
+                  </p>
                 </div>
-              </section>
-            ) : null}
+              )}
+            </section>
           </div>
         </>
       ) : (

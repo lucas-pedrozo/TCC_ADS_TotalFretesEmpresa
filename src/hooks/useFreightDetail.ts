@@ -9,17 +9,22 @@ import type {
   CargoTypeDto,
   FreightDeleteResponse,
   FreightDto,
+  FreightCompleteResponse,
   FreightStatusTypeDto,
   FreightUpdateBody,
   FreightUpdateResponse,
 } from "@/types/freight";
+import type { ProposalAcceptResponse, ProposalDto, ProposalRejectResponse } from "@/types/proposal";
+import type { UserDto } from "@/types/user";
 import http from "@/service/http";
-import { getFreightDetailProposalsMock, pickBestProposal } from "@/mocks/freightDetailProposalsMock";
 import { traduzMensagemApi, trataErroAxios } from "@/utils/trataErroAxios";
 
 type UseFreightDetailParams = {
   id?: string;
 };
+
+const ACCEPTED_STATUS_NAMES = new Set(["aceita", "accepted", "aceito"]);
+const PENDING_STATUS_NAME = "enviada";
 
 export function useFreightDetail({ id }: UseFreightDetailParams) {
   const { t } = useTranslation();
@@ -28,9 +33,15 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
   const [freight, setFreight] = useState<FreightDto | null>(null);
   const [cargoTypes, setCargoTypes] = useState<CargoTypeDto[]>([]);
   const [statusTypes, setStatusTypes] = useState<FreightStatusTypeDto[]>([]);
+  const [proposals, setProposals] = useState<ProposalDto[]>([]);
+  const [driverProfilesById, setDriverProfilesById] = useState<
+    Record<number, { name: string | null; vehicle: string | null }>
+  >({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [proposalActionId, setProposalActionId] = useState<number | null>(null);
 
   const statusTimelineHistory = useMemo((): FreightStatusTimelineEntry[] | undefined => {
     if (!freight) return undefined;
@@ -49,31 +60,88 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
     return mapped.length > 0 ? mapped : undefined;
   }, [freight]);
 
-  const proposalsMock = useMemo(() => {
-    if (!freight) return null;
-    return getFreightDetailProposalsMock(freight);
-  }, [freight]);
+  const visibleProposals = useMemo(() => {
+    if (proposals.length === 0) return [];
 
-  const bestProposalRow = useMemo(() => {
-    if (!proposalsMock) return undefined;
-    return pickBestProposal(proposalsMock);
-  }, [proposalsMock]);
+    const accepted = proposals.filter((proposal) =>
+      ACCEPTED_STATUS_NAMES.has((proposal.ProposalStatusType?.name ?? "").toLowerCase())
+    );
+    if (accepted.length > 0) return accepted;
+
+    return proposals.filter(
+      (proposal) => (proposal.ProposalStatusType?.name ?? "").toLowerCase() === PENDING_STATUS_NAME
+    );
+  }, [proposals]);
+
+  const bestProposal = useMemo(() => {
+    if (visibleProposals.length === 0) return undefined;
+    return [...visibleProposals].sort((a, b) => a.value - b.value)[0];
+  }, [visibleProposals]);
+
+  useEffect(() => {
+    const driverIds = [...new Set(proposals.map((proposal) => proposal.driver_id).filter(Boolean))];
+    if (driverIds.length === 0) {
+      setDriverProfilesById({});
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadDriverProfiles() {
+      const entries = await Promise.all(
+        driverIds.map(async (driverId) => {
+          try {
+            const { data } = await http.get<UserDto>(`/user/${driverId}`);
+            const vehicleTypeName = data.Vehicle?.VehicleType?.nome ?? data.Vehicle?.VehicleType?.name;
+            const markModel = [data.Vehicle?.mark, data.Vehicle?.model].filter(Boolean).join(" ");
+            const nextVehicle = vehicleTypeName || markModel || null;
+            return [driverId, { name: data.name?.trim() || null, vehicle: nextVehicle }] as const;
+          } catch {
+            return [driverId, { name: null, vehicle: null }] as const;
+          }
+        })
+      );
+
+      if (!cancelled) {
+        setDriverProfilesById(Object.fromEntries(entries));
+      }
+    }
+
+    void loadDriverProfiles();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [proposals]);
+
+  const featuredDriverName = useMemo(() => {
+    if (!bestProposal?.driver_id) return null;
+    return driverProfilesById[bestProposal.driver_id]?.name ?? null;
+  }, [bestProposal?.driver_id, driverProfilesById]);
+
+  const featuredDriverVehicle = useMemo(() => {
+    if (!bestProposal?.driver_id) return null;
+    return driverProfilesById[bestProposal.driver_id]?.vehicle ?? null;
+  }, [bestProposal?.driver_id, driverProfilesById]);
 
   const loadAll = useCallback(async () => {
     if (!id) return;
     try {
       setLoading(true);
-      const [freightRes, cargoRes, statusRes] = await Promise.all([
+      const [freightRes, cargoRes, statusRes, proposalRes] = await Promise.all([
         http.get<FreightDto>(`/freight/${id}`),
         http.get<CargoTypeDto[]>("/cargo-type"),
         http.get<FreightStatusTypeDto[]>("/freight-status-type"),
+        http.get<ProposalDto[]>("/proposal", { params: { freight_id: Number(id) } }),
       ]);
       setFreight(freightRes.data);
       setCargoTypes(Array.isArray(cargoRes.data) ? cargoRes.data : []);
       setStatusTypes(Array.isArray(statusRes.data) ? statusRes.data : []);
+      setProposals(Array.isArray(proposalRes.data) ? proposalRes.data : []);
     } catch (e) {
       toast.error(trataErroAxios(e));
       setFreight(null);
+      setProposals([]);
     } finally {
       setLoading(false);
     }
@@ -82,6 +150,34 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
   useEffect(() => {
     void loadAll();
   }, [loadAll]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const refreshIntervalMs = 10000;
+    const intervalId = window.setInterval(() => {
+      void loadAll();
+    }, refreshIntervalMs);
+
+    const handleWindowFocus = () => {
+      void loadAll();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void loadAll();
+      }
+    };
+
+    window.addEventListener("focus", handleWindowFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleWindowFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [id, loadAll]);
 
   const handleUpdate = useCallback(
     async (body: FreightUpdateBody) => {
@@ -118,6 +214,63 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
     }
   }, [id, navigate, t]);
 
+  const handleCompleteFreight = useCallback(async () => {
+    if (!id) return false;
+    try {
+      setCompleting(true);
+      const { data } = await http.patch<FreightCompleteResponse>(`/freight/${id}/complete`, {});
+      toast.success(traduzMensagemApi(data.message) ?? t("pages.freightDetail.completedOk"));
+      setFreight(data.freight);
+      await loadAll();
+      return true;
+    } catch (e) {
+      toast.error(trataErroAxios(e));
+      return false;
+    } finally {
+      setCompleting(false);
+    }
+  }, [id, loadAll, t]);
+
+  const handleAcceptProposal = useCallback(
+    async (proposalId: number) => {
+      try {
+        setProposalActionId(proposalId);
+        const { data } = await http.patch<ProposalAcceptResponse>(`/proposal/${proposalId}/accept`, {});
+        toast.success(
+          traduzMensagemApi(data.message) ?? t("pages.freightDetail.acceptProposalSuccess")
+        );
+        await loadAll();
+        return true;
+      } catch (e) {
+        toast.error(trataErroAxios(e));
+        return false;
+      } finally {
+        setProposalActionId(null);
+      }
+    },
+    [loadAll, t]
+  );
+
+  const handleRejectProposal = useCallback(
+    async (proposalId: number) => {
+      try {
+        setProposalActionId(proposalId);
+        const { data } = await http.patch<ProposalRejectResponse>(`/proposal/${proposalId}/reject`, {});
+        toast.success(
+          traduzMensagemApi(data.message) ?? t("pages.freightDetail.rejectProposalSuccess")
+        );
+        await loadAll();
+        return true;
+      } catch (e) {
+        toast.error(trataErroAxios(e));
+        return false;
+      } finally {
+        setProposalActionId(null);
+      }
+    },
+    [loadAll, t]
+  );
+
   return {
     freight,
     cargoTypes,
@@ -125,11 +278,19 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
     loading,
     saving,
     deleting,
+    completing,
+    proposalActionId,
     statusTimelineHistory,
-    proposalsMock,
-    bestProposalRow,
+    proposals: visibleProposals,
+    bestProposal,
+    driverProfilesById,
+    featuredDriverName,
+    featuredDriverVehicle,
     loadAll,
     handleUpdate,
     handleDelete,
+    handleCompleteFreight,
+    handleAcceptProposal,
+    handleRejectProposal,
   };
 }
