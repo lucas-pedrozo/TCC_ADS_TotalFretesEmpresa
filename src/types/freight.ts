@@ -54,6 +54,7 @@ export type FreightDto = {
   createdAt?: string;
   updatedAt?: string;
   CargoType?: CargoTypeDto;
+  status?: FreightStatusTypeDto | null;
   FreightStatusType?: FreightStatusTypeDto | null;
   /** Ordem cronológica (mais antigo primeiro), quando a API envia o histórico. */
   FreightStatusHistories?: FreightStatusHistoryDto[];
@@ -70,6 +71,8 @@ export type FreightUpdateResponse = {
   message?: string;
   freight: FreightDto;
 };
+
+export type FreightCompleteResponse = FreightUpdateResponse;
 
 export type FreightDeleteResponse = {
   message?: string;

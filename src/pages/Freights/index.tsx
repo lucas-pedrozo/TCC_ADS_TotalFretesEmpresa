@@ -52,7 +52,7 @@ import { haversineKm } from "@/utils/haversineKm";
 
 import {
   FREIGHT_STATUS_LABEL_KEY,
-  parseStatusSlug,
+  resolveFreightStatusSlug,
   statusBadgeClass,
 } from "@/components/ui/freightStatusUi";
 
@@ -414,7 +414,10 @@ const FreightsPage = () => {
           <>
             <ul className="flex flex-col gap-3 p-3 md:hidden" role="list">
               {filtered.map((row) => {
-                const slug = parseStatusSlug(row.FreightStatusType?.name);
+                const slug = resolveFreightStatusSlug({
+                  statusId: row.status_id,
+                  statusName: row.FreightStatusType?.name ?? row.status?.name,
+                });
                 const distKm = haversineKm(
                   row.origin_lat,
                   row.origin_lng,
@@ -578,7 +581,10 @@ const FreightsPage = () => {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((row) => {
-                    const slug = parseStatusSlug(row.FreightStatusType?.name);
+                    const slug = resolveFreightStatusSlug({
+                      statusId: row.status_id,
+                      statusName: row.FreightStatusType?.name ?? row.status?.name,
+                    });
                     const distKm = haversineKm(
                       row.origin_lat,
                       row.origin_lng,

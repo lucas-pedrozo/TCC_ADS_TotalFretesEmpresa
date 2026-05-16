@@ -1,8 +1,10 @@
 import axios from "axios";
 import i18n, { normalizeLanguage } from "@/i18n";
 
+const apiBaseUrl = import.meta.env.VITE_API_URL?.trim() || "/api";
+
 const http = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl,
 });
 
 http.interceptors.request.use((config) => {
