@@ -83,6 +83,7 @@ export function AddressMapPicker({
   const [searchText, setSearchText] = useState("");
   const [suggestions, setSuggestions] = useState<GeocodeFeature[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [labelInput, setLabelInput] = useState("");
   const [reverseBusy, setReverseBusy] = useState(false);
   const [searchCompletedFor, setSearchCompletedFor] = useState("");
@@ -253,6 +254,7 @@ export function AddressMapPicker({
     void (async () => {
       try {
         setSearching(true);
+        setSearchError(null);
         const feats = await fetchForward(q);
         setSuggestions([]);
         if (feats.length > 0 && mapRef.current) {
@@ -264,8 +266,9 @@ export function AddressMapPicker({
             f.place_name
           );
         }
-      } catch {
+      } catch (e) {
         setSuggestions([]);
+        setSearchError(trataErroAxios(e));
       } finally {
         setSearching(false);
       }
@@ -276,6 +279,7 @@ export function AddressMapPicker({
     const q = searchText.trim();
     if (q.length < 2) {
       setSuggestions([]);
+      setSearchError(null);
       return;
     }
 
@@ -287,6 +291,7 @@ export function AddressMapPicker({
       valueLat != null
     ) {
       setSuggestions([]);
+      setSearchError(null);
       setSearchCompletedFor(q);
       return;
     }
@@ -297,6 +302,7 @@ export function AddressMapPicker({
       void (async () => {
         try {
           setSearching(true);
+          setSearchError(null);
           const feats = await fetchForward(queryAtFire);
           if (searchTextLiveRef.current.trim() !== queryAtFire) return;
 
@@ -309,15 +315,18 @@ export function AddressMapPicker({
             snap.lat != null
           ) {
             setSuggestions([]);
+            setSearchError(null);
             setSearchCompletedFor(queryAtFire);
             return;
           }
 
           setSuggestions(feats);
+          setSearchError(null);
           setSearchCompletedFor(queryAtFire);
-        } catch {
+        } catch (e) {
           if (searchTextLiveRef.current.trim() !== queryAtFire) return;
           setSuggestions([]);
+          setSearchError(trataErroAxios(e));
           setSearchCompletedFor(queryAtFire);
         } finally {
           if (searchTextLiveRef.current.trim() === queryAtFire) {
@@ -335,6 +344,7 @@ export function AddressMapPicker({
   function handlePickSuggestion(f: GeocodeFeature) {
     if (!mapRef.current) return;
     setSuggestions([]);
+    setSearchError(null);
     setSearchText(f.place_name);
     placeMarkerAndEmitRef.current(
       mapRef.current,
@@ -374,6 +384,8 @@ export function AddressMapPicker({
         />
         {searching && searchText.trim().length >= 2 ? (
           <p className="text-xs text-muted-foreground">{t("pages.freightWizard.searching")}</p>
+        ) : searchError ? (
+          <p className="text-xs text-destructive">{searchError}</p>
         ) : null}
         {suggestions.length > 0 ? (
           <ul className="max-h-44 overflow-auto rounded-lg border border-border bg-card text-sm shadow-sm">
@@ -392,6 +404,7 @@ export function AddressMapPicker({
         ) : !hasPlacedPin &&
           searchText.trim().length >= 2 &&
           !searching &&
+          !searchError &&
           suggestions.length === 0 &&
           searchCompletedFor === searchText.trim() ? (
           <p className="text-xs text-muted-foreground">{t("pages.freightWizard.noResults")}</p>
