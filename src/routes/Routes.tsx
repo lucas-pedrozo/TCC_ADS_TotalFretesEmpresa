@@ -18,6 +18,7 @@ import FreightsPage from "@/pages/Freights";
 import FreightDetailPage from "@/pages/FreightDetail";
 import HistoryPage from "@/pages/History";
 import ProposalsPage from "@/pages/Proposals";
+import ProposalDetailPage from "@/pages/ProposalDetail";
 
 const FreightNewPage = lazy(() => import("@/pages/FreightNew"));
 
@@ -62,6 +63,7 @@ function WebRoutes() {
           <Route path="/Freights/:id" element={<FreightDetailPage />} />
           <Route path="/Freights" element={<FreightsPage />} />
           <Route path="/History" element={<HistoryPage />} />
+          <Route path="/Proposals/:proposalId" element={<ProposalDetailPage />} />
           <Route path="/Proposals" element={<ProposalsPage />} />
         </Route>
       </Route>

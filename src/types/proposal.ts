@@ -1,3 +1,5 @@
+import type { FreightDto } from "@/types/freight";
+
 export type ProposalStatusTypeDto = {
   id: number;
   name: string;
@@ -12,6 +14,7 @@ export type ProposalDto = {
   createdAt?: string;
   updatedAt?: string;
   ProposalStatusType?: ProposalStatusTypeDto | null;
+  Freight?: FreightDto | null;
 };
 
 export type ProposalAcceptResponse = {
@@ -22,4 +25,45 @@ export type ProposalAcceptResponse = {
 export type ProposalRejectResponse = {
   message?: string;
   proposal: ProposalDto;
+};
+
+export type ProposalListPaginatedResponse = {
+  items: ProposalDto[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+  summary?: ProposalListKpis;
+};
+
+export type ProposalStatusFilter =
+  | "enviada"
+  | "aceita"
+  | "recusada"
+  | "nao_selecionada"
+  | "todas";
+
+export type ProposalListKpis = {
+  totalProposals: number;
+  pendingProposals: number;
+  acceptedProposals: number;
+  uniqueFreights: number;
+};
+
+/** Legado: agregação por frete (`GET /proposal/freight-summary`). */
+export type ProposalFreightSummaryItem = {
+  freight: import("@/types/freight").FreightDto;
+  proposalCount: number;
+  pendingCount: number;
+  bestValue: number;
+  averageValue: number;
+  referenceValue: number;
+};
+
+export type ProposalFreightSummaryResponse = {
+  items: ProposalFreightSummaryItem[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
 };

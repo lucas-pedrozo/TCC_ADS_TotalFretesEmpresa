@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { Banknote, Scale } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,13 +14,16 @@ import type {
 import {
   amountToCentsDigits,
   centsDigitsToAmount,
-  formatFreightCurrencyAmount,
+  currencyInputPlaceholder,
+  formatCurrencyInputDisplay,
   formatFreightWeightAmount,
   kgToWeightDigits,
   sanitizeCurrencyCentsInput,
   sanitizeWeightDigitsInput,
   weightDigitsToKg,
+  weightInputPlaceholder,
 } from "@/utils/freightFormat";
+import { cn } from "@/lib/utils";
 
 type FreightFormBase = {
   cargoTypes: CargoTypeDto[];
@@ -45,6 +48,117 @@ export type FreightFormProps =
       cargoFieldsOnly: true;
       onSubmit: (body: FreightCargoStepBody) => Promise<void>;
     });
+
+type MaskedFieldProps = {
+  id: string;
+  label: string;
+  fieldClass: string;
+  touchInput: string;
+  required?: boolean;
+};
+
+type CurrencyFieldProps = MaskedFieldProps & {
+  lang: AppLanguage;
+  valueCentsDigits: string;
+  onChange: (digits: string) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+};
+
+function CurrencyField({
+  id,
+  label,
+  fieldClass,
+  touchInput,
+  lang,
+  valueCentsDigits,
+  onChange,
+  inputRef,
+  required = true,
+}: CurrencyFieldProps) {
+  const currencyPrefix = lang === "en" ? "$" : "R$";
+
+  return (
+    <div className={fieldClass}>
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 flex items-center gap-1.5 pl-3 text-muted-foreground"
+          aria-hidden
+        >
+          <Banknote className="size-4 shrink-0" strokeWidth={2} />
+          <span className="text-sm font-semibold tabular-nums text-foreground/80">{currencyPrefix}</span>
+        </div>
+        <Input
+          id={id}
+          ref={inputRef}
+          required={required}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          className={cn(touchInput, "pl-[4.75rem] tabular-nums")}
+          placeholder={currencyInputPlaceholder(lang)}
+          value={formatCurrencyInputDisplay(valueCentsDigits, lang)}
+          onChange={(e) => onChange(sanitizeCurrencyCentsInput(e.target.value))}
+        />
+      </div>
+    </div>
+  );
+}
+
+type WeightFieldProps = MaskedFieldProps & {
+  lang: AppLanguage;
+  weightDigits: string;
+  onChange: (digits: string) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+};
+
+function WeightField({
+  id,
+  label,
+  fieldClass,
+  touchInput,
+  lang,
+  weightDigits,
+  onChange,
+  inputRef,
+  required = true,
+}: WeightFieldProps) {
+  return (
+    <div className={fieldClass}>
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground"
+          aria-hidden
+        >
+          <Scale className="size-4 shrink-0" strokeWidth={2} />
+        </div>
+        <Input
+          id={id}
+          ref={inputRef}
+          required={required}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          className={cn(touchInput, "pl-10 pr-11 tabular-nums")}
+          placeholder={weightInputPlaceholder(lang)}
+          value={
+            weightDigits
+              ? formatFreightWeightAmount(weightDigitsToKg(weightDigits), lang)
+              : ""
+          }
+          onChange={(e) => onChange(sanitizeWeightDigitsInput(e.target.value))}
+        />
+        <span
+          className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-sm font-semibold tabular-nums text-foreground/80"
+          aria-hidden
+        >
+          kg
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export function FreightForm(props: FreightFormProps) {
   const {
@@ -279,42 +393,26 @@ export function FreightForm(props: FreightFormProps) {
           <div className={cargoSectionShell}>
             <p className={sectionTitle}>{t("pages.freightForm.sectionAmounts")}</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className={field}>
-                <Label htmlFor="freight-value">{t("pages.freightForm.originalValue")}</Label>
-                <Input
-                  id="freight-value"
-                  ref={valueInputRef}
-                  required
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  className={touchInput}
-                  value={
-                    valueCentsDigits
-                      ? formatFreightCurrencyAmount(centsDigitsToAmount(valueCentsDigits), lang)
-                      : ""
-                  }
-                  onChange={(e) => setValueCentsDigits(sanitizeCurrencyCentsInput(e.target.value))}
-                />
-              </div>
-              <div className={field}>
-                <Label htmlFor="freight-weight">{t("pages.freightForm.weightKg")}</Label>
-                <Input
-                  id="freight-weight"
-                  ref={weightInputRef}
-                  required
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  className={touchInput}
-                  value={
-                    weightDigits
-                      ? formatFreightWeightAmount(weightDigitsToKg(weightDigits), lang)
-                      : ""
-                  }
-                  onChange={(e) => setWeightDigits(sanitizeWeightDigitsInput(e.target.value))}
-                />
-              </div>
+              <CurrencyField
+                id="freight-value"
+                label={t("pages.freightForm.originalValue")}
+                fieldClass={field}
+                touchInput={touchInput}
+                lang={lang}
+                valueCentsDigits={valueCentsDigits}
+                onChange={setValueCentsDigits}
+                inputRef={valueInputRef}
+              />
+              <WeightField
+                id="freight-weight"
+                label={t("pages.freightForm.weightKg")}
+                fieldClass={field}
+                touchInput={touchInput}
+                lang={lang}
+                weightDigits={weightDigits}
+                onChange={setWeightDigits}
+                inputRef={weightInputRef}
+              />
               <div className={`${field} md:col-span-2`}>
                 <Label htmlFor="freight-days">{t("pages.freightForm.daysLimit")}</Label>
                 <Input
@@ -474,42 +572,26 @@ export function FreightForm(props: FreightFormProps) {
             />
           </div>
 
-          <div className={field}>
-            <Label htmlFor="freight-value">{t("pages.freightForm.originalValue")}</Label>
-            <Input
-              id="freight-value"
-              ref={valueInputRef}
-              required
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              className={touchInput}
-              value={
-                valueCentsDigits
-                  ? formatFreightCurrencyAmount(centsDigitsToAmount(valueCentsDigits), lang)
-                  : ""
-              }
-              onChange={(e) => setValueCentsDigits(sanitizeCurrencyCentsInput(e.target.value))}
-            />
-          </div>
-          <div className={field}>
-            <Label htmlFor="freight-weight">{t("pages.freightForm.weightKg")}</Label>
-            <Input
-              id="freight-weight"
-              ref={weightInputRef}
-              required
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              className={touchInput}
-              value={
-                weightDigits
-                  ? formatFreightWeightAmount(weightDigitsToKg(weightDigits), lang)
-                  : ""
-              }
-              onChange={(e) => setWeightDigits(sanitizeWeightDigitsInput(e.target.value))}
-            />
-          </div>
+          <CurrencyField
+            id="freight-value-full"
+            label={t("pages.freightForm.originalValue")}
+            fieldClass={field}
+            touchInput={touchInput}
+            lang={lang}
+            valueCentsDigits={valueCentsDigits}
+            onChange={setValueCentsDigits}
+            inputRef={valueInputRef}
+          />
+          <WeightField
+            id="freight-weight-full"
+            label={t("pages.freightForm.weightKg")}
+            fieldClass={field}
+            touchInput={touchInput}
+            lang={lang}
+            weightDigits={weightDigits}
+            onChange={setWeightDigits}
+            inputRef={weightInputRef}
+          />
           <div className={field}>
             <Label htmlFor="freight-days">{t("pages.freightForm.daysLimit")}</Label>
             <Input
