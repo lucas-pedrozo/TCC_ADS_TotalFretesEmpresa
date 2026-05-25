@@ -17,6 +17,15 @@ export type CompanyAddressDto = {
   state?: string | null;
 };
 
+export type CompanyImageDto = {
+  id?: number;
+  originalName?: string | null;
+  fileName?: string | null;
+  mimeType?: string | null;
+  sizeBytes?: number | null;
+  url?: string | null;
+};
+
 type CompanyApiResponse = {
   name?: string;
   email?: string;
@@ -24,8 +33,19 @@ type CompanyApiResponse = {
   phoneNumber?: string | null;
   website?: string | null;
   cnpj?: string;
+  company_image_id?: number | null;
   CompanyAddress?: CompanyAddressDto | null;
+  CompanyImage?: CompanyImageDto | null;
 };
+
+export interface CompanyImageData {
+  id: number;
+  originalName?: string;
+  fileName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  url: string;
+}
 
 export interface CompanyData {
   name: string;
@@ -34,6 +54,9 @@ export interface CompanyData {
   phoneNumber: string;
   website?: string;
   cnpj: string;
+  addressId: number | null;
+  imageId: number | null;
+  image: CompanyImageData | null;
   /** Não vem no GET; mantido opcional por compatibilidade com tipos antigos. */
   password?: string;
   country: string;
@@ -47,6 +70,20 @@ export interface CompanyData {
 
 function normalizeCompanyApi(raw: CompanyApiResponse): CompanyData {
   const addr = raw.CompanyAddress;
+  const image =
+    raw.CompanyImage?.id != null && raw.CompanyImage?.url
+      ? {
+          id: Number(raw.CompanyImage.id),
+          originalName: raw.CompanyImage.originalName ?? undefined,
+          fileName: raw.CompanyImage.fileName ?? undefined,
+          mimeType: raw.CompanyImage.mimeType ?? undefined,
+          sizeBytes:
+            raw.CompanyImage.sizeBytes != null
+              ? Number(raw.CompanyImage.sizeBytes)
+              : undefined,
+          url: String(raw.CompanyImage.url),
+        }
+      : null;
   const country =
     addr?.country != null && String(addr.country).trim() !== ""
       ? String(addr.country).trim().toUpperCase()
@@ -58,6 +95,11 @@ function normalizeCompanyApi(raw: CompanyApiResponse): CompanyData {
     phoneNumber: raw.phoneNumber != null ? String(raw.phoneNumber) : "",
     website: raw.website ?? undefined,
     cnpj: String(raw.cnpj ?? "").trim(),
+    addressId: typeof addr?.id === "number" ? addr.id : null,
+    imageId:
+      image?.id ??
+      (typeof raw.company_image_id === "number" ? raw.company_image_id : null),
+    image,
     country,
     cep: addr?.cep != null ? String(addr.cep) : "",
     street: addr?.street != null ? String(addr.street) : "",

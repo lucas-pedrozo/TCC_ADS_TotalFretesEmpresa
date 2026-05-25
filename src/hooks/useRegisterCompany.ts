@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { normalizeCnpj } from "@/utils/cnpjInRfb2229";
+import { normalizePhoneForStorage } from "@/utils/mask";
 import { useRegisterCompanyContext, type RegisterCompanyDraftData } from "@/context/RegisterCompanyContext";
 import { useNavigate, type NavigateFunction } from "react-router-dom";
 import { toast } from "sonner";
@@ -18,7 +19,7 @@ const normalizeCompanyPayload = (data: RegisterCompanyDraftData) => {
     name: data.name.trim(),
     email: data.email.trim().toLowerCase(),
     birthFundation: data.birthFundation,
-    phoneNumber: onlyDigits(data.phoneNumber),
+    phoneNumber: normalizePhoneForStorage(data.phoneNumber),
     cnpj: normalizeCnpj(data.cnpj),
     password: data.password,
     country: data.country.trim().toUpperCase(),

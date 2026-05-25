@@ -72,7 +72,7 @@ const SingUpBasicPage = () => {
                         rules={Rules.phoneNumber}
                         label={t('pages.singupBasic.phoneNumberLabel')}
                         mask="phone"
-                        maxLength={15}
+                        maxLength={24}
                     />
 
                     <InputDefault

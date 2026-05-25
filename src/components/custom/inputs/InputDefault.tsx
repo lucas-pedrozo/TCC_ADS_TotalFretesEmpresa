@@ -6,7 +6,7 @@ import {
   type RegisterOptions,
 } from "react-hook-form"
 import type { ReactNode } from "react"
-import { maskCep, maskCnpj, maskEmail, maskPhone, maskUf } from "@/utils/mask"
+import { maskCep, maskCnpj, maskEmail, maskPhone, maskUf, normalizePhoneInput } from "@/utils/mask"
 import { parseCnpjInput } from "@/utils/cnpjInRfb2229"
 
 type InputDefaultProps<T extends FieldValues> = {
@@ -53,7 +53,7 @@ const MASKS = {
 
 export const UNMASKS = {
   default: (value: string) => value,
-  phone: (value: string) => value.replace(/\D/g, ""),
+  phone: normalizePhoneInput,
   cnpj: (value: string) => parseCnpjInput(value ?? ""),
   cep: (value: string) => value.replace(/\D/g, ""),
   email: maskEmail,
