@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ export function useFreightCreateWizard() {
   const [cargoTypes, setCargoTypes] = useState<CargoTypeDto[]>([]);
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const lastOriginSeedQueryRef = useRef<string | null>(null);
 
   const loadMeta = useCallback(async () => {
     try {
@@ -56,6 +57,38 @@ export function useFreightCreateWizard() {
     () => formatCompanyAddressLine(companyData),
     [companyData]
   );
+
+  useEffect(() => {
+    const q = initialOriginQuery?.trim();
+    if (!q) return;
+    if (isValidMapPin(origin)) return;
+    if (lastOriginSeedQueryRef.current === q) return;
+
+    lastOriginSeedQueryRef.current = q;
+
+    void (async () => {
+      try {
+        const { data } = await http.get<{ features?: Array<{ place_name: string; center: [number, number] }> }>(
+          "/mapbox/geocode-forward",
+          { params: { q } }
+        );
+        const first = Array.isArray(data.features) ? data.features[0] : null;
+        if (!first) return;
+        const [lng, lat] = first.center;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+        setOrigin((prev) =>
+          isValidMapPin(prev)
+            ? prev
+            : {
+                label: first.place_name,
+                lat,
+                lng,
+              }
+        );
+      } catch {
+      }
+    })();
+  }, [initialOriginQuery, origin]);
 
   const syncOrigin = useCallback((next: MapPinValue | null) => {
     setOrigin((prev) => (isSameMapPin(prev, next) ? prev : next));

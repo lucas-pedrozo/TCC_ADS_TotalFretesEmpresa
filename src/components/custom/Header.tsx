@@ -2,7 +2,6 @@ import { Bell, LogOut, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { AppLanguage } from "@/i18n/resources";
-
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -42,7 +41,23 @@ function headerTitle(pathname: string, t: (key: string) => string) {
   if (pathname.startsWith("/Freights")) {
     return t("header.freightsTitle");
   }
+  if (/^\/Proposals\/[^/]+/.test(pathname)) {
+    return t("header.proposalDetailTitle");
+  }
+  if (pathname.startsWith("/Proposals")) {
+    return t("header.proposalsTitle");
+  }
   return t("header.homeTitle");
+}
+
+function headerSubtitle(pathname: string, t: (key: string) => string): string | null {
+  if (/^\/Proposals\/[^/]+/.test(pathname)) {
+    return t("header.proposalDetailSubtitle");
+  }
+  if (pathname.startsWith("/Proposals")) {
+    return t("header.proposalsSubtitle");
+  }
+  return null;
 }
 
 function freightsHeaderDate(locale: string): string {
@@ -70,6 +85,7 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
   const freightsDateLine = isFreights
     ? freightsHeaderDate(i18n.language as AppLanguage)
     : null;
+  const subtitleLine = freightsDateLine ?? headerSubtitle(pathname, t);
 
   const displayName = companyData?.name?.trim() ?? "";
   const email = companyData?.email?.trim() ?? "";
@@ -87,9 +103,14 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
           <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
             {title}
           </h1>
-          {freightsDateLine ? (
-            <p className="mt-0.5 truncate text-xs capitalize text-muted-foreground sm:text-sm">
-              {freightsDateLine}
+          {subtitleLine ? (
+            <p
+              className={cn(
+                "mt-0.5 truncate text-xs text-muted-foreground sm:text-sm",
+                isFreights && "capitalize"
+              )}
+            >
+              {subtitleLine}
             </p>
           ) : null}
         </div>

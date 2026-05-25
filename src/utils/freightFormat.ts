@@ -11,6 +11,21 @@ export function formatFreightCurrencyAmount(value: number, locale: AppLanguage):
   }).format(value);
 }
 
+/** Valor monetário formatado sem o símbolo da moeda (para inputs com prefixo visual). */
+export function formatCurrencyInputDisplay(digits: string, locale: AppLanguage): string {
+  if (!digits) return "";
+  const formatted = formatFreightCurrencyAmount(centsDigitsToAmount(digits), locale);
+  return formatted.replace(/^R\$\s?/u, "").replace(/^\$\s?/u, "").trim();
+}
+
+export function currencyInputPlaceholder(locale: AppLanguage): string {
+  return locale === "en" ? "0.00" : "0,00";
+}
+
+export function weightInputPlaceholder(locale: AppLanguage): string {
+  return locale === "en" ? "0,000" : "0.000";
+}
+
 /** Mesma regra visual da listagem (`formatWeightKg`), sem o sufixo " kg". */
 export function formatFreightWeightAmount(kg: number, locale: AppLanguage): string {
   const tag = locale === "en" ? "en-US" : "pt-BR";

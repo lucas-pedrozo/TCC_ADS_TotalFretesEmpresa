@@ -127,8 +127,6 @@ const FreightDetailPage = () => {
     proposals,
     bestProposal,
     driverProfilesById,
-    featuredDriverName,
-    featuredDriverVehicle,
     proposalActionId,
     handleUpdate,
     handleDelete,
@@ -447,7 +445,15 @@ const FreightDetailPage = () => {
                     return (
                       <div
                         key={proposal.id}
-                        className="relative rounded-xl border-2 border-brand-green/45 bg-card p-4 shadow-sm sm:p-5"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => void navigate(`/Proposals/${proposal.id}`)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            void navigate(`/Proposals/${proposal.id}`);
+                          }
+                        }}
+                        className="relative cursor-pointer rounded-xl border-2 border-brand-green/45 bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 sm:p-5"
                       >
                         {isBest ? (
                           <span className="absolute right-3 top-3 rounded-full bg-brand-green/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-green-dark dark:text-brand-green-light">
@@ -495,7 +501,10 @@ const FreightDetailPage = () => {
                               variant="outline"
                               className="min-h-11 w-full gap-2 rounded-lg border-destructive/70 text-destructive hover:bg-destructive/10 sm:min-h-10 sm:w-auto"
                               disabled={proposalActionId === proposal.id}
-                              onClick={() => void handleRejectProposal(proposal.id)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void handleRejectProposal(proposal.id);
+                              }}
                             >
                               <X className="size-4 shrink-0" aria-hidden />
                               {t("pages.freightDetail.rejectProposal")}
@@ -504,7 +513,10 @@ const FreightDetailPage = () => {
                               type="button"
                               className="min-h-11 w-full gap-2 rounded-lg bg-brand-green text-white hover:bg-brand-green-dark sm:min-h-10 sm:w-auto"
                               disabled={proposalActionId === proposal.id}
-                              onClick={() => void handleAcceptProposal(proposal.id)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void handleAcceptProposal(proposal.id);
+                              }}
                             >
                               <Check className="size-4 shrink-0" aria-hidden />
                               {t("pages.freightDetail.acceptProposal")}
