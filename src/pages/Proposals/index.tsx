@@ -187,7 +187,7 @@ const ProposalsPage = () => {
           <p className="text-center text-sm text-muted-foreground sm:text-left">
             {t("pages.freights.paginationShowing")}{" "}
             <strong className="font-semibold tabular-nums text-foreground">{from}</strong>
-            <span className="text-muted-foreground">–</span>
+            <span className="text-muted-foreground"> – </span>
             <strong className="font-semibold tabular-nums text-foreground">{to}</strong>{" "}
             {t("pages.freights.paginationOf")}{" "}
             <strong className="font-semibold tabular-nums text-foreground">{total}</strong>{" "}

@@ -19,10 +19,17 @@ const EMPTY_SUMMARY: ProposalListKpis = {
   uniqueFreights: 0,
 };
 
-export function useProposalsListPage() {
+type UseProposalsListPageOptions = {
+  defaultStatusFilter?: ProposalStatusFilter;
+  pageSize?: number;
+};
+
+export function useProposalsListPage(options: UseProposalsListPageOptions = {}) {
+  const defaultStatusFilter = options.defaultStatusFilter ?? DEFAULT_STATUS_FILTER;
+  const pageSize = options.pageSize ?? PAGE_SIZE;
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>(DEFAULT_STATUS_FILTER);
+  const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>(defaultStatusFilter);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ProposalListPaginatedResponse | null>(null);
@@ -43,7 +50,7 @@ export function useProposalsListPage() {
       setLoading(true);
       const params: Record<string, string | number> = {
         page,
-        limit: PAGE_SIZE,
+        limit: pageSize,
         proposal_status: statusFilter,
       };
       if (debouncedSearch) {
@@ -60,7 +67,7 @@ export function useProposalsListPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, debouncedSearch]);
+  }, [page, pageSize, statusFilter, debouncedSearch]);
 
   useEffect(() => {
     void loadProposals();
@@ -72,8 +79,8 @@ export function useProposalsListPage() {
   const total = data?.total ?? 0;
   const hasMore = data?.hasMore ?? false;
 
-  const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const to = total === 0 ? 0 : Math.min(page * PAGE_SIZE, total);
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const to = total === 0 ? 0 : Math.min(page * pageSize, total);
 
   const canGoPrev = page > 1;
   const canGoNext = hasMore;
@@ -88,22 +95,22 @@ export function useProposalsListPage() {
     }
   }, [hasMore]);
 
-  const activeFilterCount = statusFilter === DEFAULT_STATUS_FILTER ? 0 : 1;
+  const activeFilterCount = statusFilter === defaultStatusFilter ? 0 : 1;
 
   const clearStatusFilter = useCallback(() => {
-    setStatusFilter(DEFAULT_STATUS_FILTER);
-  }, []);
+    setStatusFilter(defaultStatusFilter);
+  }, [defaultStatusFilter]);
 
   return {
     search,
     setSearch,
     statusFilter,
     setStatusFilter,
-    defaultStatusFilter: DEFAULT_STATUS_FILTER,
+    defaultStatusFilter,
     activeFilterCount,
     clearStatusFilter,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     loading,
     items,
     summary,

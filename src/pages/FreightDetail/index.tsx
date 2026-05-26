@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft,
   ArrowRight,
+  Ban,
   CalendarDays,
   Check,
   MapPin,
@@ -113,6 +114,7 @@ const FreightDetailPage = () => {
 
   const [editing, setEditing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const [editOrigin, setEditOrigin] = useState<MapPinValue | null>(null);
   const [editDestination, setEditDestination] = useState<MapPinValue | null>(null);
   const {
@@ -122,6 +124,7 @@ const FreightDetailPage = () => {
     loading,
     saving,
     deleting,
+    cancelling,
     completing,
     statusTimelineHistory,
     proposals,
@@ -130,6 +133,7 @@ const FreightDetailPage = () => {
     proposalActionId,
     handleUpdate,
     handleDelete,
+    handleCancelFreight,
     handleCompleteFreight,
     handleAcceptProposal,
     handleRejectProposal,
@@ -235,6 +239,11 @@ const FreightDetailPage = () => {
     if (ok) setDeleteOpen(false);
   }
 
+  async function onConfirmCancel() {
+    const ok = await handleCancelFreight();
+    if (ok) setCancelOpen(false);
+  }
+
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
       <Button
@@ -270,7 +279,7 @@ const FreightDetailPage = () => {
         </div>
 
         {!editing ? (
-          <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:max-w-xs sm:flex-row sm:justify-end">
+          <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-end">
             {slug === "entregue" ? (
               <Button
                 type="button"
@@ -279,6 +288,18 @@ const FreightDetailPage = () => {
                 onClick={() => void handleCompleteFreight()}
               >
                 {t("pages.freightDetail.completeFreight")}
+              </Button>
+            ) : null}
+            {slug !== "cancelado" && slug !== "concluido" ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11 w-full rounded-lg border-amber-500/60 text-amber-700 hover:bg-amber-50 hover:text-amber-800 sm:min-h-9 sm:w-auto dark:border-amber-500/40 dark:text-amber-300 dark:hover:bg-amber-500/10"
+                disabled={cancelling}
+                onClick={() => setCancelOpen(true)}
+              >
+                <Ban className="size-4 shrink-0" />
+                {t("pages.freightDetail.cancelFreight")}
               </Button>
             ) : null}
             <Button
@@ -610,6 +631,34 @@ const FreightDetailPage = () => {
               onClick={() => void onConfirmDelete()}
             >
               {t("pages.freightDetail.confirmDelete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <DialogContent showCloseButton={!cancelling}>
+          <DialogHeader>
+            <DialogTitle>{t("pages.freightDetail.cancelConfirmTitle")}</DialogTitle>
+            <DialogDescription>{t("pages.freightDetail.cancelConfirmBody")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-lg"
+              disabled={cancelling}
+              onClick={() => setCancelOpen(false)}
+            >
+              {t("pages.freightDetail.cancel")}
+            </Button>
+            <Button
+              type="button"
+              className="rounded-lg bg-amber-600 text-white hover:bg-amber-700"
+              disabled={cancelling}
+              onClick={() => void onConfirmCancel()}
+            >
+              {t("pages.freightDetail.confirmCancel")}
             </Button>
           </DialogFooter>
         </DialogContent>

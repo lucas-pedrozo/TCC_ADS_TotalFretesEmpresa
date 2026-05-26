@@ -40,6 +40,7 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [proposalActionId, setProposalActionId] = useState<number | null>(null);
 
@@ -214,6 +215,23 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
     }
   }, [id, navigate, t]);
 
+  const handleCancelFreight = useCallback(async () => {
+    if (!id) return false;
+    try {
+      setCancelling(true);
+      const { data } = await http.patch<FreightUpdateResponse>(`/freight/${id}/cancel`, {});
+      toast.success(traduzMensagemApi(data.message) ?? t("pages.freightDetail.cancelledOk"));
+      setFreight(data.freight);
+      await loadAll();
+      return true;
+    } catch (e) {
+      toast.error(trataErroAxios(e));
+      return false;
+    } finally {
+      setCancelling(false);
+    }
+  }, [id, loadAll, t]);
+
   const handleCompleteFreight = useCallback(async () => {
     if (!id) return false;
     try {
@@ -278,6 +296,7 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
     loading,
     saving,
     deleting,
+    cancelling,
     completing,
     proposalActionId,
     statusTimelineHistory,
@@ -289,6 +308,7 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
     loadAll,
     handleUpdate,
     handleDelete,
+    handleCancelFreight,
     handleCompleteFreight,
     handleAcceptProposal,
     handleRejectProposal,
