@@ -1,14 +1,22 @@
 import { maskCnpjInRfb2229 } from '@/utils/cnpjInRfb2229'
+import {
+  formatPhoneNumberForDisplay,
+  parsePhoneParts,
+  normalizeInternationalPhoneInput,
+} from '@/utils/phone'
 
-export const maskPhone = (value: string) => {
-  const digits = value.replace(/\D/g, '').slice(0, 11);
+export const normalizePhoneInput = normalizeInternationalPhoneInput
 
-  if (!digits) return '';
-  if (digits.length <= 2) return `(${digits}`;
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-};
+export const normalizePhoneDigits = (value: string) => {
+  const normalizedInput = normalizePhoneInput(value)
+  return normalizedInput.replace(/\D/g, '')
+}
+
+export const normalizePhoneForStorage = (value: string) => {
+  return parsePhoneParts(value).e164 || normalizePhoneInput(value)
+}
+
+export const maskPhone = formatPhoneNumberForDisplay
 
 export const maskCnpj = (value: string) => maskCnpjInRfb2229(value ?? '')
 

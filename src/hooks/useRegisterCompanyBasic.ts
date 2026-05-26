@@ -1,7 +1,15 @@
 
 import { useRegisterCompanyContext, type RegisterCompanyDataBasic } from "@/context/RegisterCompanyContext";
 import { trataErroAxios } from "@/utils/trataErroAxios";
-import { validateCNPJ, validateDate, validateEmail, validatePassword, validatePasswordConfirmation, validatePhone } from "@/utils/validation";
+import {
+  validateCNPJ,
+  validateDate,
+  validateEmail,
+  validatePassword,
+  validatePasswordConfirmation,
+  validatePhone,
+  validatePhoneCountryCode,
+} from "@/utils/validation";
 import { useCallback } from "react"
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -37,9 +45,17 @@ export function useRegisterCompanyBasic(onClickNext: () => void) {
       required: t("validation.birthFundationRequired"),
       validate: (value: string | undefined) => !value || validateDate(value) || t("validation.birthFundationInvalid"),
     },
+    phoneCountryCode: {
+      required: t("validation.phoneCountryCodeRequired"),
+      validate: (value: string | undefined) =>
+        !value || validatePhoneCountryCode(value) || t("validation.phoneCountryCodeInvalid"),
+    },
     phoneNumber: {
       required: t("validation.phoneRequired"),
-      validate: (value: string | undefined) => !value || validatePhone(value) || t("validation.phoneInvalid"),
+      validate: (value: string | undefined, formValues: RegisterCompanyDataBasic) =>
+        !value ||
+        validatePhone(formValues.phoneCountryCode, value) ||
+        t("validation.phoneInvalid"),
     },
     cnpj: {
       required: t("validation.cnpjRequired"),

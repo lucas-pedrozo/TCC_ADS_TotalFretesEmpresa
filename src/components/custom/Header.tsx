@@ -5,7 +5,7 @@ import type { AppLanguage } from "@/i18n/resources";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,6 +89,7 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
 
   const displayName = companyData?.name?.trim() ?? "";
   const email = companyData?.email?.trim() ?? "";
+  const imageUrl = companyData?.image?.url ?? "";
 
   return (
     <header className="sticky top-0 z-30 flex min-w-0 max-w-full shrink-0 items-center justify-between gap-2 border-b bg-background px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:gap-4 md:px-8">
@@ -152,6 +153,7 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
             }
           >
             <Avatar className="size-8">
+              {imageUrl ? <AvatarImage src={imageUrl} alt={displayName} /> : null}
               <AvatarFallback
                 className={cn(
                   "bg-brand-green-dark text-xs font-semibold text-white"
@@ -182,6 +184,7 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
           >
             <div className="flex gap-3 p-3">
               <Avatar className="size-12 shrink-0 rounded-full">
+                {imageUrl ? <AvatarImage src={imageUrl} alt={displayName} /> : null}
                 <AvatarFallback
                   className={cn(
                     "rounded-full bg-brand-green-dark text-sm font-semibold text-white"

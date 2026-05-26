@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { useAuth } from "@/context/AuthContext";
+import { normalizeDateInputValue } from "@/utils/dateFormat";
+import { parsePhoneParts } from "@/utils/phone";
 import { toast } from "sonner";
 import i18n from "@/i18n";
 
@@ -17,6 +19,15 @@ export type CompanyAddressDto = {
   state?: string | null;
 };
 
+export type CompanyImageDto = {
+  id?: number;
+  originalName?: string | null;
+  fileName?: string | null;
+  mimeType?: string | null;
+  sizeBytes?: number | null;
+  url?: string | null;
+};
+
 type CompanyApiResponse = {
   name?: string;
   email?: string;
@@ -24,17 +35,32 @@ type CompanyApiResponse = {
   phoneNumber?: string | null;
   website?: string | null;
   cnpj?: string;
+  company_image_id?: number | null;
   CompanyAddress?: CompanyAddressDto | null;
+  CompanyImage?: CompanyImageDto | null;
 };
+
+export interface CompanyImageData {
+  id: number;
+  originalName?: string;
+  fileName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  url: string;
+}
 
 export interface CompanyData {
   name: string;
   email: string;
   birthFundation: string;
+  phoneCountryCode: string;
   phoneNumber: string;
   website?: string;
   cnpj: string;
-  /** Não vem no GET; mantido opcional por compatibilidade com tipos antigos. */
+  addressId: number | null;
+  imageId: number | null;
+  image: CompanyImageData | null;
+
   password?: string;
   country: string;
   cep: string;
@@ -47,17 +73,39 @@ export interface CompanyData {
 
 function normalizeCompanyApi(raw: CompanyApiResponse): CompanyData {
   const addr = raw.CompanyAddress;
+  const image =
+    raw.CompanyImage?.id != null && raw.CompanyImage?.url
+      ? {
+          id: Number(raw.CompanyImage.id),
+          originalName: raw.CompanyImage.originalName ?? undefined,
+          fileName: raw.CompanyImage.fileName ?? undefined,
+          mimeType: raw.CompanyImage.mimeType ?? undefined,
+          sizeBytes:
+            raw.CompanyImage.sizeBytes != null
+              ? Number(raw.CompanyImage.sizeBytes)
+              : undefined,
+          url: String(raw.CompanyImage.url),
+        }
+      : null;
   const country =
     addr?.country != null && String(addr.country).trim() !== ""
       ? String(addr.country).trim().toUpperCase()
       : "BR";
+  const phoneParts = parsePhoneParts(String(raw.phoneNumber ?? ""), country);
+
   return {
     name: String(raw.name ?? "").trim(),
     email: String(raw.email ?? "").trim(),
-    birthFundation: String(raw.birthFundation ?? ""),
-    phoneNumber: raw.phoneNumber != null ? String(raw.phoneNumber) : "",
+    birthFundation: normalizeDateInputValue(String(raw.birthFundation ?? "")),
+    phoneCountryCode: phoneParts.phoneCountryCode,
+    phoneNumber: phoneParts.phoneNumber,
     website: raw.website ?? undefined,
     cnpj: String(raw.cnpj ?? "").trim(),
+    addressId: typeof addr?.id === "number" ? addr.id : null,
+    imageId:
+      image?.id ??
+      (typeof raw.company_image_id === "number" ? raw.company_image_id : null),
+    image,
     country,
     cep: addr?.cep != null ? String(addr.cep) : "",
     street: addr?.street != null ? String(addr.street) : "",

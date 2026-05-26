@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import { normalizeCnpj } from "@/utils/cnpjInRfb2229";
+import { buildPhoneE164 } from "@/utils/phone";
 import { useRegisterCompanyContext, type RegisterCompanyDraftData } from "@/context/RegisterCompanyContext";
 import { useNavigate, type NavigateFunction } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,15 +11,13 @@ import { useTranslation } from "react-i18next";
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
 
 const normalizeCompanyPayload = (data: RegisterCompanyDraftData) => {
-  const payload: Partial<RegisterCompanyDraftData> = { ...data };
-  delete payload.confirmPassword;
-
   return {
-    ...payload,
+    account_type_id: data.account_type_id,
     name: data.name.trim(),
     email: data.email.trim().toLowerCase(),
     birthFundation: data.birthFundation,
-    phoneNumber: onlyDigits(data.phoneNumber),
+    phoneNumber: buildPhoneE164(data.phoneCountryCode, data.phoneNumber),
+    website: data.website?.trim() || undefined,
     cnpj: normalizeCnpj(data.cnpj),
     password: data.password,
     country: data.country.trim().toUpperCase(),
