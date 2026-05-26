@@ -1,4 +1,6 @@
+import { DatePickerInput } from '@/components/custom/inputs/DatePickerInput'
 import { InputDefault } from '@/components/custom/inputs/InputDefault'
+import { INPUT_STYLES } from '@/components/custom/inputs/InputDefault'
 import { ButtonDefault } from '@/components/custom/buttons/ButtonDefault'
 import { AuthLayout } from '@/layout/AuthLayout'
 import { useRegisterCompanyBasic } from '@/hooks/useRegisterCompanyBasic'
@@ -6,7 +8,14 @@ import { useFadeNavigate } from '@/hooks/useFadeNavigate'
 import { useMountFadeIn } from '@/hooks/useMountFadeIn'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Controller, useWatch } from 'react-hook-form'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
+import {
+    formatPhoneCountryCode,
+    maskPhoneNationalNumber,
+    normalizePhoneCountryCodeInput,
+    normalizePhoneNationalNumberInput,
+} from '@/utils/phone'
 
 const SingUpBasicPage = () => {
     const { t } = useTranslation()
@@ -16,6 +25,7 @@ const SingUpBasicPage = () => {
     )
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const phoneCountryCode = useWatch({ control, name: 'phoneCountryCode' })
     const contentClassName = useMountFadeIn({
         className: 'flex w-full min-h-[calc(100dvh-7rem)] py-4 min-[970px]:py-6 flex-col justify-center gap-6',
         isExiting,
@@ -65,23 +75,143 @@ const SingUpBasicPage = () => {
                         maxLength={18}
                     />
 
-                    <InputDefault
-                        name="phoneNumber"
-                        placeholder={t('pages.singupBasic.phoneNumberPlaceholder')}
-                        control={control}
-                        rules={Rules.phoneNumber}
-                        label={t('pages.singupBasic.phoneNumberLabel')}
-                        mask="phone"
-                        maxLength={24}
-                    />
+                    <div className="grid gap-3 md:items-end md:grid-cols-[140px_minmax(0,1fr)]">
+                        <Controller
+                            name="phoneCountryCode"
+                            control={control}
+                            rules={Rules.phoneCountryCode}
+                            render={({ field, fieldState: { error } }) => (
+                                <div className="flex flex-col gap-1">
+                                    <label
+                                        htmlFor="signup-phone-country-code"
+                                        className={
+                                            error
+                                                ? INPUT_STYLES.error.label
+                                                : INPUT_STYLES.default.label
+                                        }
+                                    >
+                                        {t('pages.singupBasic.phoneCountryCodeLabel')}
+                                    </label>
+                                    <input
+                                        id="signup-phone-country-code"
+                                        name={field.name}
+                                        type="text"
+                                        inputMode="numeric"
+                                        autoComplete="tel-country-code"
+                                        placeholder={t('pages.singupBasic.phoneCountryCodePlaceholder')}
+                                        value={formatPhoneCountryCode(field.value ?? '')}
+                                        onChange={(event) =>
+                                            field.onChange(
+                                                normalizePhoneCountryCodeInput(event.target.value),
+                                            )
+                                        }
+                                        onBlur={field.onBlur}
+                                        ref={field.ref}
+                                        maxLength={4}
+                                        className={
+                                            error
+                                                ? INPUT_STYLES.error.input
+                                                : INPUT_STYLES.default.input
+                                        }
+                                    />
+                                    {error && (
+                                        <span className="pl-2.5 text-red-500 text-sm">
+                                            {error.message}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                        />
 
-                    <InputDefault
+                        <Controller
+                            name="phoneNumber"
+                            control={control}
+                            rules={Rules.phoneNumber}
+                            render={({ field, fieldState: { error } }) => (
+                                <div className="flex flex-col gap-1">
+                                    <label
+                                        htmlFor="signup-phone-number"
+                                        className={
+                                            error
+                                                ? INPUT_STYLES.error.label
+                                                : INPUT_STYLES.default.label
+                                        }
+                                    >
+                                        {t('pages.singupBasic.phoneNumberLabel')}
+                                    </label>
+                                    <input
+                                        id="signup-phone-number"
+                                        name={field.name}
+                                        type="text"
+                                        inputMode="tel"
+                                        autoComplete="tel-national"
+                                        placeholder={t('pages.singupBasic.phoneNumberPlaceholder')}
+                                        value={maskPhoneNationalNumber(
+                                            field.value ?? '',
+                                            phoneCountryCode ?? '',
+                                        )}
+                                        onChange={(event) =>
+                                            field.onChange(
+                                                normalizePhoneNationalNumberInput(
+                                                    event.target.value,
+                                                    phoneCountryCode ?? '',
+                                                ),
+                                            )
+                                        }
+                                        onBlur={field.onBlur}
+                                        ref={field.ref}
+                                        maxLength={20}
+                                        className={
+                                            error
+                                                ? INPUT_STYLES.error.input
+                                                : INPUT_STYLES.default.input
+                                        }
+                                    />
+                                    {error && (
+                                        <span className="pl-2.5 text-red-500 text-sm">
+                                            {error.message}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                        />
+                    </div>
+
+                    <Controller
                         name="birthFundation"
-                        placeholder={t('pages.singupBasic.birthFundationPlaceholder')}
                         control={control}
                         rules={Rules.birthFundation}
-                        label={t('pages.singupBasic.birthFundationLabel')}
-                        type="date"
+                        render={({ field, fieldState: { error } }) => (
+                            <div className="flex flex-col gap-1">
+                                <label
+                                    htmlFor="signup-birth-fundation"
+                                    className={
+                                        error ? INPUT_STYLES.error.label : INPUT_STYLES.default.label
+                                    }
+                                >
+                                    {t('pages.singupBasic.birthFundationLabel')}
+                                </label>
+
+                                <DatePickerInput
+                                    id="signup-birth-fundation"
+                                    value={field.value ?? ''}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    placeholder={t('pages.singupBasic.birthFundationPlaceholder')}
+                                    className={
+                                        error
+                                            ? INPUT_STYLES.error.input
+                                            : INPUT_STYLES.default.input
+                                    }
+                                />
+
+                                {error && (
+                                    <span className="pl-2.5 text-red-500 text-sm">
+                                        {error.message}
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     />
 
                     <InputDefault

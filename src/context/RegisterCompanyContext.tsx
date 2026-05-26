@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { DEFAULT_PHONE_COUNTRY_CODE } from "@/utils/phone";
 
 /** Alinhado ao seed do authentication-service (USER=1, COMPANY=2, ADMIN=3). */
 export const ACCOUNT_TYPE_COMPANY = 2;
@@ -7,6 +8,7 @@ export type RegisterCompanyDataBasic = {
   name: string;
   email: string;
   birthFundation: string;
+  phoneCountryCode: string;
   phoneNumber: string;
   website?: string;
   cnpj: string;
@@ -42,6 +44,7 @@ const defultBasicData: RegisterCompanyDataBasic = {
   name: "",
   email: "",
   birthFundation: "",
+  phoneCountryCode: DEFAULT_PHONE_COUNTRY_CODE,
   phoneNumber: "",
   cnpj: "",
   password: "",

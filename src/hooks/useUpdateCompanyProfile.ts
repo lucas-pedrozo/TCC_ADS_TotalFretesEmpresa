@@ -12,7 +12,10 @@ import {
   getCountryStateOptions,
 } from "@/utils/address";
 import { normalizeCnpj } from "@/utils/cnpjInRfb2229";
-import { normalizePhoneForStorage } from "@/utils/mask";
+import {
+  buildPhoneE164,
+  getDefaultPhoneCountryCodeByCountry,
+} from "@/utils/phone";
 import { trataErroAxios, traduzMensagemApi } from "@/utils/trataErroAxios";
 import {
   validateCepByCountry,
@@ -20,6 +23,7 @@ import {
   validateCountry,
   validateDate,
   validatePhone,
+  validatePhoneCountryCode,
   validateRequired,
   validateUf,
 } from "@/utils/validation";
@@ -44,6 +48,7 @@ type UseUpdateCompanyProfileParams = {
 export type CompanyProfileFormData = {
   name: string;
   cnpj: string;
+  phoneCountryCode: string;
   phoneNumber: string;
   birthFundation: string;
   website: string;
@@ -60,6 +65,9 @@ function getDefaultValues(companyData: CompanyData | null): CompanyProfileFormDa
   return {
     name: companyData?.name ?? "",
     cnpj: companyData?.cnpj ?? "",
+    phoneCountryCode:
+      companyData?.phoneCountryCode ||
+      getDefaultPhoneCountryCodeByCountry(companyData?.country ?? DEFAULT_COUNTRY),
     phoneNumber: companyData?.phoneNumber ?? "",
     birthFundation: companyData?.birthFundation ?? "",
     website: companyData?.website ?? "",
@@ -166,10 +174,19 @@ export function useUpdateCompanyProfile({
       validate: (value: string | undefined) =>
         !value || validateCNPJ(value) || t("validation.cnpjInvalid"),
     },
+    phoneCountryCode: {
+      required: t("validation.phoneCountryCodeRequired"),
+      validate: (value: string | undefined) =>
+        !value ||
+        validatePhoneCountryCode(value) ||
+        t("validation.phoneCountryCodeInvalid"),
+    },
     phoneNumber: {
       required: t("validation.phoneRequired"),
-      validate: (value: string | undefined) =>
-        !value || validatePhone(value) || t("validation.phoneInvalid"),
+      validate: (value: string | undefined, formValues: CompanyProfileFormData) =>
+        !value ||
+        validatePhone(formValues.phoneCountryCode, value) ||
+        t("validation.phoneInvalid"),
     },
     birthFundation: {
       required: t("validation.birthFundationRequired"),
@@ -237,7 +254,7 @@ export function useUpdateCompanyProfile({
       const companyPayload = {
         name: trimValue(values.name),
         cnpj: normalizeCnpj(values.cnpj),
-        phoneNumber: normalizePhoneForStorage(values.phoneNumber),
+        phoneNumber: buildPhoneE164(values.phoneCountryCode, values.phoneNumber),
         birthFundation: values.birthFundation,
         website: trimValue(values.website) || null,
       };

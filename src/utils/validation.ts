@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { cpf } from "cpf-cnpj-validator";
 import { isValidCnpjInRfb2229 } from "./cnpjInRfb2229";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
-import { normalizePhoneInput } from "./mask";
+import { normalizePhoneCountryCodeInput, validatePhoneParts } from "./phone";
 
 
 // @param name - must be between 2 and 100 characters || example: "João da Silva"
@@ -26,14 +25,16 @@ export const validatePasswordConfirmation = (
   return password === confirmPassword;
 };
 
-// @param phone - (00) 00000-0000
-export const validatePhone = (phone: string): boolean => {
-  const normalizedPhone = normalizePhoneInput(phone);
+export const validatePhoneCountryCode = (phoneCountryCode: string): boolean => {
+  const normalizedPhoneCountryCode = normalizePhoneCountryCodeInput(phoneCountryCode);
+  return z.string().regex(/^\d{1,3}$/).safeParse(normalizedPhoneCountryCode).success;
+};
 
-  if (!normalizedPhone) return false;
-
-  const parsed = parsePhoneNumberFromString(normalizedPhone, "BR");
-  return parsed?.isValid() ?? false;
+export const validatePhone = (
+  phoneCountryCode: string,
+  phoneNumber: string
+): boolean => {
+  return validatePhoneParts(phoneCountryCode, phoneNumber);
 };
 
 // @param date - must be in ISO format (YYYY-MM-DD)

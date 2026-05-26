@@ -77,10 +77,12 @@ export const resources = {
           emailPlaceholder: "seu@email.com",
           cnpjLabel: "CNPJ",
           cnpjPlaceholder: "00.000.000/0000-00 ou 12.ABC.345/01DE-35",
-          phoneNumberLabel: "Telefone",
-          phoneNumberPlaceholder: "+55 (00) 00000-0000",
+          phoneCountryCodeLabel: "Código do país (DDI)",
+          phoneCountryCodePlaceholder: "55",
+          phoneNumberLabel: "Número do telefone",
+          phoneNumberPlaceholder: "Ex.: (11) 98765-4321",
           birthFundationLabel: "Data de fundação",
-          birthFundationPlaceholder: "Digite a data de fundação",
+          birthFundationPlaceholder: "dd/mm/aaaa",
           passwordLabel: "Senha",
           passwordPlaceholder: "Digite sua senha",
           confirmPasswordLabel: "Confirmar senha",
@@ -321,7 +323,6 @@ export const resources = {
           unavailableDescription:
             "Tente buscar novamente os dados antes de editar as informações da conta.",
           retry: "Tentar novamente",
-          companyBadge: "Empresa ativa",
           cnpjFallback: "CNPJ não informado",
           phoneFallback: "Telefone não informado",
           websiteFallback: "Website não informado",
@@ -330,6 +331,7 @@ export const resources = {
           tabs: {
             company: "Dados da empresa",
             address: "Endereço",
+            security: "Segurança",
           },
           companySectionTitle: "Informações da empresa",
           companySectionDescription:
@@ -352,7 +354,8 @@ export const resources = {
           fields: {
             name: "Nome da empresa",
             cnpj: "CNPJ",
-            phoneNumber: "Telefone",
+            phoneCountryCode: "Código do país (DDI)",
+            phoneNumber: "Número do telefone",
             birthFundation: "Data de fundação",
             website: "Website",
             country: "País",
@@ -366,7 +369,9 @@ export const resources = {
           placeholders: {
             name: "Digite o nome da empresa",
             cnpj: "00.000.000/0000-00",
-            phoneNumber: "+55 (00) 00000-0000",
+            phoneCountryCode: "55",
+            phoneNumber: "Ex.: (11) 98765-4321",
+            birthFundation: "dd/mm/aaaa",
             website: "https://suaempresa.com.br",
             country: "Selecione um país",
             cep: "00000-000",
@@ -375,6 +380,47 @@ export const resources = {
             number: "Digite o número",
             city: "Digite a cidade",
             state: "Selecione ou informe o estado",
+          },
+          security: {
+            title: "Segurança da conta",
+            description:
+              "Gerencie a senha de acesso e as ações sensíveis da conta da empresa em um fluxo separado do cadastro.",
+            changePasswordTitle: "Trocar senha",
+            changePasswordDescription:
+              "Atualize a senha usada para acessar o painel web da empresa.",
+            changePasswordHint: "Use uma senha com pelo menos 8 caracteres.",
+            changePasswordDirty: "Existem alterações prontas para atualizar a senha.",
+            changePasswordSubmit: "Atualizar senha",
+            changePasswordLoading: "Atualizando senha...",
+            changePasswordSuccess: "Senha atualizada com sucesso.",
+            passwordMustDiffer: "A nova senha deve ser diferente da atual.",
+            deleteTitle: "Excluir conta",
+            deleteDescription:
+              "Remova definitivamente a conta da empresa e os dados vinculados disponíveis neste fluxo.",
+            deleteWarning:
+              "Essa ação é irreversível e pode ser bloqueada quando existirem fretes ativos vinculados à empresa.",
+            deleteSubmit: "Excluir minha conta",
+            deleteLoading: "Excluindo conta...",
+            deleteSuccess: "Conta excluída com sucesso.",
+            deleteConfirmKeyword: "EXCLUIR",
+            deleteConfirmMismatch: "Digite a palavra de confirmação para continuar.",
+            deleteDialogTitle: "Confirmar exclusão da conta",
+            deleteDialogDescription:
+              "Esta ação removerá a conta de {{companyName}}. Para continuar, digite {{keyword}} no campo abaixo.",
+            deleteDialogLabel: "Confirmação",
+            deleteDialogHint:
+              "Ao confirmar, sua sessão será encerrada e você será redirecionado para fora da área autenticada.",
+            deleteDialogSubmit: "Confirmar exclusão",
+            fields: {
+              currentPassword: "Senha atual",
+              newPassword: "Nova senha",
+              confirmPassword: "Confirmar nova senha",
+            },
+            placeholders: {
+              currentPassword: "Digite a senha atual",
+              newPassword: "Digite a nova senha",
+              confirmPassword: "Digite a nova senha novamente",
+            },
           },
         },
         profileImage: {
@@ -447,8 +493,10 @@ export const resources = {
         nameInvalid: "O nome deve ter pelo menos 3 caracteres",
         cnpjRequired: "CNPJ é obrigatório",
         cnpjInvalid: "Informe um CNPJ válido",
+        phoneCountryCodeRequired: "Código do país é obrigatório",
+        phoneCountryCodeInvalid: "Informe um código do país válido",
         phoneRequired: "Telefone é obrigatório",
-        phoneInvalid: "Informe um telefone brasileiro válido",
+        phoneInvalid: "Informe um telefone válido para o código do país informado",
         birthFundationRequired: "Data de fundação é obrigatória",
         birthFundationInvalid: "Informe uma data de fundação válida",
         codeRequired: "Código é obrigatório",
@@ -469,9 +517,13 @@ export const resources = {
         badGateway: "O servidor está ocupado ou indisponível no momento. Aguarde um instante e tente novamente.",
       },
       AUTH: {
+        CURRENT_AND_NEW_PASSWORD_REQUIRED: "A senha atual e a nova senha são obrigatórias.",
+        CHANGE_PASSWORD_FAILED: "Erro ao alterar a senha.",
         INVALID_PASSWORD: "Senha inválida",
         LOGIN_FAILED: "Falha ao realizar login",
         LOGIN_SUCCESSFUL: "Login realizado com sucesso",
+        NEW_PASSWORD_MUST_DIFFER: "A nova senha deve ser diferente da atual.",
+        PASSWORD_CHANGED_SUCCESSFULLY: "Senha alterada com sucesso.",
         TOKEN_INVALID_OR_MISSING: "Token inválido ou ausente",
         TOKEN_INVALID_OR_EXPIRED: "Token inválido ou expirado",
       },
@@ -481,6 +533,8 @@ export const resources = {
       },
       COMPANY: {
         ALREADY_EXISTS: "Empresa já cadastrada",
+        ACTIVE_FREIGHTS_BLOCK_DELETE:
+          "Não é possível excluir a conta enquanto existirem fretes ativos vinculados à empresa.",
         EMAIL_ALREADY_EXISTS: "Já existe uma empresa com este email",
         CNPJ_ALREADY_EXISTS: "Já existe uma empresa com este CNPJ",
         PHONE_NUMBER_ALREADY_EXISTS: "Já existe uma empresa com este telefone",
@@ -618,10 +672,12 @@ export const resources = {
           emailPlaceholder: "your@email.com",
           cnpjLabel: "CNPJ",
           cnpjPlaceholder: "00.000.000/0000-00 or 12.ABC.345/01DE-35",
-          phoneNumberLabel: "Phone Number",
-          phoneNumberPlaceholder: "+55 (00) 00000-0000",
+          phoneCountryCodeLabel: "Country code",
+          phoneCountryCodePlaceholder: "55",
+          phoneNumberLabel: "Phone number",
+          phoneNumberPlaceholder: "Example: (11) 98765-4321",
           birthFundationLabel: "Birth Fundation",
-          birthFundationPlaceholder: "Enter your birth fundation",
+          birthFundationPlaceholder: "mm/dd/yyyy",
           passwordLabel: "Password",
           passwordPlaceholder: "Enter your password",
           confirmPasswordLabel: "Confirm password",
@@ -862,7 +918,6 @@ export const resources = {
           unavailableDescription:
             "Try fetching the data again before editing the account information.",
           retry: "Try again",
-          companyBadge: "Active company",
           cnpjFallback: "CNPJ not provided",
           phoneFallback: "Phone not provided",
           websiteFallback: "Website not provided",
@@ -871,6 +926,7 @@ export const resources = {
           tabs: {
             company: "Company details",
             address: "Address",
+            security: "Security",
           },
           companySectionTitle: "Company information",
           companySectionDescription:
@@ -893,7 +949,8 @@ export const resources = {
           fields: {
             name: "Company name",
             cnpj: "CNPJ",
-            phoneNumber: "Phone",
+            phoneCountryCode: "Country code",
+            phoneNumber: "Phone number",
             birthFundation: "Founding date",
             website: "Website",
             country: "Country",
@@ -907,7 +964,9 @@ export const resources = {
           placeholders: {
             name: "Enter the company name",
             cnpj: "00.000.000/0000-00",
-            phoneNumber: "+55 (00) 00000-0000",
+            phoneCountryCode: "55",
+            phoneNumber: "Example: (11) 98765-4321",
+            birthFundation: "mm/dd/yyyy",
             website: "https://yourcompany.com",
             country: "Select a country",
             cep: "00000-000",
@@ -916,6 +975,47 @@ export const resources = {
             number: "Enter the number",
             city: "Enter the city",
             state: "Select or enter the state",
+          },
+          security: {
+            title: "Account security",
+            description:
+              "Manage the access password and sensitive account actions in a flow separated from the company registration data.",
+            changePasswordTitle: "Change password",
+            changePasswordDescription:
+              "Update the password used to access the company's web panel.",
+            changePasswordHint: "Use a password with at least 8 characters.",
+            changePasswordDirty: "There are changes ready to update the password.",
+            changePasswordSubmit: "Update password",
+            changePasswordLoading: "Updating password...",
+            changePasswordSuccess: "Password updated successfully.",
+            passwordMustDiffer: "The new password must be different from the current one.",
+            deleteTitle: "Delete account",
+            deleteDescription:
+              "Permanently remove the company account and the linked data available in this flow.",
+            deleteWarning:
+              "This action is irreversible and may be blocked when there are active freights linked to the company.",
+            deleteSubmit: "Delete my account",
+            deleteLoading: "Deleting account...",
+            deleteSuccess: "Account deleted successfully.",
+            deleteConfirmKeyword: "DELETE",
+            deleteConfirmMismatch: "Type the confirmation word to continue.",
+            deleteDialogTitle: "Confirm account deletion",
+            deleteDialogDescription:
+              "This action will remove the account for {{companyName}}. To continue, type {{keyword}} in the field below.",
+            deleteDialogLabel: "Confirmation",
+            deleteDialogHint:
+              "After confirming, your session will be closed and you will be redirected out of the authenticated area.",
+            deleteDialogSubmit: "Confirm deletion",
+            fields: {
+              currentPassword: "Current password",
+              newPassword: "New password",
+              confirmPassword: "Confirm new password",
+            },
+            placeholders: {
+              currentPassword: "Enter the current password",
+              newPassword: "Enter the new password",
+              confirmPassword: "Enter the new password again",
+            },
           },
         },
         profileImage: {
@@ -988,8 +1088,10 @@ export const resources = {
         nameInvalid: "Name must have at least 3 characters",
         cnpjRequired: "CNPJ is required",
         cnpjInvalid: "Enter a valid CNPJ",
+        phoneCountryCodeRequired: "Country code is required",
+        phoneCountryCodeInvalid: "Enter a valid country code",
         phoneRequired: "Phone number is required",
-        phoneInvalid: "Enter a valid Brazilian phone number",
+        phoneInvalid: "Enter a valid phone number for the selected country code",
         birthFundationRequired: "Founding date is required",
         birthFundationInvalid: "Enter a valid founding date",
         codeRequired: "Code is required",
@@ -1010,9 +1112,13 @@ export const resources = {
         badGateway: "The server is busy or temporarily unavailable. Please wait a moment and try again.",
       },
       AUTH: {
+        CURRENT_AND_NEW_PASSWORD_REQUIRED: "Current password and new password are required.",
+        CHANGE_PASSWORD_FAILED: "Error changing password.",
         INVALID_PASSWORD: "Invalid password",
         LOGIN_FAILED: "Failed to sign in",
         LOGIN_SUCCESSFUL: "Signed in successfully",
+        NEW_PASSWORD_MUST_DIFFER: "The new password must be different from the current one.",
+        PASSWORD_CHANGED_SUCCESSFULLY: "Password changed successfully.",
         TOKEN_INVALID_OR_MISSING: "Invalid or missing token",
         TOKEN_INVALID_OR_EXPIRED: "Invalid or expired token",
       },
@@ -1022,6 +1128,8 @@ export const resources = {
       },
       COMPANY: {
         ALREADY_EXISTS: "Company already registered",
+        ACTIVE_FREIGHTS_BLOCK_DELETE:
+          "The account cannot be deleted while there are active freights linked to the company.",
         EMAIL_ALREADY_EXISTS: "A company with this email already exists",
         CNPJ_ALREADY_EXISTS: "A company with this CNPJ already exists",
         PHONE_NUMBER_ALREADY_EXISTS: "A company with this phone number already exists",

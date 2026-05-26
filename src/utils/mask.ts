@@ -1,17 +1,11 @@
-import { AsYouType, parsePhoneNumberFromString } from 'libphonenumber-js'
 import { maskCnpjInRfb2229 } from '@/utils/cnpjInRfb2229'
+import {
+  formatPhoneNumberForDisplay,
+  parsePhoneParts,
+  normalizeInternationalPhoneInput,
+} from '@/utils/phone'
 
-const DEFAULT_PHONE_COUNTRY = 'BR'
-const MAX_PHONE_DIGITS = 15
-
-export const normalizePhoneInput = (value: string) => {
-  const trimmed = value.trim()
-  const digits = trimmed.replace(/\D/g, '').slice(0, MAX_PHONE_DIGITS)
-
-  if (!digits) return ''
-
-  return trimmed.startsWith('+') ? `+${digits}` : digits
-}
+export const normalizePhoneInput = normalizeInternationalPhoneInput
 
 export const normalizePhoneDigits = (value: string) => {
   const normalizedInput = normalizePhoneInput(value)
@@ -19,33 +13,10 @@ export const normalizePhoneDigits = (value: string) => {
 }
 
 export const normalizePhoneForStorage = (value: string) => {
-  const normalizedInput = normalizePhoneInput(value)
-
-  if (!normalizedInput) return ''
-
-  const parsed = parsePhoneNumberFromString(normalizedInput, DEFAULT_PHONE_COUNTRY)
-
-  if (parsed) {
-    return parsed.number.replace(/\D/g, '')
-  }
-
-  return normalizePhoneDigits(normalizedInput)
+  return parsePhoneParts(value).e164 || normalizePhoneInput(value)
 }
 
-export const maskPhone = (value: string) => {
-  const normalizedInput = normalizePhoneInput(value)
-
-  if (!normalizedInput) return ''
-
-  const parsed = parsePhoneNumberFromString(normalizedInput, DEFAULT_PHONE_COUNTRY)
-  if (parsed) return parsed.formatInternational()
-
-  if (normalizedInput.startsWith('+')) {
-    return new AsYouType().input(normalizedInput)
-  }
-
-  return new AsYouType(DEFAULT_PHONE_COUNTRY).input(normalizedInput)
-}
+export const maskPhone = formatPhoneNumberForDisplay
 
 export const maskCnpj = (value: string) => maskCnpjInRfb2229(value ?? '')
 
