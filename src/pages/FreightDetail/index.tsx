@@ -279,29 +279,23 @@ const FreightDetailPage = () => {
         </div>
 
         {!editing ? (
-          <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-end">
-            {slug === "entregue" ? (
-              <Button
-                type="button"
-                className="min-h-11 w-full rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 sm:min-h-9 sm:w-auto"
-                disabled={completing}
-                onClick={() => void handleCompleteFreight()}
-              >
-                {t("pages.freightDetail.completeFreight")}
-              </Button>
-            ) : null}
-            {slug !== "cancelado" && slug !== "concluido" ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="min-h-11 w-full rounded-lg border-amber-500/60 text-amber-700 hover:bg-amber-50 hover:text-amber-800 sm:min-h-9 sm:w-auto dark:border-amber-500/40 dark:text-amber-300 dark:hover:bg-amber-500/10"
-                disabled={cancelling}
-                onClick={() => setCancelOpen(true)}
-              >
-                <Ban className="size-4 shrink-0" />
-                {t("pages.freightDetail.cancelFreight")}
-              </Button>
-            ) : null}
+          <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:max-w-xs sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              className={cn(
+                "min-h-11 w-full rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 sm:min-h-9 sm:w-auto",
+                slug !== "entregue" && "cursor-not-allowed"
+              )}
+              disabled={completing || slug !== "entregue"}
+              onClick={() => void handleCompleteFreight()}
+              title={
+                slug !== "entregue"
+                  ? t("pages.freightDetail.completeFreightDisabledHint")
+                  : undefined
+              }
+            >
+              {t("pages.freightDetail.completeFreight")}
+            </Button>
             <Button
               type="button"
               className="min-h-11 w-full rounded-lg bg-brand-green text-white hover:bg-brand-green-dark sm:min-h-9 sm:w-auto"
