@@ -1,6 +1,7 @@
 type HistoryDonutChartItem = {
   label: string;
   value: number;
+  displayValue: string;
   color: string;
 };
 
@@ -8,6 +9,7 @@ type HistoryDonutChartProps = {
   items: HistoryDonutChartItem[];
   emptyLabel: string;
   totalLabel: string;
+  centerValue: string;
 };
 
 const SVG_SIZE = 196;
@@ -19,6 +21,7 @@ export function HistoryDonutChart({
   items,
   emptyLabel,
   totalLabel,
+  centerValue,
 }: HistoryDonutChartProps) {
   const total = items.reduce((sum, item) => sum + item.value, 0);
 
@@ -89,11 +92,13 @@ export function HistoryDonutChart({
           })}
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
           <span className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
             {totalLabel}
           </span>
-          <span className="text-2xl font-semibold tracking-tight text-foreground">{total}</span>
+          <span className="text-lg font-semibold leading-tight tracking-tight text-foreground sm:text-xl">
+            {centerValue}
+          </span>
         </div>
       </div>
 
@@ -115,7 +120,7 @@ export function HistoryDonutChart({
                 <span className="truncate text-sm font-medium text-foreground">{item.label}</span>
               </div>
               <div className="text-right">
-                <p className="text-sm font-semibold tabular-nums text-foreground">{item.value}</p>
+                <p className="text-sm font-semibold tabular-nums text-foreground">{item.displayValue}</p>
                 <p className="text-xs text-muted-foreground">{percentage}%</p>
               </div>
             </div>

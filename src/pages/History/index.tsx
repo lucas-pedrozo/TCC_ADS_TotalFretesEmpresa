@@ -3,8 +3,8 @@ import {
   CircleDollarSign,
   Download,
   PackageCheck,
-  Route as RouteIcon,
   Target,
+  TrendingUp,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/freightStatusUi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFreightsListPage } from "@/hooks/useFreightsListPage";
+import { useHistoryTable, type HistoryTableRow } from "@/hooks/useHistoryTable";
 import type { AppLanguage } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
 import { HomeKpiCard } from "@/pages/Home/components/HomeKpiCard";
@@ -26,6 +27,7 @@ import { HistoryCompletedTable } from "@/pages/History/components/HistoryComplet
 import { HistoryDonutChart } from "@/pages/History/components/HistoryDonutChart";
 import type { FreightDto, FreightStatusHistoryDto, FreightStatusSlug } from "@/types/freight";
 import { formatDateShortLabel } from "@/utils/dateFormat";
+import { exportHistoryPdf } from "@/utils/exportHistoryPdf";
 import {
   formatFreightCurrencyAmount,
   formatFreightDistanceKm,
@@ -34,35 +36,24 @@ import { haversineKm } from "@/utils/haversineKm";
 
 type PeriodFilter = "7d" | "30d" | "90d" | "12m";
 
-type HistoryTableRow = {
-  id: number;
-  code: string;
-  route: string;
-  cargo: string;
-  value: string;
-  statusLabel: string;
-  statusSlug: FreightStatusSlug;
-  finalizedAt: string;
-  distance: string;
-  statusClassName: string;
-};
-
 type CargoDistributionItem = {
   label: string;
   value: number;
+  displayValue: string;
   color: string;
 };
 
 type HistoryAnalytics = {
   completedCount: number;
+  cancelledCount: number;
   revenueTotal: number;
-  successRate: number;
-  totalDistanceKm: number;
+  completionRate: number | null;
+  averageTicket: number | null;
   tableRows: HistoryTableRow[];
   performanceSeries: {
     labels: string[];
-    published: number[];
     completed: number[];
+    cancelled: number[];
   };
   cargoDistribution: CargoDistributionItem[];
 };
@@ -103,6 +94,16 @@ function getPeriodStart(period: PeriodFilter, endDate: Date) {
   return addDays(endDate, -(dayMap[period] - 1));
 }
 
+function getPeriodLabel(period: PeriodFilter, t: (key: string) => string) {
+  const labels: Record<PeriodFilter, string> = {
+    "7d": t("pages.history.periods.last7Days"),
+    "30d": t("pages.history.periods.last30Days"),
+    "90d": t("pages.history.periods.last90Days"),
+    "12m": t("pages.history.periods.last12Months"),
+  };
+  return labels[period];
+}
+
 function isWithinRange(timestamp: number | null, start: Date, endExclusive: Date) {
   if (timestamp == null) return false;
   return timestamp >= start.getTime() && timestamp < endExclusive.getTime();
@@ -134,11 +135,7 @@ function getDistanceKm(freight: FreightDto) {
     freight.destination_lng
   );
 
-  return Number.isFinite(distance) ? distance : 0;
-}
-
-function getCreatedTimestamp(freight: FreightDto) {
-  return parseTimestamp(freight.createdAt ?? freight.updatedAt);
+  return Number.isFinite(distance) ? Math.round(distance) : 0;
 }
 
 function getFinalizedTimestamp(freight: FreightDto, targetStatus: FreightStatusSlug) {
@@ -151,8 +148,28 @@ function getFinalizedTimestamp(freight: FreightDto, targetStatus: FreightStatusS
   );
 }
 
+function getOperationalCompletedTimestamp(freight: FreightDto) {
+  const completedFromConcluded = getFinalizedTimestamp(freight, "concluido");
+  if (completedFromConcluded != null) return completedFromConcluded;
+
+  const completedFromDelivered = getFinalizedTimestamp(freight, "entregue");
+  if (completedFromDelivered != null) return completedFromDelivered;
+
+  const status = getFreightStatusSlug(freight);
+  if (status === "concluido" || status === "entregue") {
+    return parseTimestamp(freight.updatedAt ?? freight.createdAt);
+  }
+
+  return null;
+}
+
+function isOperationallyCompleted(freight: FreightDto) {
+  const status = getFreightStatusSlug(freight);
+  return status === "concluido" || status === "entregue";
+}
+
 function percentage(part: number, total: number) {
-  if (!total) return 0;
+  if (!total) return null;
   return (part / total) * 100;
 }
 
@@ -160,11 +177,6 @@ function buildFreightCode(freight: FreightDto, finalizedTimestamp: number | null
   const baseDate = finalizedTimestamp != null ? new Date(finalizedTimestamp) : new Date();
   const year = Number.isNaN(baseDate.getTime()) ? new Date().getFullYear() : baseDate.getFullYear();
   return `TF-${year}-${String(freight.id).padStart(4, "0")}`;
-}
-
-function escapeCsvValue(value: string) {
-  const normalized = value.replace(/"/g, '""');
-  return `"${normalized}"`;
 }
 
 function formatRangeBucketLabel(date: Date, language: AppLanguage) {
@@ -194,8 +206,8 @@ function buildPerformanceSeries(
 
   if (period === "12m") {
     const labels: string[] = [];
-    const published: number[] = [];
     const completed: number[] = [];
+    const cancelled: number[] = [];
 
     for (let index = 11; index >= 0; index -= 1) {
       const start = new Date(today.getFullYear(), today.getMonth() - index, 1);
@@ -205,19 +217,23 @@ function buildPerformanceSeries(
           : new Date(today.getFullYear(), today.getMonth() - index + 1, 1);
 
       labels.push(formatMonthBucketLabel(start, language));
-      published.push(
-        rows.filter((freight) => isWithinRange(getCreatedTimestamp(freight), start, end)).length
-      );
       completed.push(
         rows.filter(
           (freight) =>
-            getFreightStatusSlug(freight) === "concluido" &&
-            isWithinRange(getFinalizedTimestamp(freight, "concluido"), start, end)
+            isOperationallyCompleted(freight) &&
+            isWithinRange(getOperationalCompletedTimestamp(freight), start, end)
+        ).length
+      );
+      cancelled.push(
+        rows.filter(
+          (freight) =>
+            getFreightStatusSlug(freight) === "cancelado" &&
+            isWithinRange(getFinalizedTimestamp(freight, "cancelado"), start, end)
         ).length
       );
     }
 
-    return { labels, published, completed };
+    return { labels, completed, cancelled };
   }
 
   const bucketCount = period === "7d" ? 7 : 6;
@@ -225,27 +241,31 @@ function buildPerformanceSeries(
   const bucketSize = Math.ceil(totalDays / bucketCount);
   const rangeStart = addDays(today, -(totalDays - 1));
   const labels: string[] = [];
-  const published: number[] = [];
   const completed: number[] = [];
+  const cancelled: number[] = [];
 
   for (let index = 0; index < bucketCount; index += 1) {
     const start = addDays(rangeStart, index * bucketSize);
     const end = index === bucketCount - 1 ? tomorrow : addDays(start, bucketSize);
 
     labels.push(formatRangeBucketLabel(start, language));
-    published.push(
-      rows.filter((freight) => isWithinRange(getCreatedTimestamp(freight), start, end)).length
-    );
     completed.push(
       rows.filter(
         (freight) =>
-          getFreightStatusSlug(freight) === "concluido" &&
-          isWithinRange(getFinalizedTimestamp(freight, "concluido"), start, end)
+          isOperationallyCompleted(freight) &&
+          isWithinRange(getOperationalCompletedTimestamp(freight), start, end)
+      ).length
+    );
+    cancelled.push(
+      rows.filter(
+        (freight) =>
+          getFreightStatusSlug(freight) === "cancelado" &&
+          isWithinRange(getFinalizedTimestamp(freight, "cancelado"), start, end)
       ).length
     );
   }
 
-  return { labels, published, completed };
+  return { labels, completed, cancelled };
 }
 
 function HistoryPageSkeleton() {
@@ -304,8 +324,8 @@ const HistoryPage = () => {
     const periodStart = getPeriodStart(selectedPeriod, today);
 
     const completedRows = rows.filter((freight) => {
-      if (getFreightStatusSlug(freight) !== "concluido") return false;
-      return isWithinRange(getFinalizedTimestamp(freight, "concluido"), periodStart, tomorrow);
+      if (!isOperationallyCompleted(freight)) return false;
+      return isWithinRange(getOperationalCompletedTimestamp(freight), periodStart, tomorrow);
     });
 
     const cancelledRows = rows.filter((freight) => {
@@ -313,56 +333,53 @@ const HistoryPage = () => {
       return isWithinRange(getFinalizedTimestamp(freight, "cancelado"), periodStart, tomorrow);
     });
 
-    const publishedRows = rows.filter((freight) =>
-      isWithinRange(getCreatedTimestamp(freight), periodStart, tomorrow)
-    );
-
-    const finalizedWindowCount = completedRows.length + cancelledRows.length;
-    const denominator = finalizedWindowCount > 0 ? finalizedWindowCount : publishedRows.length;
     const revenueTotal = completedRows.reduce((sum, freight) => sum + getDisplayValue(freight), 0);
-    const totalDistanceKm = completedRows.reduce((sum, freight) => sum + getDistanceKm(freight), 0);
+    const finalizedCount = completedRows.length + cancelledRows.length;
 
     const cargoGroups = completedRows.reduce<Map<string, number>>((map, freight) => {
       const label =
         freight.CargoType?.name?.trim() ||
         freight.cargo?.name?.trim() ||
         t("pages.history.uncategorizedCargo");
-      map.set(label, (map.get(label) ?? 0) + 1);
+      map.set(label, (map.get(label) ?? 0) + getDisplayValue(freight));
       return map;
     }, new Map());
 
     const sortedCargoGroups = [...cargoGroups.entries()].sort((left, right) => right[1] - left[1]);
     const prominentCargoGroups = sortedCargoGroups.slice(0, 5);
-    const otherCargoCount = sortedCargoGroups
+    const otherCargoRevenue = sortedCargoGroups
       .slice(5)
-      .reduce((sum, [, count]) => sum + count, 0);
+      .reduce((sum, [, revenue]) => sum + revenue, 0);
 
     const cargoDistribution: CargoDistributionItem[] = prominentCargoGroups.map(
-      ([label, value], index) => ({
+      ([label, revenue], index) => ({
         label,
-        value,
+        value: revenue,
+        displayValue: formatFreightCurrencyAmount(revenue, language),
         color: DONUT_COLORS[index % DONUT_COLORS.length],
       })
     );
 
-    if (otherCargoCount > 0) {
+    if (otherCargoRevenue > 0) {
       cargoDistribution.push({
         label: t("pages.history.otherCargoTypes"),
-        value: otherCargoCount,
+        value: otherCargoRevenue,
+        displayValue: formatFreightCurrencyAmount(otherCargoRevenue, language),
         color: DONUT_COLORS[cargoDistribution.length % DONUT_COLORS.length],
       });
     }
 
     const tableRows = [...completedRows]
       .sort((left, right) => {
-        const leftTimestamp = getFinalizedTimestamp(left, "concluido") ?? 0;
-        const rightTimestamp = getFinalizedTimestamp(right, "concluido") ?? 0;
+        const leftTimestamp = getOperationalCompletedTimestamp(left) ?? 0;
+        const rightTimestamp = getOperationalCompletedTimestamp(right) ?? 0;
         return rightTimestamp - leftTimestamp;
       })
       .map<HistoryTableRow>((freight) => {
-        const finalizedTimestamp = getFinalizedTimestamp(freight, "concluido");
+        const finalizedTimestamp = getOperationalCompletedTimestamp(freight);
         const statusSlug = getFreightStatusSlug(freight);
-        const distance = getDistanceKm(freight);
+        const distanceNumeric = getDistanceKm(freight);
+        const valueNumeric = getDisplayValue(freight);
 
         return {
           id: freight.id,
@@ -372,75 +389,108 @@ const HistoryPage = () => {
             freight.CargoType?.name?.trim() ||
             freight.cargo?.name?.trim() ||
             t("pages.history.uncategorizedCargo"),
-          value: formatFreightCurrencyAmount(getDisplayValue(freight), language),
+          value: formatFreightCurrencyAmount(valueNumeric, language),
+          valueNumeric,
           statusLabel: t(FREIGHT_STATUS_LABEL_KEY[statusSlug]),
           statusSlug,
           finalizedAt: formatDateShortLabel(
             finalizedTimestamp != null ? new Date(finalizedTimestamp).toISOString() : undefined,
             language
           ),
-          distance: formatFreightDistanceKm(distance, language),
+          distance: formatFreightDistanceKm(distanceNumeric, language),
+          distanceNumeric,
           statusClassName: statusBadgeClass(statusSlug),
         };
       });
 
     return {
       completedCount: completedRows.length,
+      cancelledCount: cancelledRows.length,
       revenueTotal,
-      successRate: percentage(completedRows.length, denominator),
-      totalDistanceKm,
+      completionRate: percentage(completedRows.length, finalizedCount),
+      averageTicket: completedRows.length > 0 ? revenueTotal / completedRows.length : null,
       tableRows,
       performanceSeries: buildPerformanceSeries(rows, selectedPeriod, language),
       cargoDistribution,
     };
   }, [language, rows, selectedPeriod, t]);
 
+  const historyTable = useHistoryTable({
+    rows: analytics.tableRows,
+    resetKey: selectedPeriod,
+  });
+
+  const formatRate = (rate: number | null) => {
+    if (rate == null) return "—";
+    return `${Math.round(rate)}%`;
+  };
+
+  const formatAverageTicket = (value: number | null) => {
+    if (value == null) return "—";
+    return formatFreightCurrencyAmount(value, language);
+  };
+
   const handleExport = () => {
-    if (analytics.tableRows.length === 0) {
+    if (historyTable.filtered.length === 0) {
       toast.error(t("pages.history.exportEmpty"));
       return;
     }
 
     try {
-      const header = [
-        t("pages.history.table.columns.code"),
-        t("pages.history.table.columns.route"),
-        t("pages.history.table.columns.cargo"),
-        t("pages.history.table.columns.value"),
-        t("pages.history.table.columns.status"),
-        t("pages.history.table.columns.finalized"),
-        t("pages.freights.columnDistance"),
-      ];
+      const generatedAt = new Intl.DateTimeFormat(getLocaleTag(language), {
+        dateStyle: "short",
+        timeStyle: "short",
+      }).format(new Date());
 
-      const csvLines = [
-        header.map(escapeCsvValue).join(","),
-        ...analytics.tableRows.map((row) =>
-          [
-            row.code,
-            row.route,
-            row.cargo,
-            row.value,
-            row.statusLabel,
-            row.finalizedAt,
-            row.distance,
-          ]
-            .map(escapeCsvValue)
-            .join(",")
-        ),
-      ];
+      exportHistoryPdf(
+        {
+          title: t("pages.history.title"),
+          periodLabel: getPeriodLabel(selectedPeriod, t),
+          generatedAt,
+          kpis: [
+            {
+              label: t("pages.history.kpis.completed"),
+              value: analytics.completedCount.toLocaleString(getLocaleTag(language)),
+            },
+            {
+              label: t("pages.history.kpis.revenue"),
+              value: formatFreightCurrencyAmount(analytics.revenueTotal, language),
+            },
+            {
+              label: t("pages.history.kpis.completionRate"),
+              value: formatRate(analytics.completionRate),
+            },
+            {
+              label: t("pages.history.kpis.averageTicket"),
+              value: formatAverageTicket(analytics.averageTicket),
+            },
+          ],
+          columns: [
+            t("pages.history.table.columns.code"),
+            t("pages.history.table.columns.route"),
+            t("pages.history.table.columns.cargo"),
+            t("pages.history.table.columns.value"),
+            t("pages.history.table.columns.status"),
+            t("pages.history.table.columns.finalized"),
+            t("pages.history.table.columns.distance"),
+          ],
+          rows: historyTable.filtered.map((row) => ({
+            code: row.code,
+            route: row.route,
+            cargo: row.cargo,
+            value: row.value,
+            status: row.statusLabel,
+            finalized: row.finalizedAt,
+            distance: row.distance,
+          })),
+          footerLabel: t("pages.history.exportFooter", { count: historyTable.filtered.length }),
+        },
+        `historico-fretes-${selectedPeriod}.pdf`
+      );
 
-      const blob = new Blob([`\uFEFF${csvLines.join("\n")}`], {
-        type: "text/csv;charset=utf-8;",
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `historico-fretes-${selectedPeriod}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success(t("pages.history.exportSuccess", { count: analytics.tableRows.length }));
+      toast.success(
+        t("pages.history.exportSuccess", { count: historyTable.filtered.length })
+      );
     } catch {
       toast.error(t("pages.history.exportError"));
     }
@@ -474,7 +524,7 @@ const HistoryPage = () => {
               variant="outline"
               className="min-h-11 w-full rounded-full px-5 sm:w-auto"
               onClick={handleExport}
-              disabled={analytics.tableRows.length === 0}
+              disabled={historyTable.filtered.length === 0}
             >
               <Download className="size-4" />
               {t("pages.history.exportButton")}
@@ -517,17 +567,17 @@ const HistoryPage = () => {
             tone="emerald"
           />
           <HomeKpiCard
-            label={t("pages.history.kpis.successRate")}
-            value={`${Math.round(analytics.successRate)}%`}
-            description={t("pages.history.kpis.successRateDescription")}
+            label={t("pages.history.kpis.completionRate")}
+            value={formatRate(analytics.completionRate)}
+            description={t("pages.history.kpis.completionRateDescription")}
             icon={Target}
             tone="sky"
           />
           <HomeKpiCard
-            label={t("pages.history.kpis.distance")}
-            value={formatFreightDistanceKm(analytics.totalDistanceKm, language)}
-            description={t("pages.history.kpis.distanceDescription")}
-            icon={RouteIcon}
+            label={t("pages.history.kpis.averageTicket")}
+            value={formatAverageTicket(analytics.averageTicket)}
+            description={t("pages.history.kpis.averageTicketDescription")}
+            icon={TrendingUp}
             tone="amber"
           />
         </section>
@@ -546,10 +596,10 @@ const HistoryPage = () => {
             <div className="mt-5">
               <HistoryBarChart
                 labels={analytics.performanceSeries.labels}
-                published={analytics.performanceSeries.published}
                 completed={analytics.performanceSeries.completed}
-                publishedLabel={t("pages.history.performancePublished")}
+                cancelled={analytics.performanceSeries.cancelled}
                 completedLabel={t("pages.history.performanceCompleted")}
+                cancelledLabel={t("pages.history.performanceCancelled")}
                 emptyLabel={t("pages.history.emptyChart")}
               />
             </div>
@@ -570,6 +620,7 @@ const HistoryPage = () => {
                 items={analytics.cargoDistribution}
                 emptyLabel={t("pages.history.emptyDistribution")}
                 totalLabel={t("pages.history.distributionTotal")}
+                centerValue={formatFreightCurrencyAmount(analytics.revenueTotal, language)}
               />
             </div>
           </section>
@@ -579,6 +630,24 @@ const HistoryPage = () => {
           title={t("pages.history.table.title")}
           description={t("pages.history.table.description")}
           emptyLabel={t("pages.history.table.empty")}
+          searchPlaceholder={t("pages.history.table.searchPlaceholder")}
+          filtersLabel={t("pages.history.table.filters")}
+          filterPanelTitle={t("pages.history.table.filterPanelTitle")}
+          filterPanelHint={t("pages.history.table.filterPanelHint")}
+          filterSectionCargo={t("pages.history.table.filterSectionCargo")}
+          filterAllCargo={t("pages.history.table.filterAllCargo")}
+          filterSectionValue={t("pages.freights.filterSectionValue")}
+          filterValueHelp={t("pages.freights.filterValueHelp")}
+          filterSectionDistance={t("pages.freights.filterSectionDistance")}
+          filterDistanceHelp={t("pages.freights.filterDistanceHelp")}
+          filterMin={t("pages.freights.filterMin")}
+          filterMax={t("pages.freights.filterMax")}
+          clearFiltersLabel={t("pages.freights.filterClear")}
+          paginationShowing={t("pages.freights.paginationShowing")}
+          paginationOf={t("pages.freights.paginationOf")}
+          paginationFreights={t("pages.freights.paginationFreights")}
+          paginationPrev={t("pages.freights.paginationPrev")}
+          paginationNext={t("pages.freights.paginationNext")}
           columns={{
             code: t("pages.history.table.columns.code"),
             route: t("pages.history.table.columns.route"),
@@ -586,8 +655,32 @@ const HistoryPage = () => {
             value: t("pages.history.table.columns.value"),
             status: t("pages.history.table.columns.status"),
             finalized: t("pages.history.table.columns.finalized"),
+            distance: t("pages.history.table.columns.distance"),
           }}
-          rows={analytics.tableRows}
+          search={historyTable.search}
+          onSearchChange={historyTable.setSearch}
+          filterCargo={historyTable.filterCargo}
+          onFilterCargoChange={historyTable.setFilterCargo}
+          allCargoValue={historyTable.allCargoValue}
+          cargoOptions={historyTable.cargoOptions}
+          filterMinValue={historyTable.filterMinValue}
+          onFilterMinValueChange={historyTable.setFilterMinValue}
+          filterMaxValue={historyTable.filterMaxValue}
+          onFilterMaxValueChange={historyTable.setFilterMaxValue}
+          filterMinDistance={historyTable.filterMinDistance}
+          onFilterMinDistanceChange={historyTable.setFilterMinDistance}
+          filterMaxDistance={historyTable.filterMaxDistance}
+          onFilterMaxDistanceChange={historyTable.setFilterMaxDistance}
+          activeFilterCount={historyTable.activeFilterCount}
+          onClearFilters={historyTable.clearAllFilters}
+          rows={historyTable.paginatedRows}
+          total={historyTable.total}
+          from={historyTable.from}
+          to={historyTable.to}
+          canGoPrev={historyTable.canGoPrev}
+          canGoNext={historyTable.canGoNext}
+          onPrev={historyTable.goPrev}
+          onNext={historyTable.goNext}
         />
 
         {!loading && rows.length === 0 ? (
@@ -613,4 +706,3 @@ const HistoryPage = () => {
 };
 
 export default HistoryPage;
-  

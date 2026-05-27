@@ -2,19 +2,19 @@ import { BarChart3 } from "lucide-react";
 
 type HistoryBarChartProps = {
   labels: string[];
-  published: number[];
   completed: number[];
-  publishedLabel: string;
+  cancelled: number[];
   completedLabel: string;
+  cancelledLabel: string;
   emptyLabel: string;
 };
 
 type PointGeometry = {
   x: number;
-  publishedY: number;
   completedY: number;
-  publishedHeight: number;
+  cancelledY: number;
   completedHeight: number;
+  cancelledHeight: number;
 };
 
 const SVG_WIDTH = 760;
@@ -37,8 +37,8 @@ function buildTicks(maxValue: number) {
 
 function buildGeometry(
   labels: string[],
-  published: number[],
   completed: number[],
+  cancelled: number[],
   yAxisMax: number
 ): PointGeometry[] {
   const chartWidth = SVG_WIDTH - PADDING_LEFT - PADDING_RIGHT;
@@ -48,33 +48,33 @@ function buildGeometry(
   return labels.map((_, index) => {
     const groupX = PADDING_LEFT + groupWidth * index;
     const centerX = groupX + groupWidth / 2;
-    const publishedValue = Math.max(0, published[index] ?? 0);
     const completedValue = Math.max(0, completed[index] ?? 0);
-    const publishedHeight = (publishedValue / Math.max(1, yAxisMax)) * chartHeight;
+    const cancelledValue = Math.max(0, cancelled[index] ?? 0);
     const completedHeight = (completedValue / Math.max(1, yAxisMax)) * chartHeight;
+    const cancelledHeight = (cancelledValue / Math.max(1, yAxisMax)) * chartHeight;
 
     return {
       x: centerX,
-      publishedY: SVG_HEIGHT - PADDING_BOTTOM - publishedHeight,
       completedY: SVG_HEIGHT - PADDING_BOTTOM - completedHeight,
-      publishedHeight,
+      cancelledY: SVG_HEIGHT - PADDING_BOTTOM - cancelledHeight,
       completedHeight,
+      cancelledHeight,
     };
   });
 }
 
 export function HistoryBarChart({
   labels,
-  published,
   completed,
-  publishedLabel,
+  cancelled,
   completedLabel,
+  cancelledLabel,
   emptyLabel,
 }: HistoryBarChartProps) {
-  const yAxisTicks = buildTicks(Math.max(0, ...published, ...completed));
+  const yAxisTicks = buildTicks(Math.max(0, ...completed, ...cancelled));
   const yAxisMax = yAxisTicks[yAxisTicks.length - 1] ?? 4;
-  const geometry = buildGeometry(labels, published, completed, yAxisMax);
-  const hasValues = published.some((value) => value > 0) || completed.some((value) => value > 0);
+  const geometry = buildGeometry(labels, completed, cancelled, yAxisMax);
+  const hasValues = completed.some((value) => value > 0) || cancelled.some((value) => value > 0);
 
   if (!hasValues) {
     return (
@@ -92,11 +92,11 @@ export function HistoryBarChart({
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <span className="size-2.5 rounded-full bg-brand-green-dark" aria-hidden />
-          <span>{publishedLabel}</span>
+          <span>{completedLabel}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="size-2.5 rounded-full bg-brand-green-light" aria-hidden />
-          <span>{completedLabel}</span>
+          <span className="size-2.5 rounded-full bg-red-400" aria-hidden />
+          <span>{cancelledLabel}</span>
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export function HistoryBarChart({
           viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
           className="block h-[280px] min-w-[620px] w-full"
           role="img"
-          aria-label={`${publishedLabel} e ${completedLabel}`}
+          aria-label={`${completedLabel} e ${cancelledLabel}`}
         >
           {yAxisTicks.map((tick) => {
             const ratio = tick / Math.max(1, yAxisMax);
@@ -138,26 +138,26 @@ export function HistoryBarChart({
 
           {geometry.map((bar, index) => {
             const groupCenter = bar.x;
-            const publishedX = groupCenter - BAR_GAP / 2 - BAR_WIDTH;
-            const completedX = groupCenter + BAR_GAP / 2;
+            const completedX = groupCenter - BAR_GAP / 2 - BAR_WIDTH;
+            const cancelledX = groupCenter + BAR_GAP / 2;
 
             return (
               <g key={labels[index]}>
-                <rect
-                  x={publishedX}
-                  y={bar.publishedY}
-                  width={BAR_WIDTH}
-                  height={Math.max(bar.publishedHeight, 0)}
-                  rx="7"
-                  fill="#115339"
-                />
                 <rect
                   x={completedX}
                   y={bar.completedY}
                   width={BAR_WIDTH}
                   height={Math.max(bar.completedHeight, 0)}
                   rx="7"
-                  fill="#66dd66"
+                  fill="#115339"
+                />
+                <rect
+                  x={cancelledX}
+                  y={bar.cancelledY}
+                  width={BAR_WIDTH}
+                  height={Math.max(bar.cancelledHeight, 0)}
+                  rx="7"
+                  fill="#f87171"
                 />
                 <text
                   x={groupCenter}
