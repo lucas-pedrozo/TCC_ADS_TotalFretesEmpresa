@@ -38,6 +38,9 @@ function headerTitle(pathname: string, t: (key: string) => string) {
   if (pathname.startsWith("/Perfil")) {
     return t("header.profileTitle");
   }
+  if (pathname.startsWith("/History")) {
+    return t("header.historyTitle");
+  }
   if (pathname.startsWith("/Freights")) {
     return t("header.freightsTitle");
   }
@@ -51,6 +54,9 @@ function headerTitle(pathname: string, t: (key: string) => string) {
 }
 
 function headerSubtitle(pathname: string, t: (key: string) => string): string | null {
+  if (pathname.startsWith("/History")) {
+    return t("header.historySubtitle");
+  }
   if (/^\/Proposals\/[^/]+/.test(pathname)) {
     return t("header.proposalDetailSubtitle");
   }
@@ -92,7 +98,7 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
   const imageUrl = companyData?.image?.url ?? "";
 
   return (
-    <header className="sticky top-0 z-30 flex min-w-0 max-w-full shrink-0 items-center justify-between gap-2 border-b bg-background px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:gap-4 md:px-8">
+    <header className="sticky top-0 z-30 flex min-w-0 max-w-full shrink-0 items-center justify-between gap-2 border-b bg-background/70 backdrop-blur-sm px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:gap-4 md:px-8">
       <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
         <SidebarTrigger className="-ml-0.5 size-9 shrink-0 touch-manipulation sm:-ml-1" />
         <Separator

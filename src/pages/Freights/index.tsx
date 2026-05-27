@@ -376,7 +376,7 @@ const FreightsPage = () => {
             <strong className="font-semibold tabular-nums text-foreground">
               {from}
             </strong>
-            <span className="text-muted-foreground">â€“</span>
+            <span className="text-muted-foreground"> - </span>
             <strong className="font-semibold tabular-nums text-foreground">
               {to}
             </strong>{" "}

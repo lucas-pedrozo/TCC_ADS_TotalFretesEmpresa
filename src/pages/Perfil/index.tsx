@@ -1,7 +1,6 @@
 import {
   Building2,
   Camera,
-  CheckCircle2,
   Eye,
   EyeOff,
   Globe,
@@ -20,7 +19,6 @@ import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DatePickerInput } from "@/components/custom/inputs/DatePickerInput";
 import {
