@@ -261,6 +261,63 @@ export const resources = {
           routeUnavailable: "Rota não informada",
           proposalValue: "Proposta",
         },
+        history: {
+          eyebrow: "Histórico e relatórios",
+          title: "Histórico operacional",
+          description:
+            "Acompanhe fretes concluídos, receita, desempenho do período e exporte um relatório do recorte atual.",
+          periods: {
+            last7Days: "7 dias",
+            last30Days: "30 dias",
+            last90Days: "90 dias",
+            last12Months: "12 meses",
+          },
+          exportButton: "Exportar relatório",
+          exportEmpty: "Não há fretes concluídos neste período para exportar.",
+          exportSuccess: "Relatório exportado com {{count}} fretes.",
+          exportError: "Não foi possível exportar o relatório agora.",
+          kpis: {
+            completed: "Fretes finalizados",
+            completedDescription: "Operações concluídas dentro do período selecionado.",
+            revenue: "Receita total",
+            revenueDescription: "Soma dos valores dos fretes concluídos no recorte atual.",
+            successRate: "Taxa de sucesso",
+            successRateDescription:
+              "Comparativo entre fretes concluídos e finalizados no período.",
+            distance: "Distância percorrida",
+            distanceDescription: "Soma estimada das rotas concluídas no período.",
+          },
+          performanceTitle: "Desempenho mensal",
+          performanceDescription:
+            "Comparativo entre fretes publicados e concluídos ao longo do período selecionado.",
+          performancePublished: "Publicados",
+          performanceCompleted: "Concluídos",
+          distributionTitle: "Distribuição por tipo de carga",
+          distributionDescription:
+            "Concentração das cargas entregues dentro do recorte atual.",
+          distributionTotal: "Cargas",
+          emptyChart: "Ainda não há volume suficiente no período para montar o gráfico.",
+          emptyDistribution:
+            "Nenhum tipo de carga concluída para distribuir neste período.",
+          table: {
+            title: "Fretes finalizados",
+            description: "Lista de operações concluídas que compõem o relatório atual.",
+            empty: "Nenhum frete concluído encontrado no período selecionado.",
+            columns: {
+              code: "Código",
+              route: "Rota",
+              cargo: "Carga",
+              value: "Valor",
+              status: "Status",
+              finalized: "Finalizado",
+            },
+          },
+          uncategorizedCargo: "Sem categoria",
+          otherCargoTypes: "Outras",
+          emptyStateTitle: "Nenhum histórico disponível ainda",
+          emptyStateDescription:
+            "Assim que seus fretes forem publicados e concluídos, os indicadores e relatórios aparecerão aqui.",
+        },
         proposalDetail: {
           title: "Proposta #{{id}}",
           back: "Voltar",
@@ -526,6 +583,8 @@ export const resources = {
       header: {
         homeTitle: "Início",
         profileTitle: "Perfil",
+        historyTitle: "Histórico",
+        historySubtitle: "Fretes finalizados e desempenho do período",
         freightsTitle: "Meus Fretes",
         proposalsTitle: "Propostas",
         proposalsSubtitle: "Lista de propostas recebidas",
@@ -919,6 +978,63 @@ export const resources = {
           routeUnavailable: "Route unavailable",
           proposalValue: "Proposal",
         },
+        history: {
+          eyebrow: "History and reports",
+          title: "Operational history",
+          description:
+            "Track completed freights, revenue, period performance and export a report from the current range.",
+          periods: {
+            last7Days: "7 days",
+            last30Days: "30 days",
+            last90Days: "90 days",
+            last12Months: "12 months",
+          },
+          exportButton: "Export report",
+          exportEmpty: "There are no completed freights in this period to export.",
+          exportSuccess: "Report exported with {{count}} freights.",
+          exportError: "Could not export the report right now.",
+          kpis: {
+            completed: "Completed freights",
+            completedDescription: "Operations completed within the selected period.",
+            revenue: "Total revenue",
+            revenueDescription: "Sum of the values from completed freights in the current range.",
+            successRate: "Success rate",
+            successRateDescription:
+              "Comparison between completed and finalized freights in the period.",
+            distance: "Distance traveled",
+            distanceDescription: "Estimated total of the completed routes in the period.",
+          },
+          performanceTitle: "Monthly performance",
+          performanceDescription:
+            "Comparison between published and completed freights throughout the selected period.",
+          performancePublished: "Published",
+          performanceCompleted: "Completed",
+          distributionTitle: "Distribution by cargo type",
+          distributionDescription:
+            "Concentration of delivered cargoes inside the current range.",
+          distributionTotal: "Cargoes",
+          emptyChart: "There is not enough volume in the period to build the chart yet.",
+          emptyDistribution:
+            "No completed cargo type is available for distribution in this period.",
+          table: {
+            title: "Completed freights",
+            description: "List of completed operations included in the current report.",
+            empty: "No completed freight was found in the selected period.",
+            columns: {
+              code: "Code",
+              route: "Route",
+              cargo: "Cargo",
+              value: "Value",
+              status: "Status",
+              finalized: "Finalized",
+            },
+          },
+          uncategorizedCargo: "Uncategorized",
+          otherCargoTypes: "Others",
+          emptyStateTitle: "No history available yet",
+          emptyStateDescription:
+            "As soon as your freights are published and completed, the indicators and reports will appear here.",
+        },
         proposalDetail: {
           title: "Proposal #{{id}}",
           back: "Back",
@@ -1184,6 +1300,8 @@ export const resources = {
       header: {
         homeTitle: "Home",
         profileTitle: "Profile",
+        historyTitle: "History",
+        historySubtitle: "Completed freights and period performance",
         freightsTitle: "My freights",
         proposalsTitle: "Proposals",
         proposalsSubtitle: "List of received proposals",

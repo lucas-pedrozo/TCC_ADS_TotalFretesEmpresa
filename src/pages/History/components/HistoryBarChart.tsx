@@ -1,0 +1,178 @@
+import { BarChart3 } from "lucide-react";
+
+type HistoryBarChartProps = {
+  labels: string[];
+  published: number[];
+  completed: number[];
+  publishedLabel: string;
+  completedLabel: string;
+  emptyLabel: string;
+};
+
+type PointGeometry = {
+  x: number;
+  publishedY: number;
+  completedY: number;
+  publishedHeight: number;
+  completedHeight: number;
+};
+
+const SVG_WIDTH = 760;
+const SVG_HEIGHT = 280;
+const PADDING_TOP = 16;
+const PADDING_RIGHT = 16;
+const PADDING_BOTTOM = 34;
+const PADDING_LEFT = 42;
+const BAR_WIDTH = 18;
+const BAR_GAP = 8;
+
+function buildTicks(maxValue: number) {
+  if (maxValue <= 4) return [0, 1, 2, 3, 4];
+  if (maxValue <= 8) return [0, 2, 4, 6, 8];
+  if (maxValue <= 20) return [0, 5, 10, 15, 20];
+
+  const step = Math.max(10, Math.ceil(maxValue / 4 / 10) * 10);
+  return Array.from({ length: 5 }, (_, index) => index * step);
+}
+
+function buildGeometry(
+  labels: string[],
+  published: number[],
+  completed: number[],
+  yAxisMax: number
+): PointGeometry[] {
+  const chartWidth = SVG_WIDTH - PADDING_LEFT - PADDING_RIGHT;
+  const chartHeight = SVG_HEIGHT - PADDING_TOP - PADDING_BOTTOM;
+  const groupWidth = chartWidth / Math.max(labels.length, 1);
+
+  return labels.map((_, index) => {
+    const groupX = PADDING_LEFT + groupWidth * index;
+    const centerX = groupX + groupWidth / 2;
+    const publishedValue = Math.max(0, published[index] ?? 0);
+    const completedValue = Math.max(0, completed[index] ?? 0);
+    const publishedHeight = (publishedValue / Math.max(1, yAxisMax)) * chartHeight;
+    const completedHeight = (completedValue / Math.max(1, yAxisMax)) * chartHeight;
+
+    return {
+      x: centerX,
+      publishedY: SVG_HEIGHT - PADDING_BOTTOM - publishedHeight,
+      completedY: SVG_HEIGHT - PADDING_BOTTOM - completedHeight,
+      publishedHeight,
+      completedHeight,
+    };
+  });
+}
+
+export function HistoryBarChart({
+  labels,
+  published,
+  completed,
+  publishedLabel,
+  completedLabel,
+  emptyLabel,
+}: HistoryBarChartProps) {
+  const yAxisTicks = buildTicks(Math.max(0, ...published, ...completed));
+  const yAxisMax = yAxisTicks[yAxisTicks.length - 1] ?? 4;
+  const geometry = buildGeometry(labels, published, completed, yAxisMax);
+  const hasValues = published.some((value) => value > 0) || completed.some((value) => value > 0);
+
+  if (!hasValues) {
+    return (
+      <div className="flex h-[280px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-muted/20 px-4 text-center">
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+          <BarChart3 className="size-5" />
+        </div>
+        <p className="max-w-sm text-sm text-muted-foreground">{emptyLabel}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <span className="size-2.5 rounded-full bg-brand-green-dark" aria-hidden />
+          <span>{publishedLabel}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="size-2.5 rounded-full bg-brand-green-light" aria-hidden />
+          <span>{completedLabel}</span>
+        </div>
+      </div>
+
+      <div className="min-w-0 overflow-x-auto overflow-y-hidden rounded-2xl border border-border/60 bg-muted/10 px-2 py-3 sm:px-3">
+        <svg
+          viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+          className="block h-[280px] min-w-[620px] w-full"
+          role="img"
+          aria-label={`${publishedLabel} e ${completedLabel}`}
+        >
+          {yAxisTicks.map((tick) => {
+            const ratio = tick / Math.max(1, yAxisMax);
+            const y =
+              PADDING_TOP +
+              (SVG_HEIGHT - PADDING_TOP - PADDING_BOTTOM) * (1 - ratio);
+
+            return (
+              <g key={tick}>
+                <line
+                  x1={PADDING_LEFT}
+                  x2={SVG_WIDTH - PADDING_RIGHT}
+                  y1={y}
+                  y2={y}
+                  stroke="rgba(148, 163, 184, 0.35)"
+                  strokeDasharray="3 4"
+                />
+                <text
+                  x={PADDING_LEFT - 10}
+                  y={y + 4}
+                  textAnchor="end"
+                  fontSize="12"
+                  fill="#64748b"
+                >
+                  {tick}
+                </text>
+              </g>
+            );
+          })}
+
+          {geometry.map((bar, index) => {
+            const groupCenter = bar.x;
+            const publishedX = groupCenter - BAR_GAP / 2 - BAR_WIDTH;
+            const completedX = groupCenter + BAR_GAP / 2;
+
+            return (
+              <g key={labels[index]}>
+                <rect
+                  x={publishedX}
+                  y={bar.publishedY}
+                  width={BAR_WIDTH}
+                  height={Math.max(bar.publishedHeight, 0)}
+                  rx="7"
+                  fill="#115339"
+                />
+                <rect
+                  x={completedX}
+                  y={bar.completedY}
+                  width={BAR_WIDTH}
+                  height={Math.max(bar.completedHeight, 0)}
+                  rx="7"
+                  fill="#66dd66"
+                />
+                <text
+                  x={groupCenter}
+                  y={SVG_HEIGHT - 10}
+                  textAnchor="middle"
+                  fontSize="12"
+                  fill="#64748b"
+                >
+                  {labels[index]}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    </div>
+  );
+}

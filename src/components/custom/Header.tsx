@@ -38,6 +38,9 @@ function headerTitle(pathname: string, t: (key: string) => string) {
   if (pathname.startsWith("/Perfil")) {
     return t("header.profileTitle");
   }
+  if (pathname.startsWith("/History")) {
+    return t("header.historyTitle");
+  }
   if (pathname.startsWith("/Freights")) {
     return t("header.freightsTitle");
   }
@@ -51,6 +54,9 @@ function headerTitle(pathname: string, t: (key: string) => string) {
 }
 
 function headerSubtitle(pathname: string, t: (key: string) => string): string | null {
+  if (pathname.startsWith("/History")) {
+    return t("header.historySubtitle");
+  }
   if (/^\/Proposals\/[^/]+/.test(pathname)) {
     return t("header.proposalDetailSubtitle");
   }
