@@ -25,6 +25,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 
+import { AppSpacerFooter } from "@/components/custom/AppSpacerFooter";
 import Header from "@/components/custom/Header";
 
 const sidebarNavButtonClass =
@@ -165,8 +166,11 @@ export const SideLayout = () => {
           onLogout={logoutAndRedirect}
         />
 
-        <div className="flex min-w-0 flex-col">
-          <Outlet context={outletContext} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Outlet context={outletContext} />
+          </div>
+          <AppSpacerFooter />
         </div>
       </SidebarInset>
     </SidebarProvider>

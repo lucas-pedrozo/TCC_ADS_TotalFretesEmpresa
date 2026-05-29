@@ -611,6 +611,11 @@ export const resources = {
         roleAdmin: "Administrador",
         roleGuest: "Conta",
       },
+      footer: {
+        tagline: "Plataforma de gestão de fretes para empresas",
+        copyright: "© {{year}} Total Fretes. Todos os direitos reservados.",
+        version: "Versão {{version}}",
+      },
       register: {
         loading: "Criando conta...",
         success: "Conta criada com sucesso! Faça login para continuar.",
@@ -1340,6 +1345,11 @@ export const resources = {
         roleCompany: "Company",
         roleAdmin: "Administrator",
         roleGuest: "Account",
+      },
+      footer: {
+        tagline: "Freight management platform for companies",
+        copyright: "© {{year}} Total Fretes. All rights reserved.",
+        version: "Version {{version}}",
       },
       register: {
         loading: "Creating account...",
