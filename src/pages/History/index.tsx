@@ -148,24 +148,35 @@ function getFinalizedTimestamp(freight: FreightDto, targetStatus: FreightStatusS
   );
 }
 
-function getOperationalCompletedTimestamp(freight: FreightDto) {
-  const completedFromConcluded = getFinalizedTimestamp(freight, "concluido");
-  if (completedFromConcluded != null) return completedFromConcluded;
-
-  const completedFromDelivered = getFinalizedTimestamp(freight, "entregue");
-  if (completedFromDelivered != null) return completedFromDelivered;
+function getConcludedTimestamp(freight: FreightDto) {
+  const historyMatch = [...(freight.FreightStatusHistories ?? [])]
+    .reverse()
+    .find((entry) => getHistoryStatusSlug(entry) === "concluido");
 
   const status = getFreightStatusSlug(freight);
-  if (status === "concluido" || status === "entregue") {
-    return parseTimestamp(freight.updatedAt ?? freight.createdAt);
-  }
+  if (status !== "concluido") return null;
 
-  return null;
+  return parseTimestamp(
+    historyMatch?.occurred_at ?? historyMatch?.occurredAt ?? freight.updatedAt ?? freight.createdAt
+  );
 }
 
-function isOperationallyCompleted(freight: FreightDto) {
-  const status = getFreightStatusSlug(freight);
-  return status === "concluido" || status === "entregue";
+function isFinalizedFreight(freight: FreightDto) {
+  return getFreightStatusSlug(freight) === "concluido";
+}
+
+function isCancelledFreight(freight: FreightDto) {
+  return getFreightStatusSlug(freight) === "cancelado";
+}
+
+function getHistoryTimestamp(freight: FreightDto) {
+  if (isFinalizedFreight(freight)) {
+    return getConcludedTimestamp(freight);
+  }
+  if (isCancelledFreight(freight)) {
+    return getFinalizedTimestamp(freight, "cancelado");
+  }
+  return null;
 }
 
 function percentage(part: number, total: number) {
@@ -220,8 +231,8 @@ function buildPerformanceSeries(
       completed.push(
         rows.filter(
           (freight) =>
-            isOperationallyCompleted(freight) &&
-            isWithinRange(getOperationalCompletedTimestamp(freight), start, end)
+            isFinalizedFreight(freight) &&
+            isWithinRange(getConcludedTimestamp(freight), start, end)
         ).length
       );
       cancelled.push(
@@ -252,8 +263,8 @@ function buildPerformanceSeries(
     completed.push(
       rows.filter(
         (freight) =>
-          isOperationallyCompleted(freight) &&
-          isWithinRange(getOperationalCompletedTimestamp(freight), start, end)
+          isFinalizedFreight(freight) &&
+          isWithinRange(getConcludedTimestamp(freight), start, end)
       ).length
     );
     cancelled.push(
@@ -324,12 +335,12 @@ const HistoryPage = () => {
     const periodStart = getPeriodStart(selectedPeriod, today);
 
     const completedRows = rows.filter((freight) => {
-      if (!isOperationallyCompleted(freight)) return false;
-      return isWithinRange(getOperationalCompletedTimestamp(freight), periodStart, tomorrow);
+      if (!isFinalizedFreight(freight)) return false;
+      return isWithinRange(getConcludedTimestamp(freight), periodStart, tomorrow);
     });
 
     const cancelledRows = rows.filter((freight) => {
-      if (getFreightStatusSlug(freight) !== "cancelado") return false;
+      if (!isCancelledFreight(freight)) return false;
       return isWithinRange(getFinalizedTimestamp(freight, "cancelado"), periodStart, tomorrow);
     });
 
@@ -369,14 +380,14 @@ const HistoryPage = () => {
       });
     }
 
-    const tableRows = [...completedRows]
+    const tableRows = [...completedRows, ...cancelledRows]
       .sort((left, right) => {
-        const leftTimestamp = getOperationalCompletedTimestamp(left) ?? 0;
-        const rightTimestamp = getOperationalCompletedTimestamp(right) ?? 0;
+        const leftTimestamp = getHistoryTimestamp(left) ?? 0;
+        const rightTimestamp = getHistoryTimestamp(right) ?? 0;
         return rightTimestamp - leftTimestamp;
       })
       .map<HistoryTableRow>((freight) => {
-        const finalizedTimestamp = getOperationalCompletedTimestamp(freight);
+        const finalizedTimestamp = getHistoryTimestamp(freight);
         const statusSlug = getFreightStatusSlug(freight);
         const distanceNumeric = getDistanceKm(freight);
         const valueNumeric = getDisplayValue(freight);
@@ -419,6 +430,21 @@ const HistoryPage = () => {
     rows: analytics.tableRows,
     resetKey: selectedPeriod,
   });
+
+  const historyFilterActiveLabel = useMemo(() => {
+    if (historyTable.filterCargo !== historyTable.allCargoValue) {
+      return historyTable.filterCargo;
+    }
+    if (historyTable.activeFilterCount > 0) {
+      return t("pages.history.table.filterActiveCustom");
+    }
+    return t("pages.history.table.filterAllCargo");
+  }, [
+    historyTable.activeFilterCount,
+    historyTable.allCargoValue,
+    historyTable.filterCargo,
+    t,
+  ]);
 
   const formatRate = (rate: number | null) => {
     if (rate == null) return "—";
@@ -636,6 +662,7 @@ const HistoryPage = () => {
           filterPanelHint={t("pages.history.table.filterPanelHint")}
           filterSectionCargo={t("pages.history.table.filterSectionCargo")}
           filterAllCargo={t("pages.history.table.filterAllCargo")}
+          filterActiveLabel={historyFilterActiveLabel}
           filterSectionValue={t("pages.freights.filterSectionValue")}
           filterValueHelp={t("pages.freights.filterValueHelp")}
           filterSectionDistance={t("pages.freights.filterSectionDistance")}

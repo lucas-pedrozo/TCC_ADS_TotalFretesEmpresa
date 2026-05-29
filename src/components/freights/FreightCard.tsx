@@ -25,6 +25,7 @@ import {
   formatFreightWeightKg,
 } from "@/utils/freightFormat";
 import { haversineKm } from "@/utils/haversineKm";
+import { selectableItemHoverClassName } from "@/utils/ui";
 
 type FreightCardProps = {
   freight: FreightDto;
@@ -68,7 +69,10 @@ export function FreightCard({ freight, lang, onDelete }: FreightCardProps) {
         }
       }}
       aria-label={t("pages.freights.openFreightAria")}
-      className="flex cursor-pointer flex-col rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 sm:p-5"
+      className={cn(
+        "flex cursor-pointer flex-col rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 sm:p-5",
+        selectableItemHoverClassName
+      )}
     >
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3">

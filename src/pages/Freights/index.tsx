@@ -1,4 +1,5 @@
 ﻿import { Filter, Plus, Search } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -54,7 +55,6 @@ const FreightsPage = () => {
     loading,
     deleting,
     chips,
-    activeFilterCount,
     clearAllFilters,
     filtered,
     total,
@@ -64,6 +64,11 @@ const FreightsPage = () => {
     setFreightToDelete,
     handleConfirmDelete,
   } = useFreightsListPage();
+
+  const activeStatusLabel = useMemo(
+    () => chips.find((item) => item.id === chip)?.label ?? t("pages.freights.chipAll"),
+    [chip, chips, t]
+  );
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
@@ -83,7 +88,7 @@ const FreightsPage = () => {
                 aria-label={t("pages.freights.searchPlaceholder")}
               />
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-stretch lg:justify-end">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:justify-end">
               <Popover>
                 <PopoverTrigger
                   render={
@@ -91,15 +96,15 @@ const FreightsPage = () => {
                       type="button"
                       variant="outline"
                       className="min-h-11 w-full shrink-0 justify-center gap-2 rounded-lg touch-manipulation sm:min-h-9 sm:w-auto"
-                      aria-label={t("pages.freights.filters")}
+                      aria-label={t("pages.freights.filterActiveStatus", {
+                        status: activeStatusLabel,
+                      })}
                     >
                       <Filter className="size-4 shrink-0" aria-hidden />
                       {t("pages.freights.filters")}
-                      {activeFilterCount > 0 ? (
-                        <span className="ml-0.5 min-w-5 rounded-full bg-brand-green-light px-1.5 py-0.5 text-center text-xs font-semibold text-brand-green-dark">
-                          {activeFilterCount}
-                        </span>
-                      ) : null}
+                      <span className="ml-0.5 max-w-[8rem] truncate rounded-full bg-brand-green-light px-2 py-0.5 text-center text-xs font-semibold text-brand-green-dark">
+                        {activeStatusLabel}
+                      </span>
                     </Button>
                   }
                 />
@@ -298,6 +303,7 @@ const FreightsPage = () => {
                   </div>
                 </PopoverContent>
               </Popover>
+
               <Button
                 type="button"
                 className="min-h-11 w-full shrink-0 gap-2 rounded-lg bg-brand-green text-white touch-manipulation hover:bg-brand-green-dark sm:min-h-9 sm:w-auto"
