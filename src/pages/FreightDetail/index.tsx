@@ -53,6 +53,7 @@ import { haversineKm } from "@/utils/haversineKm";
 import { isValidMapPin } from "@/utils/freightCreate";
 import { formatDateTimeLabel } from "@/utils/dateFormat";
 import { initialsFromName } from "@/utils/person";
+import { selectableItemHoverClassName } from "@/utils/ui";
 
 function DetailField({
   icon: Icon,
@@ -208,9 +209,8 @@ const FreightDetailPage = () => {
 
   const featuredProposal = bestProposal;
   const proposalCount = proposals.length;
-  const proposalsSorted = [...proposals].sort((a, b) => a.value - b.value);
+  const proposalsSorted = [...proposals].sort((a, b) => b.value - a.value);
   const bestAmount = featuredProposal?.value ?? displayValue;
-  const savingsDisplay = Math.max(0, Math.round((displayValue - bestAmount) * 100) / 100);
   const assignedDriverProfile =
     freight.assignedDriver_id != null ? driverProfilesById[freight.assignedDriver_id] : undefined;
 
@@ -419,11 +419,6 @@ const FreightDetailPage = () => {
                     value={formatFreightCurrencyAmount(bestAmount, lang)}
                     valueClassName="text-brand-green-dark dark:text-brand-green-light"
                   />
-                  <ValueSummaryRow
-                    label={t("pages.freightDetail.potentialSavings")}
-                    value={formatFreightCurrencyAmount(savingsDisplay, lang)}
-                    valueClassName="text-brand-green-dark dark:text-brand-green-light"
-                  />
                 </div>
               </section>
             </div>
@@ -446,8 +441,8 @@ const FreightDetailPage = () => {
 
               {featuredProposal ? (
                 <div className="space-y-3">
-                  {proposalsSorted.map((proposal, index) => {
-                    const isBest = index === 0;
+                  {proposalsSorted.map((proposal) => {
+                    const isBest = proposal.id === featuredProposal?.id;
                     const canActOnProposal =
                       (proposal.ProposalStatusType?.name ?? "").toLowerCase() === "enviada";
                     const proposalDriverName =
@@ -468,7 +463,10 @@ const FreightDetailPage = () => {
                             void navigate(`/Proposals/${proposal.id}`);
                           }
                         }}
-                        className="relative cursor-pointer rounded-xl border-2 border-brand-green/45 bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 sm:p-5"
+                        className={cn(
+                          "relative cursor-pointer rounded-xl border-2 border-brand-green/45 bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 sm:p-5",
+                          selectableItemHoverClassName
+                        )}
                       >
                         {isBest ? (
                           <span className="absolute right-3 top-3 rounded-full bg-brand-green/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-green-dark dark:text-brand-green-light">

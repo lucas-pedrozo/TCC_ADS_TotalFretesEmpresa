@@ -71,8 +71,15 @@ export interface CompanyData {
   state: string;
 }
 
+function resolveCompanyAddress(raw: CompanyApiResponse): CompanyAddressDto | null {
+  if (raw.CompanyAddress) return raw.CompanyAddress;
+
+  const nested = (raw as { companyAddress?: CompanyAddressDto | null }).companyAddress;
+  return nested ?? null;
+}
+
 function normalizeCompanyApi(raw: CompanyApiResponse): CompanyData {
-  const addr = raw.CompanyAddress;
+  const addr = resolveCompanyAddress(raw);
   const image =
     raw.CompanyImage?.id != null && raw.CompanyImage?.url
       ? {
@@ -107,9 +114,9 @@ function normalizeCompanyApi(raw: CompanyApiResponse): CompanyData {
       (typeof raw.company_image_id === "number" ? raw.company_image_id : null),
     image,
     country,
-    cep: addr?.cep != null ? String(addr.cep) : "",
-    street: addr?.street != null ? String(addr.street) : "",
-    district: addr?.district != null ? String(addr.district) : "",
+    cep: addr?.cep != null ? String(addr.cep).replace(/\D/g, "") : "",
+    street: addr?.street != null ? String(addr.street).trim() : "",
+    district: addr?.district != null ? String(addr.district).trim() : "",
     number: addr?.number != null ? String(addr.number) : "",
     city: addr?.city != null ? String(addr.city) : "",
     state: addr?.state != null ? String(addr.state) : "",

@@ -77,13 +77,13 @@ export function statusBadgeClass(slug: FreightStatusSlug): string {
     case "vinculado":
       return "border-violet-200/80 bg-violet-100 text-violet-950 dark:bg-violet-950/40 dark:text-violet-100";
     case "em_transito":
-      return "border-brand-green/25 bg-brand-green-light text-brand-green-dark";
+      return "border-orange-200/80 bg-orange-100 text-orange-950 dark:bg-orange-950/40 dark:text-orange-100";
     case "em_rota_entrega":
-      return "border-amber-200/80 bg-amber-100 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100";
+      return "border-yellow-200/80 bg-yellow-100 text-yellow-950 dark:bg-yellow-950/40 dark:text-yellow-100";
     case "entregue":
-      return "border-border bg-muted text-muted-foreground";
-    case "concluido":
       return "border-emerald-200/80 bg-emerald-100 text-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-100";
+    case "concluido":
+      return "border-border bg-muted text-muted-foreground";
     default:
       return "border-border bg-muted text-muted-foreground";
   }

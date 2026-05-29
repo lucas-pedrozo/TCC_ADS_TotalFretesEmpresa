@@ -32,11 +32,12 @@ import { HomeKpiCard } from "@/pages/Home/components/HomeKpiCard";
 import { HomeLineChart } from "@/pages/Home/components/HomeLineChart";
 import { HomeProgressMetric } from "@/pages/Home/components/HomeProgressMetric";
 import type { FreightDto } from "@/types/freight";
-import type { ProposalDto, ProposalListKpis } from "@/types/proposal";
+import type { ProposalDto } from "@/types/proposal";
 import { formatDateShortLabel, formatDateTimeLabel } from "@/utils/dateFormat";
 import { formatFreightCurrencyAmount } from "@/utils/freightFormat";
 import { initialsFromName } from "@/utils/person";
-import { computeProposalListKpis, getFreightFromProposal } from "@/utils/proposal";
+import { getFreightFromProposal, resolveProposalSummary } from "@/utils/proposal";
+import { selectableItemHoverClassName } from "@/utils/ui";
 
 type MockNotification = {
   id: string;
@@ -141,14 +142,6 @@ function buildEvolutionSeries(freights: FreightDto[], language: AppLanguage) {
   return { labels, published, completed };
 }
 
-function resolveProposalSummary(summary: ProposalListKpis, items: ProposalDto[]) {
-  if (summary.totalProposals > 0 || items.length === 0) {
-    return summary;
-  }
-
-  return computeProposalListKpis(items);
-}
-
 function HomePage() {
   const { companyData } = useOutletContext<SideLayoutOutletContext>();
   const { t, i18n } = useTranslation();
@@ -238,7 +231,19 @@ function HomePage() {
     [freightRows, language]
   );
 
-  const recentFreights = useMemo(() => sortedFreights.slice(0, 5), [sortedFreights]);
+  const recentFreights = useMemo(() => {
+    const allowedStatuses = new Set(["disponivel", "vinculado", "em_transito", "entregue"]);
+
+    return sortedFreights
+      .filter((freight) => {
+        const slug = resolveFreightStatusSlug({
+          statusId: freight.status_id,
+          statusName: freight.FreightStatusType?.name ?? freight.status?.name,
+        });
+        return allowedStatuses.has(slug);
+      })
+      .slice(0, 5);
+  }, [sortedFreights]);
   const recentProposals = useMemo(() => sortedProposals.slice(0, 4), [sortedProposals]);
 
   const mockNotifications = useMemo<MockNotification[]>(
@@ -479,7 +484,10 @@ function HomePage() {
                     <Link
                       key={freight.id}
                       to={`/Freights/${freight.id}`}
-                      className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-muted/10 p-4 transition-all hover:border-brand-green/30 hover:bg-muted/30 hover:shadow-sm md:flex-row md:items-center md:justify-between"
+                      className={cn(
+                        "flex flex-col gap-4 rounded-2xl border border-border/80 bg-muted/10 p-4 transition-all hover:border-brand-green/30 hover:shadow-sm md:flex-row md:items-center md:justify-between",
+                        selectableItemHoverClassName
+                      )}
                     >
                       <div className="flex min-w-0 items-start gap-3">
                         <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-green-light/60 text-brand-green-dark">

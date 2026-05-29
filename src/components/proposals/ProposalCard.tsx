@@ -13,10 +13,13 @@ import {
 import { haversineKm } from "@/utils/haversineKm";
 import { formatDateTimeLabel } from "@/utils/dateFormat";
 import { initialsFromName } from "@/utils/person";
+import { selectableItemHoverClassName } from "@/utils/ui";
 import {
   getFreightFromProposal,
   isAcceptedProposalStatus,
   isPendingProposalStatus,
+  isRejectedProposalStatus,
+  proposalStatusBadgeClass,
 } from "@/utils/proposal";
 
 type ProposalCardProps = {
@@ -32,6 +35,7 @@ export function ProposalCard({ proposal, lang, driverName }: ProposalCardProps) 
   const statusName = proposal.ProposalStatusType?.name ?? "";
   const isPending = isPendingProposalStatus(statusName);
   const isAccepted = isAcceptedProposalStatus(statusName);
+  const isRejected = isRejectedProposalStatus(statusName);
 
   const driverLabel =
     driverName?.trim() || t("pages.freightDetail.driverId", { id: proposal.driver_id });
@@ -51,7 +55,10 @@ export function ProposalCard({ proposal, lang, driverName }: ProposalCardProps) 
             handleOpen();
           }
         }}
-        className="cursor-pointer rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+        className={cn(
+          "cursor-pointer rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md",
+          selectableItemHoverClassName
+        )}
       >
         <p className="text-sm font-medium text-foreground">{driverLabel}</p>
         <p className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -88,7 +95,10 @@ export function ProposalCard({ proposal, lang, driverName }: ProposalCardProps) 
           handleOpen();
         }
       }}
-      className="flex cursor-pointer flex-col rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 sm:p-5"
+      className={cn(
+        "flex cursor-pointer flex-col rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 sm:p-5",
+        selectableItemHoverClassName
+      )}
     >
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
@@ -114,20 +124,13 @@ export function ProposalCard({ proposal, lang, driverName }: ProposalCardProps) 
         <div className="flex flex-col items-start gap-1 sm:items-end">
           <Badge
             variant="outline"
-            className={cn(
-              "rounded-full font-medium",
-              isPending
-                ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                : isAccepted
-                  ? "border-brand-green/40 bg-brand-green/10 text-brand-green-dark dark:text-brand-green-light"
-                  : ""
-            )}
+            className={cn("rounded-full font-medium", proposalStatusBadgeClass(statusName))}
           >
             {isPending
               ? t("pages.proposals.statusPending")
               : isAccepted
                 ? t("pages.proposals.statusAccepted")
-                : statusName.toLowerCase() === "recusada"
+                : isRejected
                   ? t("pages.proposals.statusRejected")
                   : statusName.toLowerCase() === "nao selecionada"
                     ? t("pages.proposals.statusNotSelected")

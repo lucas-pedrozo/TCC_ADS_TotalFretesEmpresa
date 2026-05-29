@@ -16,3 +16,7 @@ export function fadeExitClassName(isExiting: boolean, className?: string) {
     className,
   )
 }
+
+/** Hover verde leve em cards, linhas e links clicáveis de frete/proposta. */
+export const selectableItemHoverClassName =
+  'transition-colors hover:bg-brand-green/5 dark:hover:bg-brand-green/10'

@@ -17,6 +17,7 @@ import type {
 import type { ProposalAcceptResponse, ProposalDto, ProposalRejectResponse } from "@/types/proposal";
 import type { UserDto } from "@/types/user";
 import http from "@/service/http";
+import { pickBestProposal } from "@/utils/proposal";
 import { traduzMensagemApi, trataErroAxios } from "@/utils/trataErroAxios";
 
 type UseFreightDetailParams = {
@@ -75,9 +76,8 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
   }, [proposals]);
 
   const bestProposal = useMemo(() => {
-    if (visibleProposals.length === 0) return undefined;
-    return [...visibleProposals].sort((a, b) => a.value - b.value)[0];
-  }, [visibleProposals]);
+    return pickBestProposal(visibleProposals, freight?.originalValue);
+  }, [visibleProposals, freight?.originalValue]);
 
   useEffect(() => {
     const driverIds = [...new Set(proposals.map((proposal) => proposal.driver_id).filter(Boolean))];

@@ -16,6 +16,7 @@ import {
   formatFreightDistanceKm,
 } from "@/utils/freightFormat";
 import { haversineKm } from "@/utils/haversineKm";
+import { selectableItemHoverClassName } from "@/utils/ui";
 
 type FreightProposalCardProps = {
   item: ProposalFreightSummaryItem;
@@ -45,7 +46,12 @@ export function FreightProposalCard({ item, lang }: FreightProposalCardProps) {
   const averageFormatted = formatFreightCurrencyAmount(item.averageValue, lang);
 
   return (
-    <article className="flex flex-col rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
+    <article
+      className={cn(
+        "flex flex-col rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5",
+        selectableItemHoverClassName
+      )}
+    >
       <header className="mb-4 flex items-start justify-between gap-3">
         <h2 className="text-base font-bold tracking-tight text-foreground">{freightLabel}</h2>
         <Badge

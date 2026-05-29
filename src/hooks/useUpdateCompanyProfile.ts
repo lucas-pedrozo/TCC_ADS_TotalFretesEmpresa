@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -92,6 +92,7 @@ export function useUpdateCompanyProfile({
   const { id } = useAuth();
   const { t } = useTranslation();
   const [isSearchingCep, setIsSearchingCep] = useState(false);
+  const serverCepRef = useRef<string | null>(null);
 
   const {
     control,
@@ -113,7 +114,9 @@ export function useUpdateCompanyProfile({
   const hasStateOptions = stateOptions.length > 0;
 
   useEffect(() => {
-    reset(getDefaultValues(companyData));
+    const defaults = getDefaultValues(companyData);
+    serverCepRef.current = defaults.cep.replace(/\D/g, "") || null;
+    reset(defaults);
   }, [companyData, reset]);
 
   useEffect(() => {
@@ -128,6 +131,10 @@ export function useUpdateCompanyProfile({
     const digits = cep?.replace(/\D/g, "") ?? "";
 
     if (country !== "BR" || digits.length !== 8) return;
+
+    if (serverCepRef.current !== null && digits === serverCepRef.current) {
+      return;
+    }
 
     const controller = new AbortController();
 
@@ -146,10 +153,18 @@ export function useUpdateCompanyProfile({
           return;
         }
 
-        setValue("street", data.logradouro ?? "", { shouldValidate: true });
-        setValue("district", data.bairro ?? "", { shouldValidate: true });
-        setValue("city", data.localidade ?? "", { shouldValidate: true });
-        setValue("state", data.uf ?? "", { shouldValidate: true });
+        if (data.logradouro?.trim()) {
+          setValue("street", data.logradouro.trim(), { shouldValidate: true });
+        }
+        if (data.bairro?.trim()) {
+          setValue("district", data.bairro.trim(), { shouldValidate: true });
+        }
+        if (data.localidade?.trim()) {
+          setValue("city", data.localidade.trim(), { shouldValidate: true });
+        }
+        if (data.uf?.trim()) {
+          setValue("state", data.uf.trim(), { shouldValidate: true });
+        }
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
         toast.error(t("pages.profile.cepLookupError"));

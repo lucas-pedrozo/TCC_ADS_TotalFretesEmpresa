@@ -1,4 +1,5 @@
 import { Filter, Search } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ProposalCard } from "@/components/proposals/ProposalCard";
@@ -17,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProposalsListPage } from "@/hooks/useProposalsListPage";
 import type { AppLanguage } from "@/i18n/resources";
 import type { ProposalStatusFilter } from "@/types/proposal";
+import { resolveProposalSummary } from "@/utils/proposal";
 
 function KpiCard({ label, value }: { label: string; value: string | number }) {
   return (
@@ -44,7 +46,6 @@ const ProposalsPage = () => {
     statusFilter,
     setStatusFilter,
     defaultStatusFilter,
-    activeFilterCount,
     clearStatusFilter,
     loading,
     items,
@@ -56,10 +57,17 @@ const ProposalsPage = () => {
     canGoNext,
     goPrev,
     goNext,
+    driverProfilesById,
   } = useProposalsListPage();
 
-  const emptyMessageKey =
-    statusFilter === "enviada"
+  const resolvedSummary = useMemo(
+    () => resolveProposalSummary(summary, items),
+    [summary, items]
+  );
+
+  const emptyMessageKey = search.trim()
+    ? "pages.proposals.emptySearch"
+    : statusFilter === "enviada"
       ? "pages.proposals.emptyPending"
       : statusFilter === "aceita"
         ? "pages.proposals.emptyAccepted"
@@ -78,10 +86,10 @@ const ProposalsPage = () => {
           ))
         ) : (
           <>
-            <KpiCard label={t("pages.proposals.kpiUniqueFreights")} value={summary.uniqueFreights} />
-            <KpiCard label={t("pages.proposals.kpiTotalReceived")} value={summary.totalProposals} />
-            <KpiCard label={t("pages.proposals.kpiPending")} value={summary.pendingProposals} />
-            <KpiCard label={t("pages.proposals.kpiAccepted")} value={summary.acceptedProposals} />
+            <KpiCard label={t("pages.proposals.kpiUniqueFreights")} value={resolvedSummary.uniqueFreights} />
+            <KpiCard label={t("pages.proposals.kpiTotalReceived")} value={resolvedSummary.totalProposals} />
+            <KpiCard label={t("pages.proposals.kpiPending")} value={resolvedSummary.pendingProposals} />
+            <KpiCard label={t("pages.proposals.kpiAccepted")} value={resolvedSummary.acceptedProposals} />
           </>
         )}
       </div>
@@ -110,55 +118,55 @@ const ProposalsPage = () => {
                     type="button"
                     variant="outline"
                     className="h-11 w-full shrink-0 justify-center gap-2 rounded-lg sm:h-9 sm:w-auto"
-                    aria-label={t("pages.proposals.filterButton")}
+                    aria-label={t("pages.proposals.filterActiveStatus", {
+                      status: t(`pages.proposals.statusFilter.${statusFilter}`),
+                    })}
                   >
                     <Filter className="size-4 shrink-0" aria-hidden />
                     {t("pages.proposals.filterButton")}
-                    {activeFilterCount > 0 ? (
-                      <span className="ml-0.5 min-w-5 rounded-full bg-brand-green-light px-1.5 py-0.5 text-center text-xs font-semibold text-brand-green-dark">
-                        {activeFilterCount}
-                      </span>
-                    ) : null}
+                    <span className="ml-0.5 max-w-[8rem] truncate rounded-full bg-brand-green-light px-2 py-0.5 text-center text-xs font-semibold text-brand-green-dark">
+                      {t(`pages.proposals.statusFilter.${statusFilter}`)}
+                    </span>
                   </Button>
                 }
               />
-              <PopoverContent className="w-[min(calc(100vw-2rem),20rem)]" align="end" sideOffset={8}>
-                <PopoverHeader>
-                  <PopoverTitle>{t("pages.proposals.filterPanelTitle")}</PopoverTitle>
-                  <PopoverDescription>{t("pages.proposals.filterPanelHint")}</PopoverDescription>
-                </PopoverHeader>
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium text-foreground" htmlFor="proposal-status-filter">
-                      {t("pages.proposals.filterSectionStatus")}
-                    </Label>
-                    <select
-                      id="proposal-status-filter"
-                      value={statusFilter}
-                      onChange={(event) =>
-                        setStatusFilter(event.target.value as ProposalStatusFilter)
-                      }
-                      className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                <PopoverContent className="w-[min(calc(100vw-2rem),20rem)]" align="end" sideOffset={8}>
+                  <PopoverHeader>
+                    <PopoverTitle>{t("pages.proposals.filterPanelTitle")}</PopoverTitle>
+                    <PopoverDescription>{t("pages.proposals.filterPanelHint")}</PopoverDescription>
+                  </PopoverHeader>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-foreground" htmlFor="proposal-status-filter">
+                        {t("pages.proposals.filterSectionStatus")}
+                      </Label>
+                      <select
+                        id="proposal-status-filter"
+                        value={statusFilter}
+                        onChange={(event) =>
+                          setStatusFilter(event.target.value as ProposalStatusFilter)
+                        }
+                        className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                      >
+                        {STATUS_FILTER_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {t(`pages.proposals.statusFilter.${option}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full rounded-lg"
+                      disabled={statusFilter === defaultStatusFilter}
+                      onClick={clearStatusFilter}
                     >
-                      {STATUS_FILTER_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {t(`pages.proposals.statusFilter.${option}`)}
-                        </option>
-                      ))}
-                    </select>
+                      {t("pages.proposals.filterClear")}
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full rounded-lg"
-                    disabled={statusFilter === defaultStatusFilter}
-                    onClick={clearStatusFilter}
-                  >
-                    {t("pages.proposals.filterClear")}
-                  </Button>
-                </div>
-              </PopoverContent>
+                </PopoverContent>
             </Popover>
           </div>
         </div>
@@ -177,7 +185,12 @@ const ProposalsPage = () => {
           ) : (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {items.map((proposal) => (
-                <ProposalCard key={proposal.id} proposal={proposal} lang={lang} />
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  lang={lang}
+                  driverName={driverProfilesById[proposal.driver_id]?.name}
+                />
               ))}
             </div>
           )}

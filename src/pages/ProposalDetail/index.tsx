@@ -22,6 +22,7 @@ import {
 import { useProposalDetail } from "@/hooks/useProposalDetail";
 import type { AppLanguage } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
+import { selectableItemHoverClassName } from "@/utils/ui";
 import {
   formatFreightCurrencyAmount,
   formatFreightDistanceKm,
@@ -29,7 +30,12 @@ import {
 import { haversineKm } from "@/utils/haversineKm";
 import { formatDateTimeLabel } from "@/utils/dateFormat";
 import { initialsFromName } from "@/utils/person";
-import { isAcceptedProposalStatus, isPendingProposalStatus } from "@/utils/proposal";
+import {
+  isAcceptedProposalStatus,
+  isPendingProposalStatus,
+  isRejectedProposalStatus,
+  proposalStatusBadgeClass,
+} from "@/utils/proposal";
 
 const cardShell = "rounded-xl border border-border bg-card shadow-sm";
 
@@ -76,6 +82,7 @@ const ProposalDetailPage = () => {
   const statusName = proposal.ProposalStatusType?.name ?? "";
   const isPending = isPendingProposalStatus(statusName);
   const isAccepted = isAcceptedProposalStatus(statusName);
+  const isRejected = isRejectedProposalStatus(statusName);
   const driverLabel =
     driverProfile?.name?.trim() ||
     t("pages.freightDetail.driverId", { id: proposal.driver_id });
@@ -134,20 +141,15 @@ const ProposalDetailPage = () => {
           </div>
           <Badge
             variant="outline"
-            className={cn(
-              "rounded-full font-medium",
-              isPending
-                ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                : isAccepted
-                  ? "border-brand-green/40 bg-brand-green/10 text-brand-green-dark dark:text-brand-green-light"
-                  : ""
-            )}
+            className={cn("rounded-full font-medium", proposalStatusBadgeClass(statusName))}
           >
             {isPending
               ? t("pages.proposals.statusPending")
               : isAccepted
                 ? t("pages.proposals.statusAccepted")
-                : statusName || t("pages.proposals.statusUnknown")}
+                : isRejected
+                  ? t("pages.proposals.statusRejected")
+                  : statusName || t("pages.proposals.statusUnknown")}
           </Badge>
         </div>
 
@@ -208,7 +210,8 @@ const ProposalDetailPage = () => {
           }}
           className={cn(
             cardShell,
-            "cursor-pointer p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 sm:p-5"
+            "cursor-pointer p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 sm:p-5",
+            selectableItemHoverClassName
           )}
         >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">

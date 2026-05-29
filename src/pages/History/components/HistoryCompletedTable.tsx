@@ -1,4 +1,5 @@
 import { Filter, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,8 @@ import {
 } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { HistoryTableRow } from "@/hooks/useHistoryTable";
+import { cn } from "@/lib/utils";
+import { selectableItemHoverClassName } from "@/utils/ui";
 
 type HistoryCompletedTableProps = {
   title: string;
@@ -25,6 +28,7 @@ type HistoryCompletedTableProps = {
   filterPanelHint: string;
   filterSectionCargo: string;
   filterAllCargo: string;
+  filterActiveLabel: string;
   filterSectionValue: string;
   filterValueHelp: string;
   filterSectionDistance: string;
@@ -82,6 +86,7 @@ export function HistoryCompletedTable({
   filterPanelHint,
   filterSectionCargo,
   filterAllCargo,
+  filterActiveLabel,
   filterSectionValue,
   filterValueHelp,
   filterSectionDistance,
@@ -120,6 +125,12 @@ export function HistoryCompletedTable({
   onPrev,
   onNext,
 }: HistoryCompletedTableProps) {
+  const navigate = useNavigate();
+
+  function openFreight(id: number) {
+    void navigate(`/Freights/${id}`);
+  }
+
   return (
     <section className="rounded-[28px] border border-border bg-background p-5 shadow-sm md:p-6">
       <div className="space-y-2">
@@ -149,15 +160,13 @@ export function HistoryCompletedTable({
                 type="button"
                 variant="outline"
                 className="min-h-11 w-full shrink-0 justify-center gap-2 rounded-lg touch-manipulation sm:min-h-9 lg:w-auto"
-                aria-label={filtersLabel}
+                aria-label={filterActiveLabel}
               >
                 <Filter className="size-4 shrink-0" aria-hidden />
                 {filtersLabel}
-                {activeFilterCount > 0 ? (
-                  <span className="ml-0.5 min-w-5 rounded-full bg-brand-green-light px-1.5 py-0.5 text-center text-xs font-semibold text-brand-green-dark">
-                    {activeFilterCount}
-                  </span>
-                ) : null}
+                <span className="ml-0.5 max-w-[8rem] truncate rounded-full bg-brand-green-light px-2 py-0.5 text-center text-xs font-semibold text-brand-green-dark">
+                  {filterActiveLabel}
+                </span>
               </Button>
             }
           />
@@ -301,7 +310,19 @@ export function HistoryCompletedTable({
             </TableHeader>
             <TableBody>
               {rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  role="button"
+                  tabIndex={0}
+                  className={cn("cursor-pointer", selectableItemHoverClassName)}
+                  onClick={() => openFreight(row.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openFreight(row.id);
+                    }
+                  }}
+                >
                   <TableCell className="font-medium text-foreground">{row.code}</TableCell>
                   <TableCell className="max-w-[18rem]">
                     <span className="block truncate text-muted-foreground">{row.route}</span>
