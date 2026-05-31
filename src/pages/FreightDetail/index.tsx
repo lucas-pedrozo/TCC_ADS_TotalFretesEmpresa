@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/freightStatusUi";
 import { FreightStatusTimeline } from "@/components/ui/freightStatusTimeline";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -447,7 +448,12 @@ const FreightDetailPage = () => {
                       (proposal.ProposalStatusType?.name ?? "").toLowerCase() === "enviada";
                     const proposalDriverName =
                       driverProfilesById[proposal.driver_id]?.name ??
+                      proposal.Driver?.name?.trim() ??
                       t("pages.freightDetail.driverId", { id: proposal.driver_id });
+                    const proposalDriverImageUrl =
+                      driverProfilesById[proposal.driver_id]?.imageUrl?.trim() ||
+                      proposal.Driver?.UserImage?.url?.trim() ||
+                      null;
                     const proposalVehicle =
                       driverProfilesById[proposal.driver_id]?.vehicle ??
                       t("pages.freightDetail.vehicleUnavailable");
@@ -475,12 +481,14 @@ const FreightDetailPage = () => {
                         ) : null}
 
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                          <div
-                            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-muted-foreground"
-                            aria-hidden
-                          >
-                            {initialsFromName(proposalDriverName)}
-                          </div>
+                          <Avatar className="size-12 shrink-0">
+                            {proposalDriverImageUrl ? (
+                              <AvatarImage src={proposalDriverImageUrl} alt={proposalDriverName} />
+                            ) : null}
+                            <AvatarFallback className="bg-muted text-sm font-bold text-muted-foreground">
+                              {initialsFromName(proposalDriverName)}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="min-w-0 flex-1 space-y-1 pr-2 sm:pr-24">
                             <p className="text-base font-bold text-foreground">{proposalDriverName}</p>
                             <p className="text-sm text-muted-foreground">{proposalVehicle}</p>
