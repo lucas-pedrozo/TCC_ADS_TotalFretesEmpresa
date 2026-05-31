@@ -2,6 +2,7 @@ import { MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { AppLanguage } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
@@ -25,10 +26,18 @@ import {
 type ProposalCardProps = {
   proposal: ProposalDto;
   lang: AppLanguage;
-  driverName?: string | null;
 };
 
-export function ProposalCard({ proposal, lang, driverName }: ProposalCardProps) {
+function resolveDriverLabel(proposal: ProposalDto, fallback: string): string {
+  return proposal.Driver?.name?.trim() || fallback;
+}
+
+function resolveDriverImageUrl(proposal: ProposalDto): string | null {
+  const url = proposal.Driver?.UserImage?.url;
+  return url?.trim() || null;
+}
+
+export function ProposalCard({ proposal, lang }: ProposalCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const freight = getFreightFromProposal(proposal);
@@ -37,12 +46,22 @@ export function ProposalCard({ proposal, lang, driverName }: ProposalCardProps) 
   const isAccepted = isAcceptedProposalStatus(statusName);
   const isRejected = isRejectedProposalStatus(statusName);
 
-  const driverLabel =
-    driverName?.trim() || t("pages.freightDetail.driverId", { id: proposal.driver_id });
+  const driverFallback = t("pages.freightDetail.driverId", { id: proposal.driver_id });
+  const driverLabel = resolveDriverLabel(proposal, driverFallback);
+  const driverImageUrl = resolveDriverImageUrl(proposal);
 
   const handleOpen = () => {
     void navigate(`/Proposals/${proposal.id}`);
   };
+
+  const driverAvatar = (
+    <Avatar className="size-11 shrink-0">
+      {driverImageUrl ? <AvatarImage src={driverImageUrl} alt={driverLabel} /> : null}
+      <AvatarFallback className="bg-muted text-sm font-bold text-muted-foreground">
+        {initialsFromName(driverLabel)}
+      </AvatarFallback>
+    </Avatar>
+  );
 
   if (!freight) {
     return (
@@ -60,7 +79,10 @@ export function ProposalCard({ proposal, lang, driverName }: ProposalCardProps) 
           selectableItemHoverClassName
         )}
       >
-        <p className="text-sm font-medium text-foreground">{driverLabel}</p>
+        <div className="flex items-center gap-3">
+          {driverAvatar}
+          <p className="text-sm font-medium text-foreground">{driverLabel}</p>
+        </div>
         <p className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <span className="text-xs font-semibold uppercase tracking-wide text-foreground">
             {t("pages.proposals.proposalValueLabel")}
@@ -102,12 +124,7 @@ export function ProposalCard({ proposal, lang, driverName }: ProposalCardProps) 
     >
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          <div
-            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-muted-foreground"
-            aria-hidden
-          >
-            {initialsFromName(driverLabel)}
-          </div>
+          {driverAvatar}
           <div className="min-w-0">
             <p className="truncate text-base font-bold text-foreground">{driverLabel}</p>
             <p className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">

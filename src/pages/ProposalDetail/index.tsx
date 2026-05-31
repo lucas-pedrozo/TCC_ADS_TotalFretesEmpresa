@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -85,7 +86,12 @@ const ProposalDetailPage = () => {
   const isRejected = isRejectedProposalStatus(statusName);
   const driverLabel =
     driverProfile?.name?.trim() ||
+    proposal.Driver?.name?.trim() ||
     t("pages.freightDetail.driverId", { id: proposal.driver_id });
+  const driverImageUrl =
+    driverProfile?.imageUrl?.trim() ||
+    proposal.Driver?.UserImage?.url?.trim() ||
+    null;
   const vehicleLabel =
     driverProfile?.vehicle?.trim() || t("pages.freightDetail.vehicleUnavailable");
 
@@ -128,12 +134,12 @@ const ProposalDetailPage = () => {
       <section className={cn(cardShell, "p-4 sm:p-5")}>
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div
-              className="flex size-12 items-center justify-center rounded-full bg-muted text-sm font-bold text-muted-foreground"
-              aria-hidden
-            >
-              {initialsFromName(driverLabel)}
-            </div>
+            <Avatar className="size-12">
+              {driverImageUrl ? <AvatarImage src={driverImageUrl} alt={driverLabel} /> : null}
+              <AvatarFallback className="bg-muted text-sm font-bold text-muted-foreground">
+                {initialsFromName(driverLabel)}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <p className="text-base font-bold text-foreground">{driverLabel}</p>
               <p className="text-sm text-muted-foreground">{vehicleLabel}</p>

@@ -10,7 +10,7 @@ import type {
   ProposalListPaginatedResponse,
   ProposalStatusFilter,
 } from "@/types/proposal";
-import { fetchDriverProfilesMap, type DriverProfile } from "@/utils/driverProfiles";
+import { resolveDriverProfilesFromProposals, type DriverProfile } from "@/utils/driverProfiles";
 import { computeProposalListKpis, matchesProposalSearch } from "@/utils/proposal";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 
@@ -82,7 +82,7 @@ export function useProposalsListPage(options: UseProposalsListPageOptions = {}) 
         },
       });
       const list = Array.isArray(response) ? response : [];
-      const profiles = await fetchDriverProfilesMap(list.map((item) => item.driver_id));
+      const profiles = await resolveDriverProfilesFromProposals(list);
       setSearchSourceItems(list);
       setDriverProfilesById(profiles);
       setData(null);

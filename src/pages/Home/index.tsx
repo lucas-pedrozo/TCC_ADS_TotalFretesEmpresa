@@ -14,7 +14,7 @@ import { useMemo } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -606,9 +606,11 @@ function HomePage() {
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {recentProposals.map((proposal) => {
                 const linkedFreight = getFreightFromProposal(proposal);
-                const driverLabel = t("pages.home.driverFallback", {
+                const driverFallback = t("pages.home.driverFallback", {
                   id: proposal.driver_id,
                 });
+                const driverLabel = proposal.Driver?.name?.trim() || driverFallback;
+                const driverImageUrl = proposal.Driver?.UserImage?.url?.trim() || null;
 
                 return (
                   <Link
@@ -618,6 +620,9 @@ function HomePage() {
                   >
                     <div className="flex items-start gap-3">
                       <Avatar className="size-11">
+                        {driverImageUrl ? (
+                          <AvatarImage src={driverImageUrl} alt={driverLabel} />
+                        ) : null}
                         <AvatarFallback className="bg-brand-green-light/60 text-sm font-semibold text-brand-green-dark">
                           {initialsFromName(driverLabel)}
                         </AvatarFallback>
