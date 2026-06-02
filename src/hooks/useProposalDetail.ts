@@ -122,11 +122,16 @@ export function useProposalDetail({ proposalId }: UseProposalDetailParams) {
     }
   }, [loadProposal, proposal?.id, t]);
 
-  const handleReject = useCallback(async () => {
+  const handleReject = useCallback(async (comment?: string) => {
     if (!proposal?.id) return false;
+    const trimmed = comment?.trim() ?? "";
+    const body = trimmed.length > 0 ? { rejection_comment: trimmed } : {};
     try {
       setActionLoading(true);
-      const { data } = await http.patch<ProposalRejectResponse>(`/proposal/${proposal.id}/reject`, {});
+      const { data } = await http.patch<ProposalRejectResponse>(
+        `/proposal/${proposal.id}/reject`,
+        body
+      );
       toast.success(
         traduzMensagemApi(data.message) ?? t("pages.freightDetail.rejectProposalSuccess")
       );
