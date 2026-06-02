@@ -1,15 +1,34 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 import { useAuth } from "@/context/AuthContext";
-import type { JSX } from "react";
 
-interface Props {
-    children: JSX.Element;
-}
+/** Rota-layout: use como `element={<PrivateRoute />}>` e aninhe as rotas protegidas como filhas. */
+const PrivateRoute = () => {
+  const { isAuthenticated, accessLevel } = useAuth();
+  const { t } = useTranslation();
 
-const PrivateRoute = ({ children }: Props) => {
-    const { isAuthenticated } = useAuth();
+  if (isAuthenticated === null) {
+    return (
+      <div
+        className="flex min-h-svh items-center justify-center bg-background text-sm text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
+        {t("common.authSessionLoading")}
+      </div>
+    );
+  }
 
-    return isAuthenticated ? children : <Navigate to="*" replace />;
+  const level = accessLevel?.toUpperCase() ?? "";
+  const hasAccess =
+    isAuthenticated === true && (level === "COMPANY" || level === "ADMIN");
+
+  if (!hasAccess) {
+    return <Navigate to="/Start" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default PrivateRoute;

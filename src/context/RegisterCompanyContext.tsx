@@ -1,16 +1,23 @@
 import { createContext, useContext, useState } from "react";
+import { DEFAULT_PHONE_COUNTRY_CODE } from "@/utils/phone";
+
+/** Alinhado ao seed do authentication-service (USER=1, COMPANY=2, ADMIN=3). */
+export const ACCOUNT_TYPE_COMPANY = 2;
 
 export type RegisterCompanyDataBasic = {
   name: string;
   email: string;
   birthFundation: string;
+  phoneCountryCode: string;
   phoneNumber: string;
   website?: string;
   cnpj: string;
   password: string;
+  confirmPassword: string;
 }
 
 export type RegisterCompanyDataAddress = {
+  country: string;
   cep: string;
   street: string;
   district: string;
@@ -19,7 +26,9 @@ export type RegisterCompanyDataAddress = {
   state: string;
 }
 
-export type RegisterCompanyDraftData = RegisterCompanyDataBasic & RegisterCompanyDataAddress;
+export type RegisterCompanyDraftData = RegisterCompanyDataBasic & RegisterCompanyDataAddress & {
+  account_type_id: number;
+};
 
 type RegisterCompanyContextValue = {
   basicData: RegisterCompanyDataBasic;
@@ -35,12 +44,15 @@ const defultBasicData: RegisterCompanyDataBasic = {
   name: "",
   email: "",
   birthFundation: "",
+  phoneCountryCode: DEFAULT_PHONE_COUNTRY_CODE,
   phoneNumber: "",
   cnpj: "",
   password: "",
+  confirmPassword: "",
 }
 
 const defaultAddressData: RegisterCompanyDataAddress = {
+  country: "BR",
   cep: "",
   street: "",
   district: "",
@@ -64,7 +76,7 @@ export function RegisterCompanyProvider({ children }: { children: React.ReactNod
   };
 
   const getPayload = () => {
-    return { ...basicData, ...addressData };
+    return { ...basicData, ...addressData, account_type_id: ACCOUNT_TYPE_COMPANY };
   };
 
   const reset = () => {

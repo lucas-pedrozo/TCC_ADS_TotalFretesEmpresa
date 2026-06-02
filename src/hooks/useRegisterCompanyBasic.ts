@@ -1,13 +1,23 @@
 
 import { useRegisterCompanyContext, type RegisterCompanyDataBasic } from "@/context/RegisterCompanyContext";
 import { trataErroAxios } from "@/utils/trataErroAxios";
-import { validateCNPJ, validateCPF, validateEmail, validatePassword } from "@/utils/validation";
-import { validatePhoneNumberLength } from "libphonenumber-js";
+import {
+  validateCNPJ,
+  validateDate,
+  validateEmail,
+  validatePassword,
+  validatePasswordConfirmation,
+  validatePhone,
+  validatePhoneCountryCode,
+} from "@/utils/validation";
 import { useCallback } from "react"
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export function useRegisterCompanyBasic(onClickNext: () => void) {
   const { basicData, setDataBasic } = useRegisterCompanyContext();
+  const { t } = useTranslation();
   const { control, handleSubmit, formState: { errors } } =
     useForm<RegisterCompanyDataBasic>({ mode: "onSubmit", defaultValues: basicData });
 
@@ -18,37 +28,49 @@ export function useRegisterCompanyBasic(onClickNext: () => void) {
         onClickNext();
       })();
     } catch (error) {
-      console.log(trataErroAxios(error));
+      toast.error(trataErroAxios(error));
     }
   }, [handleSubmit, setDataBasic, onClickNext])
 
   const Rules = {
     email: {
-      required: "Email is required",
-      validate: (value: string) => validateEmail(value) || "Invalid email format"
+      required: t("validation.emailRequired"),
+      validate: (value: string | undefined) => !value || validateEmail(value) || t("validation.emailInvalid")
     },
     name: {
-      required: "Name is required",
-      validate: (value: string) => value.length < 3 || "Name must be at least 3 characters"
+      required: t("validation.nameRequired"),
+      validate: (value: string | undefined) => !value || value.trim().length >= 3 || t("validation.nameInvalid")
     },
     birthFundation: {
-      required: "Birth/Founding date is required",  
+      required: t("validation.birthFundationRequired"),
+      validate: (value: string | undefined) => !value || validateDate(value) || t("validation.birthFundationInvalid"),
+    },
+    phoneCountryCode: {
+      required: t("validation.phoneCountryCodeRequired"),
+      validate: (value: string | undefined) =>
+        !value || validatePhoneCountryCode(value) || t("validation.phoneCountryCodeInvalid"),
     },
     phoneNumber: {
-      required: "Phone number is required",
-      validate: (value: string) => validatePhoneNumberLength(value) || "Invalid phone number format"
-    },
-    cpf: {
-      required: "CPF is required",
-      validate: (value: string) => validateCPF(value) || "Invalid CPF format"
+      required: t("validation.phoneRequired"),
+      validate: (value: string | undefined, formValues: RegisterCompanyDataBasic) =>
+        !value ||
+        validatePhone(formValues.phoneCountryCode, value) ||
+        t("validation.phoneInvalid"),
     },
     cnpj: {
-      required: "CNPJ is required",
-      validate: (value: string) => validateCNPJ(value) || "Invalid CNPJ format"
+      required: t("validation.cnpjRequired"),
+      validate: (value: string | undefined) => !value || validateCNPJ(value) || t("validation.cnpjInvalid")
     },
     password: {
-      required: "Password is required",
-      validate: (value: string) => validatePassword(value) || "Password must be at least 8 characters",
+      required: t("validation.passwordRequired"),
+      validate: (value: string | undefined) => !value || validatePassword(value) || t("validation.passwordInvalid"),
+    },
+    confirmPassword: {
+      required: t("validation.confirmPasswordRequired"),
+      validate: (value: string | undefined, formValues: RegisterCompanyDataBasic) =>
+        !value ||
+        validatePasswordConfirmation(formValues.password, value) ||
+        t("validation.confirmPasswordInvalid"),
     }
   }
 

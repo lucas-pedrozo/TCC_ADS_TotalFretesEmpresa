@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 interface AuthContextType {
 	id: number | null;
@@ -15,7 +15,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export interface DecodedToken {
-	id?: number | string
+	id?: number | string;
 	id_usuario?: number | string;
 	role?: string;
 	accessLevel?: string;
@@ -23,15 +23,16 @@ export interface DecodedToken {
 	exp?: number;
 }
 
+const TOKEN_KEY = "auth_token";
+
 export const decodeToken = (token: string): DecodedToken | null => {
 	try {
-		const decoded = jwtDecode<DecodedToken>(token);
-		return decoded;
+		return jwtDecode<DecodedToken>(token);
 	} catch (error) {
 		console.error("Failed to decode token:", error);
 		return null;
 	}
-}
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const [id, setId] = useState<number | null>(null);
@@ -39,11 +40,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const [accessLevel, setAccessLevel] = useState<string | null>(null);
 	const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
+	useEffect(() => {
+		const stored = localStorage.getItem(TOKEN_KEY);
+		if (stored) {
+			const decoded = decodeToken(stored);
+			if (decoded) {
+				const expired = decoded.exp && decoded.exp * 1000 < Date.now();
+				if (expired) {
+					localStorage.removeItem(TOKEN_KEY);
+					setIsAuthenticated(false);
+				} else {
+					setToken(stored);
+					setId(Number(decoded.id));
+					setAccessLevel(decoded.role ?? decoded.accessLevel ?? null);
+					setIsAuthenticated(true);
+				}
+			}
+		} else {
+			setIsAuthenticated(false);
+		}
+	}, []);
 
 	const login = async (token: string) => {
 		const decoded = decodeToken(token);
-
 		if (decoded) {
+			localStorage.setItem(TOKEN_KEY, token);
 			setToken(token);
 			setId(Number(decoded.id));
 			setAccessLevel(decoded.role ?? decoded.accessLevel ?? null);
@@ -52,6 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	const logout = async () => {
+		localStorage.removeItem(TOKEN_KEY);
 		setToken(null);
 		setId(null);
 		setAccessLevel(null);
@@ -59,16 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	return (
-		<AuthContext.Provider
-			value={{
-				token,
-				id,
-				accessLevel,
-				isAuthenticated,
-				login,
-				logout,
-			}}
-		>
+		<AuthContext.Provider value={{ token, id, accessLevel, isAuthenticated, login, logout }}>
 			{children}
 		</AuthContext.Provider>
 	);
