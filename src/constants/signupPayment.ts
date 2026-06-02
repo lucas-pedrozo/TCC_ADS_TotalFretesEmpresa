@@ -1,13 +1,17 @@
-export const SIGNUP_PAYMENT_ALLOWED_KEY = "signupPaymentAllowed";
+export const SIGNUP_PAYMENT_TOKEN_KEY = "signupPaymentToken";
 
-export function setSignupPaymentAllowed() {
-  sessionStorage.setItem(SIGNUP_PAYMENT_ALLOWED_KEY, "1");
+export function setPaymentToken(token: string) {
+  sessionStorage.setItem(SIGNUP_PAYMENT_TOKEN_KEY, token);
 }
 
-export function clearSignupPaymentAllowed() {
-  sessionStorage.removeItem(SIGNUP_PAYMENT_ALLOWED_KEY);
+export function getPaymentToken() {
+  return sessionStorage.getItem(SIGNUP_PAYMENT_TOKEN_KEY);
 }
 
-export function isSignupPaymentAllowed() {
-  return sessionStorage.getItem(SIGNUP_PAYMENT_ALLOWED_KEY) === "1";
+export function clearPaymentToken() {
+  sessionStorage.removeItem(SIGNUP_PAYMENT_TOKEN_KEY);
+}
+
+export function hasPaymentToken() {
+  return Boolean(getPaymentToken());
 }

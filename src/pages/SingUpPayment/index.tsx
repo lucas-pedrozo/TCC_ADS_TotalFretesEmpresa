@@ -8,6 +8,7 @@ import { useFadeNavigate } from "@/hooks/useFadeNavigate";
 import { useMountFadeIn } from "@/hooks/useMountFadeIn";
 import { useRegisterCompanyPayment } from "@/hooks/useRegisterCompanyPayment";
 import { AuthLayout } from "@/layout/AuthLayout";
+import { hasPaymentToken } from "@/constants/signupPayment";
 import { maskCardExpiry, maskCardNumber } from "@/utils/cardMask";
 
 const SingUpPaymentPage = () => {
@@ -23,7 +24,11 @@ const SingUpPaymentPage = () => {
   });
 
   return (
-    <AuthLayout onBack={() => navigateWithFade("/Login")} isExiting={isExiting} transparent>
+    <AuthLayout
+      onBack={() => navigateWithFade(hasPaymentToken() ? "/SignUpPlan" : "/Login")}
+      isExiting={isExiting}
+      transparent
+    >
       <div className={contentClassName}>
         <div className="w-full">
           <h3 className="text-5xl font-bold text-start">{t("pages.singupPayment.title")}</h3>

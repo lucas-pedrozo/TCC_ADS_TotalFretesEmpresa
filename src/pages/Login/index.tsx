@@ -18,6 +18,7 @@ const LoginPage = () => {
   const { HandleLogin, Rules, control, handleSubmit, isDisabled, isLoading } =
     useLogin({
       navigateToHome: goHomeWithFade,
+      navigateToPendingPayment: navigateWithFade,
       successDelayMs: AUTH_REDIRECT_DELAY_MS,
     })
   const { t } = useTranslation()

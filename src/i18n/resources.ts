@@ -109,6 +109,37 @@ export const resources = {
           cepNotFound: "CEP não encontrado. Confira o número ou preencha manualmente.",
           cepLookupError: "Não foi possível buscar o endereço agora. Preencha manualmente.",
         },
+        singupPlan: {
+          title: "Plano de assinatura",
+          subtitle: "Escolha o plano que melhor atende sua empresa. Esta etapa é apenas demonstrativa.",
+          illustrativeNotice:
+            "Os planos exibidos são fictícios. Nenhuma assinatura é contratada nesta demonstração.",
+          continueButton: "Continuar para pagamento",
+          selectPlanHint: "Selecione um plano para continuar",
+          plans: {
+            basic: {
+              name: "Básico",
+              price: "R$ 49/mês",
+              feature1: "Até 10 fretes ativos",
+              feature2: "Suporte por e-mail",
+              feature3: "Relatórios essenciais",
+            },
+            professional: {
+              name: "Profissional",
+              price: "R$ 99/mês",
+              feature1: "Até 50 fretes ativos",
+              feature2: "Suporte prioritário",
+              feature3: "Propostas e histórico completo",
+            },
+            enterprise: {
+              name: "Empresarial",
+              price: "R$ 199/mês",
+              feature1: "Fretes ilimitados",
+              feature2: "Suporte dedicado",
+              feature3: "Recursos avançados de gestão",
+            },
+          },
+        },
         singupPayment: {
           title: "Pagamento",
           subtitle: "Informe os dados do cartão para concluir o cadastro.",
@@ -123,6 +154,18 @@ export const resources = {
           cardCvvLabel: "Código de segurança",
           cardCvvPlaceholder: "CVV",
           submitButton: "Confirmar pagamento",
+          submitting: "Confirmando pagamento...",
+        },
+        pendingPayment: {
+          title: "Pagamento pendente",
+          subtitle: "Informe o e-mail da empresa para continuar o cadastro do pagamento.",
+          emailLabel: "E-mail",
+          emailPlaceholder: "seu@email.com",
+          submitButton: "Continuar para pagamento",
+          loading: "Verificando e-mail...",
+          tokenIssued: "Continue na tela de pagamento.",
+          genericSuccess:
+            "Se o e-mail estiver cadastrado com pagamento pendente, você poderá continuar em breve.",
         },
         freights: {
           searchPlaceholder: "Buscar fretes...",
@@ -640,8 +683,9 @@ export const resources = {
       register: {
         loading: "Criando conta...",
         success: "Conta criada com sucesso! Faça login para continuar.",
-        accountCreated: "Conta criada! Informe os dados de pagamento para concluir.",
+        accountCreated: "Conta criada! Escolha o plano para continuar.",
         completed: "Cadastro concluído! Faça login para continuar.",
+        paymentTokenMissing: "Não foi possível iniciar o pagamento. Tente novamente.",
       },
       validation: {
         countryRequired: "País é obrigatório",
@@ -698,6 +742,7 @@ export const resources = {
         PASSWORD_CHANGED_SUCCESSFULLY: "Senha alterada com sucesso.",
         TOKEN_INVALID_OR_MISSING: "Token inválido ou ausente",
         TOKEN_INVALID_OR_EXPIRED: "Token inválido ou expirado",
+        PAYMENT_PENDING: "Conclua o pagamento para acessar a plataforma.",
       },
       ACCOUNT: {
         NOT_FOUND: "Conta não encontrada",
@@ -876,6 +921,37 @@ export const resources = {
           cepNotFound: "ZIP code not found. Check the number or fill it manually.",
           cepLookupError: "Could not search the address now. Fill it manually.",
         },
+        singupPlan: {
+          title: "Subscription plan",
+          subtitle: "Choose the plan that best fits your company. This step is for demonstration only.",
+          illustrativeNotice:
+            "The plans shown are fictional. No subscription is purchased in this demo.",
+          continueButton: "Continue to payment",
+          selectPlanHint: "Select a plan to continue",
+          plans: {
+            basic: {
+              name: "Basic",
+              price: "$49/mo",
+              feature1: "Up to 10 active freights",
+              feature2: "Email support",
+              feature3: "Essential reports",
+            },
+            professional: {
+              name: "Professional",
+              price: "$99/mo",
+              feature1: "Up to 50 active freights",
+              feature2: "Priority support",
+              feature3: "Full proposals and history",
+            },
+            enterprise: {
+              name: "Enterprise",
+              price: "$199/mo",
+              feature1: "Unlimited freights",
+              feature2: "Dedicated support",
+              feature3: "Advanced management features",
+            },
+          },
+        },
         singupPayment: {
           title: "Payment",
           subtitle: "Enter your card details to complete registration.",
@@ -890,6 +966,18 @@ export const resources = {
           cardCvvLabel: "Security code",
           cardCvvPlaceholder: "CVV",
           submitButton: "Confirm payment",
+          submitting: "Confirming payment...",
+        },
+        pendingPayment: {
+          title: "Pending payment",
+          subtitle: "Enter your company email to continue registration payment.",
+          emailLabel: "Email",
+          emailPlaceholder: "your@email.com",
+          submitButton: "Continue to payment",
+          loading: "Verifying email...",
+          tokenIssued: "Continue on the payment screen.",
+          genericSuccess:
+            "If the email is registered with pending payment, you may continue shortly.",
         },
         freights: {
           searchPlaceholder: "Search freights...",
@@ -1407,8 +1495,9 @@ export const resources = {
       register: {
         loading: "Creating account...",
         success: "Account created successfully! Sign in to continue.",
-        accountCreated: "Account created! Enter payment details to finish.",
+        accountCreated: "Account created! Choose a plan to continue.",
         completed: "Registration complete! Sign in to continue.",
+        paymentTokenMissing: "Could not start payment. Please try again.",
       },
       validation: {
         countryRequired: "Country is required",
@@ -1465,6 +1554,7 @@ export const resources = {
         PASSWORD_CHANGED_SUCCESSFULLY: "Password changed successfully.",
         TOKEN_INVALID_OR_MISSING: "Invalid or missing token",
         TOKEN_INVALID_OR_EXPIRED: "Invalid or expired token",
+        PAYMENT_PENDING: "Complete payment to access the platform.",
       },
       ACCOUNT: {
         NOT_FOUND: "Account not found",

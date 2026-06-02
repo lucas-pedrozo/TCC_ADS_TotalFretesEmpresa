@@ -4,7 +4,9 @@ import { Navigate } from "react-router-dom";
 
 import SingUpBasicPage from "@/pages/SingUpBasic";
 import SingUpAddressPage from "@/pages/SingUpAddress";
+import SingUpPlanPage from "@/pages/SingUpPlan";
 import SingUpPaymentPage from "@/pages/SingUpPayment";
+import PendingPaymentPage from "@/pages/PendingPayment";
 import LoginPage from "@/pages/Login";
 import ForgotPasswordPage from "@/pages/ForgotPassword";
 import VerificationCodePage from "@/pages/VerificationCode";
@@ -37,10 +39,12 @@ function WebRoutes() {
       <Route path="/ForgotPassword" element={<ForgotPasswordPage />} />
       <Route path="/VerificationCode" element={<VerificationCodePage />} />
       <Route path="/NewPassword" element={<NewPasswordPage />} />
+      <Route path="/PendingPayment" element={<PendingPaymentPage />} />
 
       <Route element={<RegisterLayout />}>
         <Route path="/SignUp" element={<SingUpBasicPage />} />
         <Route path="/SignUpAddress" element={<SingUpAddressPage />} />
+        <Route path="/SignUpPlan" element={<SingUpPlanPage />} />
         <Route path="/SignUpPayment" element={<SingUpPaymentPage />} />
       </Route>
 

@@ -5,9 +5,12 @@ import { useNavigate, type NavigateFunction } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
-  clearSignupPaymentAllowed,
-  isSignupPaymentAllowed,
+  clearPaymentToken,
+  getPaymentToken,
+  hasPaymentToken,
 } from "@/constants/signupPayment";
+import http from "@/service/http";
+import { trataErroAxios } from "@/utils/trataErroAxios";
 import { digitsOnly } from "@/utils/cardMask";
 
 export type RegisterCompanyPaymentData = {
@@ -41,8 +44,8 @@ export function useRegisterCompanyPayment(navigateOverride?: NavigateFunction) {
   });
 
   useEffect(() => {
-    if (!isSignupPaymentAllowed()) {
-      navigate("/SignUp", { replace: true });
+    if (!hasPaymentToken()) {
+      navigate("/PendingPayment", { replace: true });
     }
   }, [navigate]);
 
@@ -85,10 +88,32 @@ export function useRegisterCompanyPayment(navigateOverride?: NavigateFunction) {
   };
 
   const handleSubmitPayment = useCallback(() => {
-    handleSubmit(() => {
-      clearSignupPaymentAllowed();
-      toast.success(t("register.completed"));
-      navigate("/Login");
+    handleSubmit(async () => {
+      const paymentToken = getPaymentToken();
+
+      if (!paymentToken) {
+        navigate("/PendingPayment", { replace: true });
+        return;
+      }
+
+      const toastId = toast.loading(t("pages.singupPayment.submitting"));
+      try {
+        await http.patch(
+          "/company/complete-payment",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${paymentToken}`,
+            },
+          },
+        );
+
+        clearPaymentToken();
+        toast.success(t("register.completed"), { id: toastId });
+        navigate("/Login");
+      } catch (error) {
+        toast.error(trataErroAxios(error), { id: toastId });
+      }
     })();
   }, [handleSubmit, navigate, t]);
 
