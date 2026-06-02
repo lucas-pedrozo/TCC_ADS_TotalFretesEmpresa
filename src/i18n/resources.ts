@@ -109,6 +109,21 @@ export const resources = {
           cepNotFound: "CEP não encontrado. Confira o número ou preencha manualmente.",
           cepLookupError: "Não foi possível buscar o endereço agora. Preencha manualmente.",
         },
+        singupPayment: {
+          title: "Pagamento",
+          subtitle: "Informe os dados do cartão para concluir o cadastro.",
+          illustrativeNotice:
+            "Esta etapa é apenas demonstrativa. Nenhum dado de pagamento é enviado ao servidor.",
+          cardHolderNameLabel: "Nome no cartão",
+          cardHolderNamePlaceholder: "Como impresso no cartão",
+          cardNumberLabel: "Número do cartão",
+          cardNumberPlaceholder: "0000 0000 0000 0000",
+          cardExpiryLabel: "Validade",
+          cardExpiryPlaceholder: "MM/AA",
+          cardCvvLabel: "Código de segurança",
+          cardCvvPlaceholder: "CVV",
+          submitButton: "Confirmar pagamento",
+        },
         freights: {
           searchPlaceholder: "Buscar fretes...",
           chipAll: "Todos",
@@ -427,6 +442,12 @@ export const resources = {
           acceptProposal: "Aceitar",
           rejectProposalSuccess: "Proposta recusada com sucesso.",
           acceptProposalSuccess: "Proposta aceita. Aguardando confirmação do motorista.",
+          rejectProposalDialogTitle: "Recusar proposta?",
+          rejectProposalDialogDescription:
+            "Opcionalmente, informe um comentário para o motorista entender o motivo da recusa.",
+          rejectProposalCommentLabel: "Comentário (opcional)",
+          rejectProposalCommentPlaceholder: "Ex.: valor acima do orçamento, veículo incompatível…",
+          rejectProposalConfirm: "Confirmar recusa",
         },
         freightWizard: {
           stepOrigin: "Origem da carga",
@@ -619,6 +640,8 @@ export const resources = {
       register: {
         loading: "Criando conta...",
         success: "Conta criada com sucesso! Faça login para continuar.",
+        accountCreated: "Conta criada! Informe os dados de pagamento para concluir.",
+        completed: "Cadastro concluído! Faça login para continuar.",
       },
       validation: {
         countryRequired: "País é obrigatório",
@@ -649,11 +672,20 @@ export const resources = {
         cityRequired: "Cidade é obrigatória",
         stateRequired: "Estado é obrigatório",
         stateInvalid: "Informe a UF com 2 letras",
+        cardHolderNameRequired: "Nome no cartão é obrigatório",
+        cardHolderNameInvalid: "Informe o nome com pelo menos 3 caracteres",
+        cardNumberRequired: "Número do cartão é obrigatório",
+        cardNumberInvalid: "Informe um número de cartão válido",
+        cardExpiryRequired: "Validade é obrigatória",
+        cardExpiryInvalid: "Informe a validade no formato MM/AA",
+        cardCvvRequired: "Código de segurança é obrigatório",
+        cardCvvInvalid: "Informe um CVV válido (3 ou 4 dígitos)",
       },
       errors: {
         request: "Erro na requisição",
         unknown: "Erro desconhecido",
         network: "Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.",
+        offline: "Sem conexão com a rede. Verifique sua internet e tente novamente.",
         badGateway: "O servidor está ocupado ou indisponível no momento. Aguarde um instante e tente novamente.",
       },
       AUTH: {
@@ -843,6 +875,21 @@ export const resources = {
           searchingCep: "Searching address by ZIP code...",
           cepNotFound: "ZIP code not found. Check the number or fill it manually.",
           cepLookupError: "Could not search the address now. Fill it manually.",
+        },
+        singupPayment: {
+          title: "Payment",
+          subtitle: "Enter your card details to complete registration.",
+          illustrativeNotice:
+            "This step is for demonstration only. No payment data is sent to the server.",
+          cardHolderNameLabel: "Name on card",
+          cardHolderNamePlaceholder: "As printed on the card",
+          cardNumberLabel: "Card number",
+          cardNumberPlaceholder: "0000 0000 0000 0000",
+          cardExpiryLabel: "Expiry",
+          cardExpiryPlaceholder: "MM/YY",
+          cardCvvLabel: "Security code",
+          cardCvvPlaceholder: "CVV",
+          submitButton: "Confirm payment",
         },
         freights: {
           searchPlaceholder: "Search freights...",
@@ -1162,6 +1209,12 @@ export const resources = {
           acceptProposal: "Accept",
           rejectProposalSuccess: "Proposal declined successfully.",
           acceptProposalSuccess: "Proposal accepted. Awaiting driver confirmation.",
+          rejectProposalDialogTitle: "Decline proposal?",
+          rejectProposalDialogDescription:
+            "Optionally add a comment so the driver understands why the proposal was declined.",
+          rejectProposalCommentLabel: "Comment (optional)",
+          rejectProposalCommentPlaceholder: "E.g. above budget, incompatible vehicle…",
+          rejectProposalConfirm: "Confirm decline",
         },
         freightWizard: {
           stepOrigin: "Pickup location",
@@ -1354,6 +1407,8 @@ export const resources = {
       register: {
         loading: "Creating account...",
         success: "Account created successfully! Sign in to continue.",
+        accountCreated: "Account created! Enter payment details to finish.",
+        completed: "Registration complete! Sign in to continue.",
       },
       validation: {
         countryRequired: "Country is required",
@@ -1384,11 +1439,20 @@ export const resources = {
         cityRequired: "City is required",
         stateRequired: "State is required",
         stateInvalid: "Enter the state with 2 letters",
+        cardHolderNameRequired: "Name on card is required",
+        cardHolderNameInvalid: "Enter a name with at least 3 characters",
+        cardNumberRequired: "Card number is required",
+        cardNumberInvalid: "Enter a valid card number",
+        cardExpiryRequired: "Expiry is required",
+        cardExpiryInvalid: "Enter expiry in MM/YY format",
+        cardCvvRequired: "Security code is required",
+        cardCvvInvalid: "Enter a valid CVV (3 or 4 digits)",
       },
       errors: {
         request: "Request error",
         unknown: "Unknown error",
         network: "Couldn't connect to the server. Check your connection and try again.",
+        offline: "No network connection. Check your internet and try again.",
         badGateway: "The server is busy or temporarily unavailable. Please wait a moment and try again.",
       },
       AUTH: {

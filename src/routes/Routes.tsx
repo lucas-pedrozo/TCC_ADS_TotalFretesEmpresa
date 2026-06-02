@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 
 import SingUpBasicPage from "@/pages/SingUpBasic";
 import SingUpAddressPage from "@/pages/SingUpAddress";
+import SingUpPaymentPage from "@/pages/SingUpPayment";
 import LoginPage from "@/pages/Login";
 import ForgotPasswordPage from "@/pages/ForgotPassword";
 import VerificationCodePage from "@/pages/VerificationCode";
@@ -40,6 +41,7 @@ function WebRoutes() {
       <Route element={<RegisterLayout />}>
         <Route path="/SignUp" element={<SingUpBasicPage />} />
         <Route path="/SignUpAddress" element={<SingUpAddressPage />} />
+        <Route path="/SignUpPayment" element={<SingUpPaymentPage />} />
       </Route>
 
       <Route element={<PrivateRoute />}>

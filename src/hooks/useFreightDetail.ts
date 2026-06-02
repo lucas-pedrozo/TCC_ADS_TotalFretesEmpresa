@@ -270,10 +270,15 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
   );
 
   const handleRejectProposal = useCallback(
-    async (proposalId: number) => {
+    async (proposalId: number, comment?: string) => {
+      const trimmed = comment?.trim() ?? "";
+      const body = trimmed.length > 0 ? { rejection_comment: trimmed } : {};
       try {
         setProposalActionId(proposalId);
-        const { data } = await http.patch<ProposalRejectResponse>(`/proposal/${proposalId}/reject`, {});
+        const { data } = await http.patch<ProposalRejectResponse>(
+          `/proposal/${proposalId}/reject`,
+          body
+        );
         toast.success(
           traduzMensagemApi(data.message) ?? t("pages.freightDetail.rejectProposalSuccess")
         );

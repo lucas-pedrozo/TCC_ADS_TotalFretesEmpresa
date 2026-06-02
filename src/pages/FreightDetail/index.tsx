@@ -4,7 +4,6 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft,
   ArrowRight,
-  Ban,
   CalendarDays,
   Check,
   MapPin,
@@ -19,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
+import { RejectProposalDialog } from "@/components/proposals/RejectProposalDialog";
 import { FreightForm } from "@/components/ui/freightForm";
 import { AddressMapPicker, type MapPinValue } from "@/components/maps/AddressMapPicker";
 import {
@@ -116,6 +116,7 @@ const FreightDetailPage = () => {
   const [editing, setEditing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [rejectTargetProposalId, setRejectTargetProposalId] = useState<number | null>(null);
   const [editOrigin, setEditOrigin] = useState<MapPinValue | null>(null);
   const [editDestination, setEditDestination] = useState<MapPinValue | null>(null);
   const {
@@ -516,7 +517,7 @@ const FreightDetailPage = () => {
                               disabled={proposalActionId === proposal.id}
                               onClick={(event) => {
                                 event.stopPropagation();
-                                void handleRejectProposal(proposal.id);
+                                setRejectTargetProposalId(proposal.id);
                               }}
                             >
                               <X className="size-4 shrink-0" aria-hidden />
@@ -655,6 +656,25 @@ const FreightDetailPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <RejectProposalDialog
+        open={rejectTargetProposalId != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRejectTargetProposalId(null);
+          }
+        }}
+        loading={
+          rejectTargetProposalId != null && proposalActionId === rejectTargetProposalId
+        }
+        onConfirm={async (comment) => {
+          if (rejectTargetProposalId == null) return;
+          const ok = await handleRejectProposal(rejectTargetProposalId, comment);
+          if (ok) {
+            setRejectTargetProposalId(null);
+          }
+        }}
+      />
     </div>
   );
 };

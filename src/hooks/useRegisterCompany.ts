@@ -7,6 +7,7 @@ import { useRegisterCompanyContext, type RegisterCompanyDraftData } from "@/cont
 import { useNavigate, type NavigateFunction } from "react-router-dom";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { setSignupPaymentAllowed } from "@/constants/signupPayment";
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
 
@@ -48,8 +49,9 @@ export function useRegisterCompany(navigateOverride?: NavigateFunction) {
       await http.post("/company/end-account/", data);
 
       reset();
-      toast.success(t("register.success"), { id: toastId });
-      navigate("/Login");
+      setSignupPaymentAllowed();
+      toast.success(t("register.accountCreated"), { id: toastId });
+      navigate("/SignUpPayment");
     } catch (error) {
       toast.error(trataErroAxios(error), { id: toastId });
     } finally {

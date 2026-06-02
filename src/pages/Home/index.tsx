@@ -32,7 +32,6 @@ import { HomeKpiCard } from "@/pages/Home/components/HomeKpiCard";
 import { HomeLineChart } from "@/pages/Home/components/HomeLineChart";
 import { HomeProgressMetric } from "@/pages/Home/components/HomeProgressMetric";
 import type { FreightDto } from "@/types/freight";
-import type { ProposalDto } from "@/types/proposal";
 import { formatDateShortLabel, formatDateTimeLabel } from "@/utils/dateFormat";
 import { formatFreightCurrencyAmount } from "@/utils/freightFormat";
 import { initialsFromName } from "@/utils/person";

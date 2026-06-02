@@ -11,6 +11,7 @@ export type ProposalDto = {
   driver_id: number;
   status_id?: number | null;
   value: number;
+  rejection_comment?: string | null;
   createdAt?: string;
   updatedAt?: string;
   ProposalStatusType?: ProposalStatusTypeDto | null;

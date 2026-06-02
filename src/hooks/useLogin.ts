@@ -33,6 +33,11 @@ export function useLogin(options?: UseLoginOptions) {
   const goHome = options?.navigateToHome ?? (() => navigate("/Home"));
 
   const HandleLogin = useCallback(async (data: LoginData) => {
+    if (!navigator.onLine) {
+      toast.error(t("errors.offline"));
+      return;
+    }
+
     const toastId = toast.loading(t("pages.login.loading"));
     let reenableForm = true;
     try {

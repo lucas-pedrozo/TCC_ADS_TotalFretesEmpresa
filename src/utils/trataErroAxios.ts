@@ -70,6 +70,9 @@ function messageFromApiPayload(data: ApiErrorResponse | string | undefined): str
 export function trataErroAxios(error: unknown): string {
   if (error instanceof AxiosError) {
     if (isLikelyNetworkFailure(error)) {
+      if (!navigator.onLine) {
+        return i18n.t("errors.offline");
+      }
       return i18n.t("errors.network");
     }
 
