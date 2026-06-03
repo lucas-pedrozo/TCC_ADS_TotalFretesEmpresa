@@ -1,9 +1,8 @@
-import { Camera, ImagePlus, Search, Trash2, UploadCloud } from "lucide-react";
+import { ImagePlus, Search, Trash2, UploadCloud } from "lucide-react";
 import type { ChangeEvent, DragEvent, RefObject } from "react";
 import Cropper from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,6 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  COMPANY_LOGO_ACCEPT_ATTR,
+  COMPANY_LOGO_ASPECT,
+  companyLogoSurfaceClassName,
+} from "@/constants/companyLogo";
 import { cn } from "@/lib/utils";
 
 type CompanyProfileImageDialogProps = {
@@ -83,14 +87,27 @@ export function CompanyProfileImageDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 px-4 pb-2 sm:px-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
-          <div className="flex flex-col items-center gap-4 rounded-[24px] bg-muted/30 px-5 py-6">
-            <Avatar className="size-44 md:size-52">
-              {previewImageSrc ? <AvatarImage src={previewImageSrc} alt={displayName} /> : null}
-              <AvatarFallback className="bg-brand-green-dark text-4xl font-semibold text-white md:text-5xl">
-                {getInitials(displayName)}
-              </AvatarFallback>
-            </Avatar>
+        <div className="grid gap-6 px-4 pb-2 sm:px-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
+          <div className="mx-auto flex w-full max-w-[240px] flex-col items-center gap-4 rounded-[24px] bg-muted/30 px-5 py-6 lg:max-w-none">
+            <div
+              className={cn(
+                "flex w-full items-center justify-center overflow-hidden rounded-lg",
+                companyLogoSurfaceClassName,
+                "aspect-[200/83]"
+              )}
+            >
+              {previewImageSrc ? (
+                <img
+                  src={previewImageSrc}
+                  alt={displayName}
+                  className="size-full object-contain p-1"
+                />
+              ) : (
+                <div className="flex size-full items-center justify-center bg-brand-green-dark px-3 text-center text-2xl font-semibold text-white md:text-3xl">
+                  {getInitials(displayName)}
+                </div>
+              )}
+            </div>
             <div className="space-y-1 text-center">
               <p className="text-sm font-medium text-foreground">
                 {t("pages.profileImage.previewLabel")}
@@ -105,7 +122,7 @@ export function CompanyProfileImageDialog({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/png,image/jpeg,image/webp,image/gif"
+              accept={COMPANY_LOGO_ACCEPT_ATTR}
               className="hidden"
               onChange={onFileInputChange}
             />
@@ -163,9 +180,9 @@ export function CompanyProfileImageDialog({
                     zoom={zoom}
                     minZoom={0.5}
                     maxZoom={3}
-                    aspect={1}
-                    cropShape="round"
-                    showGrid={false}
+                    aspect={COMPANY_LOGO_ASPECT}
+                    cropShape="rect"
+                    showGrid
                     objectFit="contain"
                     onCropChange={onCropChange}
                     onCropComplete={onCropComplete}
@@ -173,7 +190,7 @@ export function CompanyProfileImageDialog({
                   />
                 ) : (
                   <div className="flex min-h-64 flex-col items-center justify-center gap-2 px-6 text-center text-sm text-muted-foreground">
-                    <Camera className="size-5" />
+                    <ImagePlus className="size-5" />
                     <p>{t("pages.profileImage.emptyEditor")}</p>
                   </div>
                 )}
