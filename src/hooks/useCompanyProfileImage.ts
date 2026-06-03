@@ -4,19 +4,18 @@ import type { Area, Point } from "react-easy-crop";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
+import {
+  COMPANY_LOGO_ACCEPTED_SOURCE_TYPES,
+  COMPANY_LOGO_MAX_BYTES,
+  COMPANY_LOGO_MIME,
+} from "@/constants/companyLogo";
 import { useAuth } from "@/context/AuthContext";
 import type { CompanyData } from "@/hooks/useGetCompany";
 import http from "@/service/http";
 import { getCroppedImageBlob } from "@/utils/cropImage";
 import { trataErroAxios, traduzMensagemApi } from "@/utils/trataErroAxios";
 
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
-const ACCEPTED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-];
+const ACCEPTED_IMAGE_TYPES: string[] = [...COMPANY_LOGO_ACCEPTED_SOURCE_TYPES];
 
 type UpdateResponse = {
   message?: string;
@@ -30,13 +29,6 @@ type UseCompanyProfileImageParams = {
 function safeRevokeObjectUrl(url: string | null) {
   if (!url) return;
   URL.revokeObjectURL(url);
-}
-
-function buildOutputFileName(fileName?: string) {
-  if (!fileName) return "company-profile.png";
-
-  const baseName = fileName.replace(/\.[^.]+$/, "").trim();
-  return `${baseName || "company-profile"}.png`;
 }
 
 export function useCompanyProfileImage({
@@ -127,7 +119,7 @@ export function useCompanyProfileImage({
         return false;
       }
 
-      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      if (file.size > COMPANY_LOGO_MAX_BYTES) {
         toast.error(t("pages.profileImage.fileTooLarge"));
         return false;
       }
@@ -224,8 +216,8 @@ export function useCompanyProfileImage({
 
     try {
       const blob = await getCroppedImageBlob(imageSource, croppedAreaPixels);
-      const file = new File([blob], buildOutputFileName(selectedFileName ?? undefined), {
-        type: "image/png",
+      const file = new File([blob], "company-logo.png", {
+        type: COMPANY_LOGO_MIME,
       });
 
       const formData = new FormData();
@@ -245,7 +237,7 @@ export function useCompanyProfileImage({
     } finally {
       setIsSubmitting(false);
     }
-  }, [croppedAreaPixels, handleGetCompany, id, imageSource, selectedFileName, t]);
+  }, [croppedAreaPixels, handleGetCompany, id, imageSource, t]);
 
   const handleRemove = useCallback(async () => {
     if (hasLocalSelection) {

@@ -1,8 +1,20 @@
+import {
+  COMPANY_LOGO_HEIGHT,
+  COMPANY_LOGO_MIME,
+  COMPANY_LOGO_WIDTH,
+} from "@/constants/companyLogo";
+
 export type CropAreaPixels = {
   x: number;
   y: number;
   width: number;
   height: number;
+};
+
+type GetCroppedImageBlobOptions = {
+  outputWidth?: number;
+  outputHeight?: number;
+  mimeType?: string;
 };
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -18,12 +30,18 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 export async function getCroppedImageBlob(
   imageSrc: string,
   crop: CropAreaPixels,
-  mimeType = "image/png"
+  options: GetCroppedImageBlobOptions = {}
 ): Promise<Blob> {
+  const {
+    outputWidth = COMPANY_LOGO_WIDTH,
+    outputHeight = COMPANY_LOGO_HEIGHT,
+    mimeType = COMPANY_LOGO_MIME,
+  } = options;
+
   const image = await loadImage(imageSrc);
   const canvas = document.createElement("canvas");
-  canvas.width = crop.width;
-  canvas.height = crop.height;
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
 
   const context = canvas.getContext("2d");
   if (!context) {
@@ -38,8 +56,8 @@ export async function getCroppedImageBlob(
     crop.height,
     0,
     0,
-    crop.width,
-    crop.height
+    outputWidth,
+    outputHeight
   );
 
   return new Promise((resolve, reject) => {
