@@ -14,6 +14,7 @@ export const resources = {
         showPassword: "Mostrar senha",
         hidePassword: "Ocultar senha",
         logoutRedirectNotice: "Você saiu da conta. Redirecionando para o login…",
+        sessionExpiredNotice: "Sua sessão expirou ou a conta não existe mais. Redirecionando…",
         authSessionLoading: "Verificando sessão…",
       },
       pages: {
@@ -826,6 +827,7 @@ export const resources = {
         showPassword: "Show password",
         hidePassword: "Hide password",
         logoutRedirectNotice: "You have signed out. Redirecting to sign in…",
+        sessionExpiredNotice: "Your session expired or the account no longer exists. Redirecting…",
         authSessionLoading: "Checking session…",
       },
       pages: {

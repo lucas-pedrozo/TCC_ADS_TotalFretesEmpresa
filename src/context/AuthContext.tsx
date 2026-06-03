@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 import { createContext, useContext, useState, useEffect } from "react";
 
+import { validateAuthSession, resetSessionExpiredNotification } from "@/service/authService";
+
 interface AuthContextType {
 	id: number | null;
 	token: string | null;
@@ -41,29 +43,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
 	useEffect(() => {
-		const stored = localStorage.getItem(TOKEN_KEY);
-		if (stored) {
-			const decoded = decodeToken(stored);
-			if (decoded) {
-				const expired = decoded.exp && decoded.exp * 1000 < Date.now();
-				if (expired) {
-					localStorage.removeItem(TOKEN_KEY);
-					setIsAuthenticated(false);
-				} else {
-					setToken(stored);
-					setId(Number(decoded.id));
-					setAccessLevel(decoded.role ?? decoded.accessLevel ?? null);
-					setIsAuthenticated(true);
-				}
+		let cancelled = false;
+
+		const bootstrapSession = async () => {
+			const stored = localStorage.getItem(TOKEN_KEY);
+			if (!stored) {
+				if (!cancelled) setIsAuthenticated(false);
+				return;
 			}
-		} else {
-			setIsAuthenticated(false);
-		}
+
+			const decoded = decodeToken(stored);
+			if (!decoded) {
+				localStorage.removeItem(TOKEN_KEY);
+				if (!cancelled) setIsAuthenticated(false);
+				return;
+			}
+
+			const expired = decoded.exp && decoded.exp * 1000 < Date.now();
+			if (expired) {
+				localStorage.removeItem(TOKEN_KEY);
+				if (!cancelled) setIsAuthenticated(false);
+				return;
+			}
+
+			const isValid = await validateAuthSession(stored);
+			if (cancelled) return;
+
+			if (!isValid) {
+				localStorage.removeItem(TOKEN_KEY);
+				setIsAuthenticated(false);
+				return;
+			}
+
+			setToken(stored);
+			setId(Number(decoded.id));
+			setAccessLevel(decoded.role ?? decoded.accessLevel ?? null);
+			setIsAuthenticated(true);
+		};
+
+		void bootstrapSession();
+
+		return () => {
+			cancelled = true;
+		};
 	}, []);
 
 	const login = async (token: string) => {
 		const decoded = decodeToken(token);
 		if (decoded) {
+			resetSessionExpiredNotification();
 			localStorage.setItem(TOKEN_KEY, token);
 			setToken(token);
 			setId(Number(decoded.id));
