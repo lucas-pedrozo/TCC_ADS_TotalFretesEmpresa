@@ -57,7 +57,7 @@ const ProposalsPage = () => {
     canGoNext,
     goPrev,
     goNext,
-    driverProfilesById,
+    driverProfilesById: _driverProfilesById,
   } = useProposalsListPage();
 
   const resolvedSummary = useMemo(

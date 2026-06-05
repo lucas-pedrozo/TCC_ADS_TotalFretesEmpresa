@@ -73,3 +73,14 @@ export async function resolveDriverProfilesFromProposals(
   const fromUsers = await fetchDriverProfilesMap(driverIds);
   return mergeProposalDriversIntoProfiles(fromUsers, proposals);
 }
+
+export function resolveDriverDisplayName(
+  proposal: ProposalDto,
+  profiles: Record<number, DriverProfile>,
+): string {
+  const fromApi = proposal.Driver?.name?.trim();
+  if (fromApi) return fromApi;
+  const fromProfile = profiles[proposal.driver_id]?.name?.trim();
+  if (fromProfile) return fromProfile;
+  return `#${proposal.driver_id}`;
+}

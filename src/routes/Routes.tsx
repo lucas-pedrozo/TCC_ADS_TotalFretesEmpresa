@@ -16,7 +16,10 @@ import PerfilPage from "@/pages/Perfil";
 import StartPage from "@/pages/Start";
 import { SideLayout } from "@/layout/SideLayout";
 import { RegisterCompanyProvider } from "@/context/RegisterCompanyContext";
-import PrivateRoute from "./PrivateRoutes";
+import CompanyPrivateRoute from "./CompanyPrivateRoute";
+import AdminPrivateRoute from "./AdminPrivateRoute";
+import { adminRouteObjects } from "./adminRoutes";
+import { AdminLayout } from "@/layout/AdminLayout";
 import FreightsPage from "@/pages/Freights";
 import FreightDetailPage from "@/pages/FreightDetail";
 import HistoryPage from "@/pages/History";
@@ -48,7 +51,7 @@ function WebRoutes() {
         <Route path="/SignUpPayment" element={<SingUpPaymentPage />} />
       </Route>
 
-      <Route element={<PrivateRoute />}>
+      <Route element={<CompanyPrivateRoute />}>
         <Route element={<SideLayout />}>
           <Route path="/Home" element={<HomePage />} />
           <Route path="/Perfil" element={<PerfilPage />} />
@@ -71,6 +74,18 @@ function WebRoutes() {
           <Route path="/History" element={<HistoryPage />} />
           <Route path="/Proposals/:proposalId" element={<ProposalDetailPage />} />
           <Route path="/Proposals" element={<ProposalsPage />} />
+        </Route>
+      </Route>
+
+      <Route element={<AdminPrivateRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          {adminRouteObjects.map((route) =>
+            route.index ? (
+              <Route key="admin-index" index element={route.element} />
+            ) : (
+              <Route key={route.path} path={route.path} element={route.element} />
+            )
+          )}
         </Route>
       </Route>
 
