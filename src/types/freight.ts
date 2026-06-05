@@ -22,6 +22,12 @@ export type FreightStatusTypeDto = {
   name: string;
 };
 
+export type CompanySummaryDto = {
+  id: number;
+  name: string;
+  city?: string | null;
+};
+
 /** Uma entrada do histórico de status (API `FreightStatusHistories`). */
 export type FreightStatusHistoryDto = {
   id: number;
@@ -59,6 +65,7 @@ export type FreightDto = {
   FreightStatusType?: FreightStatusTypeDto | null;
   /** Ordem cronológica (mais antigo primeiro), quando a API envia o histórico. */
   FreightStatusHistories?: FreightStatusHistoryDto[];
+  Company?: CompanySummaryDto | null;
 };
 
 export type FreightListResponse = FreightDto[];

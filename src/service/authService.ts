@@ -54,6 +54,16 @@ export async function validateAuthSession(token: string): Promise<boolean> {
   }
 }
 
+function isOtherUserLookupNotFound(error: AxiosError): boolean {
+  if (error.response?.status !== 404) return false;
+
+  const code = getApiErrorCode(error);
+  if (code !== "USER.NOT_FOUND") return false;
+
+  const path = normalizeRequestPath(error.config?.url);
+  return /^\/user\/\d+$/.test(path);
+}
+
 export function isSessionInvalidHttpError(error: unknown): boolean {
   if (!(error instanceof AxiosError)) return false;
 
@@ -65,6 +75,10 @@ export function isSessionInvalidHttpError(error: unknown): boolean {
   }
 
   if (status === 404) {
+    if (isOtherUserLookupNotFound(error)) {
+      return false;
+    }
+
     const code = getApiErrorCode(error);
     return code != null && SESSION_INVALID_NOT_FOUND_CODES.has(code);
   }
