@@ -12,6 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import http from "@/service/http";
 import type { AdminUser } from "@/types/admin";
+import {
+  maskCpf,
+  maskEmail,
+  maskPhone,
+  normalizePhoneForStorage,
+} from "@/utils/mask";
 import { trataErroAxios, traduzMensagemApi } from "@/utils/trataErroAxios";
 
 const AdminUserDetailPage = () => {
@@ -34,7 +40,7 @@ const AdminUserDetailPage = () => {
       setForm({
         name: data.name ?? "",
         email: data.email ?? "",
-        phoneNumber: data.phoneNumber ?? "",
+        phoneNumber: data.phoneNumber ? maskPhone(data.phoneNumber) : "",
       });
       setImageId(data.userImage_id ?? data.UserImage?.id ?? null);
     } catch (error) {
@@ -55,8 +61,8 @@ const AdminUserDetailPage = () => {
     try {
       const { data } = await http.patch(`/user/${id}`, {
         name: form.name.trim(),
-        email: form.email.trim(),
-        phoneNumber: form.phoneNumber.trim(),
+        email: maskEmail(form.email),
+        phoneNumber: normalizePhoneForStorage(form.phoneNumber),
         ...(imageId ? { userImage_id: imageId } : { userImage_id: null }),
       });
       toast.success(traduzMensagemApi(data.message) ?? t("pages.admin.common.saved"), {
@@ -125,6 +131,12 @@ const AdminUserDetailPage = () => {
       }
     >
       <div className="grid max-w-2xl gap-4">
+        {user.cpf ? (
+          <div className="space-y-2">
+            <Label htmlFor="user-cpf">{t("pages.admin.accounts.cpf")}</Label>
+            <Input id="user-cpf" value={maskCpf(user.cpf)} readOnly disabled className="bg-muted/40" />
+          </div>
+        ) : null}
         <div className="space-y-2">
           <Label htmlFor="user-name">{t("pages.admin.common.name")}</Label>
           <Input
@@ -137,17 +149,21 @@ const AdminUserDetailPage = () => {
           <Label htmlFor="user-email">{t("pages.admin.common.email")}</Label>
           <Input
             id="user-email"
+            type="email"
             value={form.email}
-            onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, email: maskEmail(event.target.value) }))
+            }
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="user-phone">{t("pages.admin.common.phone")}</Label>
           <Input
             id="user-phone"
+            type="tel"
             value={form.phoneNumber}
             onChange={(event) =>
-              setForm((prev) => ({ ...prev, phoneNumber: event.target.value }))
+              setForm((prev) => ({ ...prev, phoneNumber: maskPhone(event.target.value) }))
             }
           />
         </div>

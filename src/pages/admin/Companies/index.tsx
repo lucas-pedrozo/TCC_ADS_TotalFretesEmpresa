@@ -9,6 +9,7 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Input } from "@/components/ui/input";
 import http from "@/service/http";
 import type { AdminCompany } from "@/types/admin";
+import { maskCnpj } from "@/utils/mask";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 
 const AdminCompaniesPage = () => {
@@ -71,7 +72,7 @@ const AdminCompaniesPage = () => {
           { key: "id", header: "ID", cell: (row) => row.id },
           { key: "name", header: t("pages.admin.common.name"), cell: (row) => row.name },
           { key: "email", header: t("pages.admin.common.email"), cell: (row) => row.email },
-          { key: "cnpj", header: t("pages.admin.companies.cnpj"), cell: (row) => row.cnpj ?? "—" },
+          { key: "cnpj", header: t("pages.admin.companies.cnpj"), cell: (row) => (row.cnpj ? maskCnpj(row.cnpj) : "—") },
         ]}
         rows={filtered}
         rowKey={(row) => row.id}

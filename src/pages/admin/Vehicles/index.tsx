@@ -9,6 +9,7 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Input } from "@/components/ui/input";
 import http from "@/service/http";
 import type { AdminVehicle } from "@/types/admin";
+import { maskPlate } from "@/utils/mask";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 
 const AdminVehiclesPage = () => {
@@ -71,11 +72,11 @@ const AdminVehiclesPage = () => {
       <AdminDataTable
         columns={[
           { key: "id", header: "ID", cell: (row) => row.id },
-          { key: "plate", header: t("pages.admin.vehicles.plate"), cell: (row) => row.plateNumber ?? "—" },
+          { key: "plate", header: t("pages.admin.vehicles.plate"), cell: (row) => (row.plateNumber ? maskPlate(row.plateNumber) : "—") },
           {
             key: "type",
             header: t("pages.admin.vehicles.type"),
-            cell: (row) => row.VehicleType?.nome ?? row.VehicleType?.name ?? row.vehicleType_id ?? "—",
+            cell: (row) => row.VehicleType?.nome ?? row.VehicleType?.name ?? "—",
           },
         ]}
         rows={filtered}

@@ -25,9 +25,23 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { resolveFreightStatusSlug } from "@/components/ui/freightStatusUi";
 import { cn } from "@/lib/utils";
+import { normalizeLanguage } from "@/i18n";
 import http from "@/service/http";
 import type { CargoTypeDto, FreightDto, FreightStatusTypeDto } from "@/types/freight";
+import { formatAdminCurrency, formatAdminWeightKg, sanitizeAdminDigitsInput } from "@/utils/adminFormat";
 import { isValidMapPin } from "@/utils/freightCreate";
+import {
+  amountToCentsDigits,
+  centsDigitsToAmount,
+  currencyInputPlaceholder,
+  formatCurrencyInputDisplay,
+  formatFreightWeightAmount,
+  kgToWeightDigits,
+  sanitizeCurrencyCentsInput,
+  sanitizeWeightDigitsInput,
+  weightDigitsToKg,
+  weightInputPlaceholder,
+} from "@/utils/freightFormat";
 import { trataErroAxios, traduzMensagemApi } from "@/utils/trataErroAxios";
 
 const MAPBOX_PK = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
@@ -35,7 +49,8 @@ const MAPBOX_PK = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
 const AdminFreightDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = normalizeLanguage(i18n.language);
   const [freight, setFreight] = useState<FreightDto | null>(null);
   const [cargoTypes, setCargoTypes] = useState<CargoTypeDto[]>([]);
   const [statusTypes, setStatusTypes] = useState<FreightStatusTypeDto[]>([]);
@@ -43,8 +58,8 @@ const AdminFreightDetailPage = () => {
     name: "",
     cargoType_id: "",
     status_id: "",
-    originalValue: "",
-    weight: "",
+    originalValueCents: "",
+    weightDigits: "",
     daysLimit: "",
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -72,8 +87,8 @@ const AdminFreightDetailPage = () => {
         name: f.name ?? "",
         cargoType_id: String(f.cargoType_id ?? ""),
         status_id: String(f.status_id ?? ""),
-        originalValue: String(f.originalValue ?? ""),
-        weight: String(f.weight ?? ""),
+        originalValueCents: amountToCentsDigits(f.originalValue ?? 0),
+        weightDigits: kgToWeightDigits(f.weight ?? 0),
         daysLimit: f.daysLimit ? String(f.daysLimit) : "",
       });
     } catch (error) {
@@ -118,8 +133,8 @@ const AdminFreightDetailPage = () => {
       name: freight.name ?? "",
       cargoType_id: String(freight.cargoType_id ?? ""),
       status_id: String(freight.status_id ?? ""),
-      originalValue: String(freight.originalValue ?? ""),
-      weight: String(freight.weight ?? ""),
+      originalValueCents: amountToCentsDigits(freight.originalValue ?? 0),
+      weightDigits: kgToWeightDigits(freight.weight ?? 0),
       daysLimit: freight.daysLimit ? String(freight.daysLimit) : "",
     });
     setEditOrigin({
@@ -147,8 +162,8 @@ const AdminFreightDetailPage = () => {
         name: form.name.trim(),
         cargoType_id: Number(form.cargoType_id),
         status_id: Number(form.status_id),
-        originalValue: Number(form.originalValue),
-        weight: Number(form.weight),
+        originalValue: centsDigitsToAmount(form.originalValueCents),
+        weight: weightDigitsToKg(form.weightDigits),
         origin_label: editOrigin.label.trim(),
         origin_lat: editOrigin.lat,
         origin_lng: editOrigin.lng,
@@ -218,6 +233,7 @@ const AdminFreightDetailPage = () => {
   }
 
   const title = freight.name?.trim() || `#${freight.id}`;
+  const currencyPrefix = lang === "en" ? "$" : "R$";
 
   return (
     <AdminPageShell title={t("pages.admin.freights.detailTitle")}>
@@ -401,34 +417,60 @@ const AdminFreightDetailPage = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="freight-value">{t("pages.admin.freights.value")}</Label>
-                <Input
-                  id="freight-value"
-                  type="number"
-                  value={form.originalValue}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, originalValue: event.target.value }))
-                  }
-                />
+                <div className="relative">
+                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                    {currencyPrefix}
+                  </span>
+                  <Input
+                    id="freight-value"
+                    inputMode="numeric"
+                    className="pl-10"
+                    placeholder={currencyInputPlaceholder(lang)}
+                    value={formatCurrencyInputDisplay(form.originalValueCents, lang)}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        originalValueCents: sanitizeCurrencyCentsInput(event.target.value),
+                      }))
+                    }
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="freight-weight">{t("pages.admin.freights.weight")}</Label>
-                <Input
-                  id="freight-weight"
-                  type="number"
-                  value={form.weight}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, weight: event.target.value }))
-                  }
-                />
+                <div className="relative">
+                  <Input
+                    id="freight-weight"
+                    inputMode="numeric"
+                    placeholder={weightInputPlaceholder(lang)}
+                    value={
+                      form.weightDigits
+                        ? formatFreightWeightAmount(Number(form.weightDigits), lang)
+                        : ""
+                    }
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        weightDigits: sanitizeWeightDigitsInput(event.target.value),
+                      }))
+                    }
+                  />
+                  <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-muted-foreground">
+                    kg
+                  </span>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="freight-days">{t("pages.admin.freights.daysLimit")}</Label>
                 <Input
                   id="freight-days"
-                  type="number"
+                  inputMode="numeric"
                   value={form.daysLimit}
                   onChange={(event) =>
-                    setForm((prev) => ({ ...prev, daysLimit: event.target.value }))
+                    setForm((prev) => ({
+                      ...prev,
+                      daysLimit: sanitizeAdminDigitsInput(event.target.value, 4),
+                    }))
                   }
                 />
               </div>
@@ -445,10 +487,12 @@ const AdminFreightDetailPage = () => {
               {freight.CargoType?.name ?? freight.cargo?.name ?? "—"}
             </p>
             <p>
-              <strong>{t("pages.admin.freights.value")}:</strong> {freight.originalValue ?? "—"}
+              <strong>{t("pages.admin.freights.value")}:</strong>{" "}
+              {formatAdminCurrency(freight.originalValue, lang)}
             </p>
             <p>
-              <strong>{t("pages.admin.freights.weight")}:</strong> {freight.weight ?? "—"}
+              <strong>{t("pages.admin.freights.weight")}:</strong>{" "}
+              {formatAdminWeightKg(freight.weight ?? undefined, lang)}
             </p>
             <p>
               <strong>{t("pages.admin.freights.daysLimit")}:</strong> {freight.daysLimit ?? "—"}

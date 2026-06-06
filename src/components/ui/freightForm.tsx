@@ -24,6 +24,7 @@ import {
   weightInputPlaceholder,
 } from "@/utils/freightFormat";
 import { cn } from "@/lib/utils";
+import { CargoTypePicker } from "@/components/freights/CargoTypePicker";
 
 type FreightFormBase = {
   cargoTypes: CargoTypeDto[];
@@ -353,21 +354,14 @@ export function FreightForm(props: FreightFormProps) {
                 />
               </div>
               <div className={field}>
-                <Label htmlFor="freight-cargo-type">{t("pages.freightForm.cargoType")}</Label>
-                <select
-                  id="freight-cargo-type"
-                  required
+                <CargoTypePicker
+                  cargoTypes={cargoTypes}
                   value={cargoType_id}
-                  onChange={(e) => setCargoTypeId(e.target.value)}
-                  className={selectClass}
-                >
-                  <option value="">{t("pages.freightForm.selectCargoType")}</option>
-                  {cargoTypes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setCargoTypeId}
+                  required
+                  disabled={isSubmitting}
+                  selectClassName={selectClass}
+                />
               </div>
               {showStatus ? (
                 <div className={field}>
@@ -466,21 +460,14 @@ export function FreightForm(props: FreightFormProps) {
             />
           </div>
           <div className={field}>
-            <Label htmlFor="freight-cargo-type">{t("pages.freightForm.cargoType")}</Label>
-            <select
-              id="freight-cargo-type"
-              required
+            <CargoTypePicker
+              cargoTypes={cargoTypes}
               value={cargoType_id}
-              onChange={(e) => setCargoTypeId(e.target.value)}
-              className={selectClass}
-            >
-              <option value="">{t("pages.freightForm.selectCargoType")}</option>
-              {cargoTypes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              onChange={setCargoTypeId}
+              required
+              disabled={isSubmitting}
+              selectClassName={selectClass}
+            />
           </div>
 
           {showStatus ? (

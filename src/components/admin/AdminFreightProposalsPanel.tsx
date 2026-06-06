@@ -7,6 +7,7 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { useAdminPaginatedList } from "@/hooks/admin/useAdminPaginatedList";
 import { normalizeLanguage } from "@/i18n";
 import type { ProposalDto } from "@/types/proposal";
+import { formatAdminCurrency } from "@/utils/adminFormat";
 import { formatDateTimeLabel } from "@/utils/dateFormat";
 import {
   resolveDriverDisplayName,
@@ -71,7 +72,8 @@ export function AdminFreightProposalsPanel({
       {
         key: "value",
         header: t("pages.admin.proposals.value"),
-        cell: (row: ProposalDto) => row.value ?? "—",
+        cell: (row: ProposalDto) =>
+          row.value != null ? formatAdminCurrency(row.value, lang) : "—",
       },
       {
         key: "createdAt",

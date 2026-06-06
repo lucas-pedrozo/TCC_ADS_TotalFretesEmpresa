@@ -9,6 +9,7 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Input } from "@/components/ui/input";
 import http from "@/service/http";
 import type { AdminUser } from "@/types/admin";
+import { maskCpf, maskPhone } from "@/utils/mask";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 
 const AdminUsersPage = () => {
@@ -71,6 +72,16 @@ const AdminUsersPage = () => {
           { key: "id", header: "ID", cell: (row) => row.id },
           { key: "name", header: t("pages.admin.common.name"), cell: (row) => row.name },
           { key: "email", header: t("pages.admin.common.email"), cell: (row) => row.email },
+          {
+            key: "cpf",
+            header: t("pages.admin.accounts.cpf"),
+            cell: (row) => (row.cpf ? maskCpf(row.cpf) : "—"),
+          },
+          {
+            key: "phoneNumber",
+            header: t("pages.admin.common.phone"),
+            cell: (row) => (row.phoneNumber ? maskPhone(row.phoneNumber) : "—"),
+          },
         ]}
         rows={filtered}
         rowKey={(row) => row.id}

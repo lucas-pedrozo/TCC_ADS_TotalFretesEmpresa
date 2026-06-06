@@ -13,7 +13,6 @@ export type FreightStatusSlug = (typeof FREIGHT_STATUS_SLUGS)[number];
 export type CargoTypeDto = {
   id: number;
   name: string;
-  vehicleType?: string;
   imageCargo_id?: number | null;
 };
 
