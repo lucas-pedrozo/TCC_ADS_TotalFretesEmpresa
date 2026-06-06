@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -6,7 +6,6 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminEntityDialog } from "@/components/admin/AdminEntityDialog";
 import { AdminConfirmDeleteDialog } from "@/components/admin/AdminConfirmDeleteDialog";
-import { AdminImageField } from "@/components/admin/AdminImageField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,10 +19,15 @@ import {
 import { useAdminCatalogCrud } from "@/hooks/admin/useAdminCatalogCrud";
 import http from "@/service/http";
 import type { AdminGroupVehicleType, AdminVehicleType } from "@/types/admin";
+import {
+  formatAdminIntegerDisplay,
+  formatVehicleLengthMeters,
+  resolveSelectLabel,
+  sanitizeAdminDigitsInput,
+} from "@/utils/adminFormat";
 
 const AdminVehicleTypesPage = () => {
   const { t } = useTranslation();
-  const [imageId, setImageId] = useState<number | null>(null);
   const [groups, setGroups] = useState<AdminGroupVehicleType[]>([]);
 
   useEffect(() => {
@@ -49,9 +53,12 @@ const AdminVehicleTypesPage = () => {
       weight: String(entity.weight ?? ""),
       capacityWeight: String(entity.capacityWeight ?? ""),
       length: String(entity.length ?? ""),
-      groupVehicleType_id: entity.groupVehicleType_id
-        ? String(entity.groupVehicleType_id)
-        : "",
+      groupVehicleType_id:
+        entity.groupVehicleType_id != null
+          ? String(entity.groupVehicleType_id)
+          : entity.GroupVehicleType?.id != null
+            ? String(entity.GroupVehicleType.id)
+            : "",
     }),
     mapFormToPayload: (form) => ({
       nome: form.nome.trim(),
@@ -62,17 +69,30 @@ const AdminVehicleTypesPage = () => {
       ...(form.groupVehicleType_id
         ? { groupVehicleType_id: Number(form.groupVehicleType_id) }
         : {}),
-      ...(imageId ? { imageVehicle_id: imageId } : {}),
     }),
   });
 
-  useEffect(() => {
-    if (crud.editing?.imageVehicle_id) {
-      setImageId(crud.editing.imageVehicle_id);
-    } else if (crud.dialogOpen && !crud.editing) {
-      setImageId(null);
-    }
-  }, [crud.dialogOpen, crud.editing]);
+  const groupOptions = useMemo(
+    () => groups.map((group) => ({ id: group.id, label: group.nome })),
+    [groups]
+  );
+
+  const selectedGroupLabel = useMemo(
+    () =>
+      resolveSelectLabel(
+        crud.form.groupVehicleType_id,
+        groupOptions,
+        crud.editing?.GroupVehicleType?.nome ?? null
+      ),
+    [crud.editing?.GroupVehicleType?.nome, crud.form.groupVehicleType_id, groupOptions]
+  );
+
+  const resolveGroupName = (row: AdminVehicleType) =>
+    groups.find((group) => group.id === row.groupVehicleType_id)?.nome ??
+    row.GroupVehicleType?.nome ??
+    "—";
+
+  const numericFields = ["axes", "weight", "capacityWeight", "length"] as const;
 
   return (
     <AdminPageShell
@@ -101,8 +121,27 @@ const AdminVehicleTypesPage = () => {
           { key: "nome", header: t("pages.admin.common.name"), cell: (row) => row.nome },
           { key: "axes", header: t("pages.admin.vehicleTypes.axes"), cell: (row) => row.axes },
           {
+            key: "group",
+            header: t("pages.admin.vehicleTypes.group"),
+            cell: (row) => resolveGroupName(row),
+          },
+          {
+            key: "capacityWeight",
+            header: t("pages.admin.vehicleTypes.capacityWeight"),
+            cell: (row) =>
+              row.capacityWeight != null
+                ? `${row.capacityWeight.toLocaleString()} kg`
+                : "—",
+          },
+          {
+            key: "length",
+            header: t("pages.admin.vehicleTypes.length"),
+            cell: (row) => formatVehicleLengthMeters(row.length),
+          },
+          {
             key: "actions",
             header: t("pages.admin.common.actions"),
+            className: "w-[140px]",
             cell: (row) => (
               <div className="flex gap-1">
                 <Button type="button" variant="ghost" size="icon-sm" onClick={() => crud.openEdit(row)}>
@@ -128,6 +167,8 @@ const AdminVehicleTypesPage = () => {
         page={crud.page}
         pageSize={crud.pageSize}
         onPageChange={crud.setPage}
+        onRowClick={(row) => crud.openEdit(row)}
+        isRowClickable={() => true}
       />
 
       <AdminEntityDialog
@@ -151,9 +192,20 @@ const AdminVehicleTypesPage = () => {
               <Label htmlFor={name}>{label}</Label>
               <Input
                 id={name}
-                type={type}
-                value={crud.form[name] ?? ""}
-                onChange={(event) => crud.updateField(name, event.target.value)}
+                type={type === "text" ? "text" : "text"}
+                inputMode={type === "text" ? undefined : "numeric"}
+                value={
+                  numericFields.includes(name as (typeof numericFields)[number])
+                    ? formatAdminIntegerDisplay(crud.form[name] ?? "")
+                    : (crud.form[name] ?? "")
+                }
+                onChange={(event) => {
+                  const nextValue =
+                    type === "text"
+                      ? event.target.value
+                      : sanitizeAdminDigitsInput(event.target.value);
+                  crud.updateField(name, nextValue);
+                }}
               />
             </div>
           ))}
@@ -166,8 +218,10 @@ const AdminVehicleTypesPage = () => {
               crud.updateField("groupVehicleType_id", value ?? "")
             }
           >
-            <SelectTrigger>
-              <SelectValue placeholder={t("pages.admin.vehicleTypes.selectGroup")} />
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t("pages.admin.vehicleTypes.selectGroup")}>
+                {selectedGroupLabel}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {groups.map((group) => (
@@ -178,13 +232,6 @@ const AdminVehicleTypesPage = () => {
             </SelectContent>
           </Select>
         </div>
-        <AdminImageField
-          label={t("pages.admin.common.image")}
-          imageId={imageId}
-          onImageIdChange={setImageId}
-          imageBasePath="vehicle-images"
-          imageResponseKey="vehicleImage"
-        />
       </AdminEntityDialog>
 
       <AdminConfirmDeleteDialog

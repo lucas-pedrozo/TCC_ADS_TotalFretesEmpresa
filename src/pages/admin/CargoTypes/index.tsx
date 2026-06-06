@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { adminNativeSelectClass } from "@/components/admin/adminNativeSelect";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminEntityDialog } from "@/components/admin/AdminEntityDialog";
@@ -12,57 +11,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAdminCatalogCrud } from "@/hooks/admin/useAdminCatalogCrud";
-import http from "@/service/http";
-import type { AdminCargoType, AdminVehicleType } from "@/types/admin";
-import { trataErroAxios } from "@/utils/trataErroAxios";
+import type { AdminCargoType } from "@/types/admin";
 
 const AdminCargoTypesPage = () => {
   const { t } = useTranslation();
   const [imageId, setImageId] = useState<number | null>(null);
-  const [vehicleTypes, setVehicleTypes] = useState<AdminVehicleType[]>([]);
-
-  const vehicleTypeLabelById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const type of vehicleTypes) {
-      map.set(String(type.id), type.nome);
-    }
-    return map;
-  }, [vehicleTypes]);
-
-  const loadVehicleTypes = useCallback(async () => {
-    try {
-      const { data } = await http.get<AdminVehicleType[]>("/vehicle-type");
-      setVehicleTypes(Array.isArray(data) ? data : []);
-    } catch (error) {
-      trataErroAxios(error);
-      setVehicleTypes([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadVehicleTypes();
-  }, [loadVehicleTypes]);
 
   const crud = useAdminCatalogCrud<AdminCargoType>({
     endpoint: "/cargo-type",
-    fields: [
-      { name: "name", label: t("pages.admin.common.name"), required: true },
-      { name: "vehicleType", label: t("pages.admin.cargoTypes.vehicleType"), required: true },
-    ],
-    getInitialForm: () => ({ name: "", vehicleType: "" }),
+    fields: [{ name: "name", label: t("pages.admin.common.name"), required: true }],
+    getInitialForm: () => ({ name: "" }),
     mapEntityToForm: (entity) => ({
       name: entity.name ?? "",
-      vehicleType: entity.vehicleType ?? "",
     }),
     mapFormToPayload: (form) => ({
       name: form.name.trim(),
-      vehicleType: form.vehicleType.trim(),
       ...(imageId ? { imageCargo_id: imageId } : {}),
     }),
-    searchFilter: (entity, query) =>
-      (entity.name ?? "").toLowerCase().includes(query) ||
-      (entity.vehicleType ?? "").toLowerCase().includes(query) ||
-      (vehicleTypeLabelById.get(entity.vehicleType)?.toLowerCase().includes(query) ?? false),
+    searchFilter: (entity, query) => (entity.name ?? "").toLowerCase().includes(query),
   });
 
   useEffect(() => {
@@ -98,12 +64,6 @@ const AdminCargoTypesPage = () => {
         columns={[
           { key: "id", header: "ID", cell: (row) => row.id },
           { key: "name", header: t("pages.admin.common.name"), cell: (row) => row.name },
-          {
-            key: "vehicleType",
-            header: t("pages.admin.cargoTypes.vehicleType"),
-            cell: (row) =>
-              vehicleTypeLabelById.get(row.vehicleType) ?? row.vehicleType ?? "—",
-          },
           {
             key: "actions",
             header: t("pages.admin.common.actions"),
@@ -151,22 +111,6 @@ const AdminCargoTypesPage = () => {
             value={crud.form.name ?? ""}
             onChange={(event) => crud.updateField("name", event.target.value)}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="cargo-vehicle-type">{t("pages.admin.cargoTypes.vehicleType")}</Label>
-          <select
-            id="cargo-vehicle-type"
-            className={adminNativeSelectClass}
-            value={crud.form.vehicleType ?? ""}
-            onChange={(event) => crud.updateField("vehicleType", event.target.value)}
-          >
-            <option value="">{t("pages.admin.cargoTypes.selectVehicleType")}</option>
-            {vehicleTypes.map((type) => (
-              <option key={type.id} value={String(type.id)}>
-                {type.nome}
-              </option>
-            ))}
-          </select>
         </div>
         <AdminImageField
           label={t("pages.admin.common.image")}

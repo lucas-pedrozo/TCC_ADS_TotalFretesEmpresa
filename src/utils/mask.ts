@@ -66,3 +66,12 @@ export const maskBrazilianPhone = (value: string) => {
 };
 
 export const normalizeCepInput = (value: string) => onlyDigits(value).slice(0, 8);
+
+export const normalizePlateInput = (value: string) =>
+  value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 7);
+
+export const maskPlate = (value: string) => {
+  const raw = normalizePlateInput(value);
+  if (raw.length <= 3) return raw;
+  return `${raw.slice(0, 3)}-${raw.slice(3)}`;
+};

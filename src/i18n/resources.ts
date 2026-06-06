@@ -421,6 +421,8 @@ export const resources = {
           invalidWeight: "Informe um peso maior que zero.",
           sectionMain: "Carga",
           sectionAmounts: "Valor, peso e prazo",
+          cargoTypeNoImage: "Sem imagem",
+          cargoTypeSelectHint: "Selecione o tipo de carga para este frete",
         },
         freightDetail: {
           newTitle: "Novo frete",
@@ -800,9 +802,7 @@ export const resources = {
           cargoTypes: {
             title: "Tipos de carga (CargoType)",
             description:
-              "Catálogo da entidade CargoType (tabela cargo_types no freight-service): nome, tipo de veículo e imagem (imageCargo_id).",
-            vehicleType: "Tipo de veículo",
-            selectVehicleType: "Selecione o tipo de veículo",
+              "Catálogo da entidade CargoType (tabela cargo_types no freight-service): nome e imagem (imageCargo_id).",
             deleteConfirm: "Excluir o CargoType {{name}}?",
           },
           freightStatusTypes: {
@@ -1461,6 +1461,8 @@ export const resources = {
           invalidWeight: "Enter a weight greater than zero.",
           sectionMain: "Cargo",
           sectionAmounts: "Value, weight and deadline",
+          cargoTypeNoImage: "No image",
+          cargoTypeSelectHint: "Select the cargo type for this freight",
         },
         freightDetail: {
           newTitle: "New freight",
@@ -1840,9 +1842,7 @@ export const resources = {
           cargoTypes: {
             title: "Cargo types (CargoType)",
             description:
-              "Catalog for the CargoType entity (cargo_types table in freight-service): name, vehicle type, and image (imageCargo_id).",
-            vehicleType: "Vehicle type",
-            selectVehicleType: "Select vehicle type",
+              "Catalog for the CargoType entity (cargo_types table in freight-service): name and image (imageCargo_id).",
             deleteConfirm: "Delete CargoType {{name}}?",
           },
           freightStatusTypes: {

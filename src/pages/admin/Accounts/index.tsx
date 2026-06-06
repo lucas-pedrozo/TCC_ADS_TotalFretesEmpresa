@@ -18,6 +18,7 @@ import {
   useAdminAccountTypes,
   useAdminAccountsList,
 } from "@/hooks/admin/useAdminDashboard";
+import { useAdminSubjectNames } from "@/hooks/admin/useAdminSubjectNames";
 import http from "@/service/http";
 import type { AdminAccount, AdminAccountType } from "@/types/admin";
 import {
@@ -40,6 +41,7 @@ const AdminAccountsPage = () => {
   const { t } = useTranslation();
   const accountTypes = useAdminAccountTypes();
   const list = useAdminAccountsList();
+  const { resolveSubjectName } = useAdminSubjectNames();
   const [editOpen, setEditOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -257,7 +259,7 @@ const AdminAccountsPage = () => {
           {
             key: "subject",
             header: t("pages.admin.accounts.subjectId"),
-            cell: (row) => row.subject_id,
+            cell: (row) => resolveSubjectName(row),
           },
           {
             key: "actions",
@@ -390,7 +392,9 @@ const AdminAccountsPage = () => {
           <Input
             id="account-email"
             value={form.email}
-            onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, email: maskEmail(event.target.value) }))
+            }
           />
         </div>
         <div className="space-y-2">

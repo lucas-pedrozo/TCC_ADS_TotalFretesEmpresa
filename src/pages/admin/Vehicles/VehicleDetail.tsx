@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/select";
 import http from "@/service/http";
 import type { AdminVehicle, AdminVehicleType } from "@/types/admin";
+import { resolveSelectLabel } from "@/utils/adminFormat";
+import { maskPlate, maskUf } from "@/utils/mask";
 import { trataErroAxios, traduzMensagemApi } from "@/utils/trataErroAxios";
 
 const AdminVehicleDetailPage = () => {
@@ -52,7 +54,7 @@ const AdminVehicleDetailPage = () => {
       setVehicleTypes(Array.isArray(typesRes.data) ? typesRes.data : []);
       const v = vehicleRes.data;
       setForm({
-        plateNumber: v.plateNumber ?? "",
+        plateNumber: v.plateNumber ? maskPlate(v.plateNumber) : "",
         chassisNumber: v.chassisNumber ?? "",
         model: v.model ?? "",
         mark: v.mark ?? "",
@@ -72,18 +74,31 @@ const AdminVehicleDetailPage = () => {
     void load();
   }, [load]);
 
+  const vehicleTypeOptions = useMemo(
+    () => vehicleTypes.map((type) => ({ id: type.id, label: type.nome })),
+    [vehicleTypes]
+  );
+
+  const selectedVehicleTypeLabel = resolveSelectLabel(
+    form.vehicleType_id,
+    vehicleTypeOptions,
+    vehicle?.VehicleType?.nome ?? vehicle?.VehicleType?.name ?? null
+  );
+
+  const isBrazil = form.country.trim().toUpperCase() === "BR";
+
   const handleSave = async () => {
     if (!id) return;
     setIsSaving(true);
     const toastId = toast.loading(t("pages.admin.common.saving"));
     try {
       const { data } = await http.put(`/vehicle/${id}`, {
-        plateNumber: form.plateNumber.trim(),
+        plateNumber: form.plateNumber.trim().replace(/-/g, ""),
         chassisNumber: form.chassisNumber.trim(),
         model: form.model.trim() || null,
         mark: form.mark.trim() || null,
         city: form.city.trim(),
-        stateUF: form.stateUF.trim(),
+        stateUF: isBrazil ? maskUf(form.stateUF) : form.stateUF.trim(),
         country: form.country.trim(),
         vehicleType_id: Number(form.vehicleType_id),
       });
@@ -165,9 +180,30 @@ const AdminVehicleDetailPage = () => {
             <Label htmlFor={`vehicle-${key}`}>{label}</Label>
             <Input
               id={`vehicle-${key}`}
-              value={form[key]}
+              maxLength={
+                key === "country" ? 2 : key === "stateUF" && isBrazil ? 2 : key === "plateNumber" ? 8 : undefined
+              }
+              value={
+                key === "plateNumber"
+                  ? maskPlate(form.plateNumber)
+                  : key === "stateUF" && isBrazil
+                    ? maskUf(form.stateUF)
+                    : key === "country"
+                      ? form.country.toUpperCase()
+                      : form[key]
+              }
               onChange={(event) =>
-                setForm((prev) => ({ ...prev, [key]: event.target.value }))
+                setForm((prev) => ({
+                  ...prev,
+                  [key]:
+                    key === "plateNumber"
+                      ? maskPlate(event.target.value)
+                      : key === "stateUF" && isBrazil
+                        ? maskUf(event.target.value)
+                        : key === "country"
+                          ? event.target.value.toUpperCase().slice(0, 2)
+                          : event.target.value,
+                }))
               }
             />
           </div>
@@ -180,8 +216,10 @@ const AdminVehicleDetailPage = () => {
               setForm((prev) => ({ ...prev, vehicleType_id: value ?? "" }))
             }
           >
-            <SelectTrigger>
-              <SelectValue placeholder={t("pages.admin.vehicles.selectType")} />
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t("pages.admin.vehicles.selectType")}>
+                {selectedVehicleTypeLabel}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {vehicleTypes.map((type) => (

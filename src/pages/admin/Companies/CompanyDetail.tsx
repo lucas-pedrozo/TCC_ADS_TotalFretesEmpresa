@@ -16,7 +16,7 @@ import { normalizeLanguage } from "@/i18n";
 import { CompanyProfileImageDialog } from "@/pages/Perfil/components/CompanyProfileImageDialog";
 import http from "@/service/http";
 import type { AdminCompany } from "@/types/admin";
-import { maskCnpjInRfb2229 } from "@/utils/cnpjInRfb2229";
+import { maskCep, maskCnpj, maskEmail, maskPhone, maskUf, normalizeCepInput, normalizePhoneForStorage } from "@/utils/mask";
 import { formatDateShortLabel, formatDateTimeLabel } from "@/utils/dateFormat";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 
@@ -104,25 +104,26 @@ const AdminCompanyDetailPage = () => {
 
   const handleSave = async () => {
     if (!id) return;
+    const isBrazilAddress = form.country.trim().toUpperCase() === "BR";
     setIsSaving(true);
     const toastId = toast.loading(t("pages.admin.common.saving"));
     try {
       await http.put(`/company/${id}`, {
         name: form.name.trim(),
-        email: form.email.trim(),
-        phoneNumber: form.phoneNumber.trim(),
+        email: maskEmail(form.email),
+        phoneNumber: normalizePhoneForStorage(form.phoneNumber),
         website: form.website.trim() || null,
       });
 
       if (company?.CompanyAddress?.id) {
         await http.put(`/address/${company.CompanyAddress.id}`, {
-          country: form.country.trim(),
+          country: form.country.trim().toUpperCase(),
           cep: form.cep.trim(),
           street: form.street.trim(),
           district: form.district.trim(),
           number: form.number.trim(),
           city: form.city.trim(),
-          state: form.state.trim(),
+          state: isBrazilAddress ? maskUf(form.state) : form.state.trim(),
         });
       }
 
@@ -167,7 +168,8 @@ const AdminCompanyDetailPage = () => {
   }
 
   const displayName = form.name.trim() || company.name;
-  const formattedCnpj = company.cnpj ? maskCnpjInRfb2229(company.cnpj) : "—";
+  const formattedCnpj = company.cnpj ? maskCnpj(company.cnpj) : "—";
+  const isBrazil = form.country.trim().toUpperCase() === "BR";
 
   return (
     <AdminPageShell
@@ -255,9 +257,24 @@ const AdminCompanyDetailPage = () => {
                 <Label htmlFor={`company-${key}`}>{label}</Label>
                 <Input
                   id={`company-${key}`}
-                  value={form[key]}
+                  type={key === "email" ? "email" : key === "phoneNumber" ? "tel" : "text"}
+                  value={
+                    key === "email"
+                      ? form[key]
+                      : key === "phoneNumber"
+                        ? maskPhone(form[key])
+                        : form[key]
+                  }
                   onChange={(event) =>
-                    setForm((prev) => ({ ...prev, [key]: event.target.value }))
+                    setForm((prev) => ({
+                      ...prev,
+                      [key]:
+                        key === "email"
+                          ? maskEmail(event.target.value)
+                          : key === "phoneNumber"
+                            ? maskPhone(event.target.value)
+                            : event.target.value,
+                    }))
                   }
                 />
               </div>
@@ -283,9 +300,29 @@ const AdminCompanyDetailPage = () => {
                 <Label htmlFor={`address-${key}`}>{label}</Label>
                 <Input
                   id={`address-${key}`}
-                  value={form[key]}
+                  maxLength={key === "country" ? 2 : key === "state" && isBrazil ? 2 : key === "cep" && isBrazil ? 9 : undefined}
+                  inputMode={key === "cep" && isBrazil ? "numeric" : undefined}
+                  value={
+                    key === "cep" && isBrazil
+                      ? maskCep(form.cep)
+                      : key === "state" && isBrazil
+                        ? maskUf(form.state)
+                        : key === "country"
+                          ? form.country.toUpperCase()
+                          : form[key]
+                  }
                   onChange={(event) =>
-                    setForm((prev) => ({ ...prev, [key]: event.target.value }))
+                    setForm((prev) => ({
+                      ...prev,
+                      [key]:
+                        key === "country"
+                          ? event.target.value.toUpperCase().slice(0, 2)
+                          : key === "cep" && isBrazil
+                            ? normalizeCepInput(event.target.value)
+                            : key === "state" && isBrazil
+                              ? maskUf(event.target.value)
+                              : event.target.value,
+                    }))
                   }
                 />
               </div>

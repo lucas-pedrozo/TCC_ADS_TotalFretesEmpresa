@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useAdminPaginatedList } from "@/hooks/admin/useAdminPaginatedList";
 import { normalizeLanguage } from "@/i18n";
 import type { ProposalDto } from "@/types/proposal";
+import { formatAdminCurrency } from "@/utils/adminFormat";
 import { formatDateTimeLabel } from "@/utils/dateFormat";
 import {
   resolveDriverDisplayName,
@@ -92,7 +93,8 @@ const AdminProposalsPage = () => {
       {
         key: "value",
         header: t("pages.admin.proposals.value"),
-        cell: (row: ProposalDto) => row.value ?? "—",
+        cell: (row: ProposalDto) =>
+          row.value != null ? formatAdminCurrency(row.value, lang) : "—",
       },
       {
         key: "createdAt",

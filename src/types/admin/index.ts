@@ -58,7 +58,6 @@ export type AdminCompany = {
 export type AdminCargoType = {
   id: number;
   name: string;
-  vehicleType: string;
   imageCargo_id?: number | null;
 };
 
@@ -77,6 +76,7 @@ export type AdminGroupVehicleType = {
   id: number;
   nome: string;
   cnhType_id: number;
+  CnhType?: Pick<AdminCnhType, "id" | "name"> | null;
 };
 
 export type AdminVehicleType = {
@@ -88,6 +88,7 @@ export type AdminVehicleType = {
   length: number;
   imageVehicle_id?: number | null;
   groupVehicleType_id?: number | null;
+  GroupVehicleType?: Pick<AdminGroupVehicleType, "id" | "nome"> | null;
 };
 
 export type AdminVehicle = {
