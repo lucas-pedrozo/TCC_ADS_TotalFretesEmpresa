@@ -55,6 +55,7 @@ function resolveStepDate(
   const lastUpdated = updatedAt ?? createdAt;
 
   if (history && history.length > 0) {
+    if (index > currentIdx) return "";
     const hit = history.find((h) => h.slug === step);
     if (hit?.occurredAt) return formatStepDate(hit.occurredAt, lang);
     return "";

@@ -1,4 +1,4 @@
-import { Bell, LogOut, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { AppLanguage } from "@/i18n/resources";
@@ -13,15 +13,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CompanyData } from "@/hooks/useGetCompany";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/NotificationBell";
 
 function companyInitials(name: string): string {
   const trimmed = name.trim();
@@ -124,27 +119,7 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
       </div>
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-        <TooltipProvider delay={200}>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative size-9 shrink-0 touch-manipulation"
-                  aria-label={t("header.notifications")}
-                >
-                  <Bell className="size-[1.15rem] sm:size-5" />
-                  <span
-                    className="absolute top-1.5 right-1.5 size-2 rounded-full border-2 border-background bg-brand-green-light"
-                    aria-hidden
-                  />
-                </Button>
-              }
-            />
-            <TooltipContent>{t("header.notifications")}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <NotificationBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger
