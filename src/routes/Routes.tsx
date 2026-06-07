@@ -4,6 +4,9 @@ import { Navigate } from "react-router-dom";
 
 import SingUpBasicPage from "@/pages/SingUpBasic";
 import SingUpAddressPage from "@/pages/SingUpAddress";
+import SingUpPlanPage from "@/pages/SingUpPlan";
+import SingUpPaymentPage from "@/pages/SingUpPayment";
+import PendingPaymentPage from "@/pages/PendingPayment";
 import LoginPage from "@/pages/Login";
 import ForgotPasswordPage from "@/pages/ForgotPassword";
 import VerificationCodePage from "@/pages/VerificationCode";
@@ -13,7 +16,10 @@ import PerfilPage from "@/pages/Perfil";
 import StartPage from "@/pages/Start";
 import { SideLayout } from "@/layout/SideLayout";
 import { RegisterCompanyProvider } from "@/context/RegisterCompanyContext";
-import PrivateRoute from "./PrivateRoutes";
+import CompanyPrivateRoute from "./CompanyPrivateRoute";
+import AdminPrivateRoute from "./AdminPrivateRoute";
+import { adminRouteObjects } from "./adminRoutes";
+import { AdminLayout } from "@/layout/AdminLayout";
 import FreightsPage from "@/pages/Freights";
 import FreightDetailPage from "@/pages/FreightDetail";
 import HistoryPage from "@/pages/History";
@@ -36,13 +42,16 @@ function WebRoutes() {
       <Route path="/ForgotPassword" element={<ForgotPasswordPage />} />
       <Route path="/VerificationCode" element={<VerificationCodePage />} />
       <Route path="/NewPassword" element={<NewPasswordPage />} />
+      <Route path="/PendingPayment" element={<PendingPaymentPage />} />
 
       <Route element={<RegisterLayout />}>
         <Route path="/SignUp" element={<SingUpBasicPage />} />
         <Route path="/SignUpAddress" element={<SingUpAddressPage />} />
+        <Route path="/SignUpPlan" element={<SingUpPlanPage />} />
+        <Route path="/SignUpPayment" element={<SingUpPaymentPage />} />
       </Route>
 
-      <Route element={<PrivateRoute />}>
+      <Route element={<CompanyPrivateRoute />}>
         <Route element={<SideLayout />}>
           <Route path="/Home" element={<HomePage />} />
           <Route path="/Perfil" element={<PerfilPage />} />
@@ -65,6 +74,18 @@ function WebRoutes() {
           <Route path="/History" element={<HistoryPage />} />
           <Route path="/Proposals/:proposalId" element={<ProposalDetailPage />} />
           <Route path="/Proposals" element={<ProposalsPage />} />
+        </Route>
+      </Route>
+
+      <Route element={<AdminPrivateRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          {adminRouteObjects.map((route) =>
+            route.index ? (
+              <Route key="admin-index" index element={route.element} />
+            ) : (
+              <Route key={route.path} path={route.path} element={route.element} />
+            )
+          )}
         </Route>
       </Route>
 

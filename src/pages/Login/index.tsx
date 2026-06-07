@@ -15,9 +15,15 @@ const LoginPage = () => {
     () => navigateWithFade('/Home'),
     [navigateWithFade]
   )
+  const goAdminWithFade = useCallback(
+    () => navigateWithFade('/admin'),
+    [navigateWithFade]
+  )
   const { HandleLogin, Rules, control, handleSubmit, isDisabled, isLoading } =
     useLogin({
       navigateToHome: goHomeWithFade,
+      navigateToAdmin: goAdminWithFade,
+      navigateToPendingPayment: navigateWithFade,
       successDelayMs: AUTH_REDIRECT_DELAY_MS,
     })
   const { t } = useTranslation()

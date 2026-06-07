@@ -13,13 +13,18 @@ export type FreightStatusSlug = (typeof FREIGHT_STATUS_SLUGS)[number];
 export type CargoTypeDto = {
   id: number;
   name: string;
-  vehicleType?: string;
   imageCargo_id?: number | null;
 };
 
 export type FreightStatusTypeDto = {
   id: number;
   name: string;
+};
+
+export type CompanySummaryDto = {
+  id: number;
+  name: string;
+  city?: string | null;
 };
 
 /** Uma entrada do histórico de status (API `FreightStatusHistories`). */
@@ -59,6 +64,7 @@ export type FreightDto = {
   FreightStatusType?: FreightStatusTypeDto | null;
   /** Ordem cronológica (mais antigo primeiro), quando a API envia o histórico. */
   FreightStatusHistories?: FreightStatusHistoryDto[];
+  Company?: CompanySummaryDto | null;
 };
 
 export type FreightListResponse = FreightDto[];

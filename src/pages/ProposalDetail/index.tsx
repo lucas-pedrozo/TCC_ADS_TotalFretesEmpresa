@@ -8,9 +8,11 @@ import {
   Tag,
   X,
 } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
+import { RejectProposalDialog } from "@/components/proposals/RejectProposalDialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -45,6 +47,8 @@ const ProposalDetailPage = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language as AppLanguage;
 
+  const [rejectOpen, setRejectOpen] = useState(false);
+
   const {
     proposal,
     freight,
@@ -57,6 +61,13 @@ const ProposalDetailPage = () => {
     goBack,
     openFreight,
   } = useProposalDetail({ proposalId });
+
+  const onConfirmReject = async (comment: string) => {
+    const ok = await handleReject(comment);
+    if (ok) {
+      setRejectOpen(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -186,7 +197,7 @@ const ProposalDetailPage = () => {
               variant="outline"
               className="min-h-11 w-full gap-2 rounded-lg border-destructive/70 text-destructive hover:bg-destructive/10 sm:min-h-10 sm:w-auto"
               disabled={actionLoading}
-              onClick={() => void handleReject()}
+              onClick={() => setRejectOpen(true)}
             >
               <X className="size-4 shrink-0" aria-hidden />
               {t("pages.freightDetail.rejectProposal")}
@@ -286,6 +297,13 @@ const ProposalDetailPage = () => {
           </div>
         </section>
       ) : null}
+
+      <RejectProposalDialog
+        open={rejectOpen}
+        onOpenChange={setRejectOpen}
+        loading={actionLoading}
+        onConfirm={onConfirmReject}
+      />
     </div>
   );
 };
