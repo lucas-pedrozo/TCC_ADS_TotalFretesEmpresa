@@ -23,7 +23,7 @@ import { FreightForm } from "@/components/ui/freightForm";
 import { AddressMapPicker, type MapPinValue } from "@/components/maps/AddressMapPicker";
 import {
   FREIGHT_STATUS_LABEL_KEY,
-  resolveFreightStatusSlug,
+  resolveEffectiveFreightStatusSlug,
   statusBadgeClass,
 } from "@/components/ui/freightStatusUi";
 import { FreightStatusTimeline } from "@/components/ui/freightStatusTimeline";
@@ -54,6 +54,7 @@ import { haversineKm } from "@/utils/haversineKm";
 import { isValidMapPin } from "@/utils/freightCreate";
 import { formatDateTimeLabel } from "@/utils/dateFormat";
 import { initialsFromName } from "@/utils/person";
+import { FreightTrackingModal } from "@/components/tracking/FreightTrackingModal";
 import { selectableItemHoverClassName } from "@/utils/ui";
 
 function DetailField({
@@ -117,6 +118,7 @@ const FreightDetailPage = () => {
   const [editing, setEditing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [trackingOpen, setTrackingOpen] = useState(false);
   const [editOrigin, setEditOrigin] = useState<MapPinValue | null>(null);
   const [editDestination, setEditDestination] = useState<MapPinValue | null>(null);
   const {
@@ -178,9 +180,10 @@ const FreightDetailPage = () => {
     );
   }
 
-  const slug = resolveFreightStatusSlug({
+  const slug = resolveEffectiveFreightStatusSlug({
     statusId: freight.status_id,
     statusName: freight.FreightStatusType?.name ?? freight.status?.name,
+    history: statusTimelineHistory,
   });
   const distKm = haversineKm(
     freight.origin_lat,
@@ -214,6 +217,11 @@ const FreightDetailPage = () => {
   const bestAmount = featuredProposal?.value ?? displayValue;
   const assignedDriverProfile =
     freight.assignedDriver_id != null ? driverProfilesById[freight.assignedDriver_id] : undefined;
+
+  const canTrackLive = slug === "em_transito" || slug === "em_rota_entrega";
+  const showClosedTracking = slug === "entregue" || slug === "concluido";
+  const freightDisplayName =
+    freight.name?.trim() ? freight.name.trim() : t("pages.freightDetail.title", { id: freight.id });
 
   async function onSubmitUpdate(body: FreightCargoStepBody) {
     if (!isValidMapPin(editOrigin) || !isValidMapPin(editDestination)) {
@@ -385,6 +393,28 @@ const FreightDetailPage = () => {
                       </DetailField>
                     </div>
                   </div>
+                ) : null}
+
+                {canTrackLive ? (
+                  <Button
+                    type="button"
+                    className="mt-6 h-11 w-full gap-2 rounded-lg bg-brand-green text-white hover:bg-brand-green-dark"
+                    onClick={() => setTrackingOpen(true)}
+                  >
+                    <MapPin className="size-4 shrink-0" aria-hidden />
+                    {t("pages.freightDetail.trackDriverLive")}
+                  </Button>
+                ) : null}
+
+                {showClosedTracking ? (
+                  <Button
+                    type="button"
+                    disabled
+                    className="mt-6 h-11 w-full gap-2 rounded-lg bg-brand-green text-white opacity-60"
+                  >
+                    <MapPin className="size-4 shrink-0" aria-hidden />
+                    {t("pages.freightDetail.freightClosed")}
+                  </Button>
                 ) : null}
               </section>
 
@@ -663,6 +693,18 @@ const FreightDetailPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <FreightTrackingModal
+        isOpen={trackingOpen}
+        onClose={() => setTrackingOpen(false)}
+        freightId={String(freight.id)}
+        freightName={freightDisplayName}
+        originLabel={freight.origin_label}
+        destLabel={freight.destination_label}
+        originCoords={{ latitude: freight.origin_lat, longitude: freight.origin_lng }}
+        destCoords={{ latitude: freight.destination_lat, longitude: freight.destination_lng }}
+        totalDistance={distKm}
+      />
     </div>
   );
 };
