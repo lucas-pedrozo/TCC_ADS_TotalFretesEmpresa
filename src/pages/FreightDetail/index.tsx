@@ -6,6 +6,7 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
+  Loader2,
   MapPin,
   Package,
   Scale,
@@ -19,6 +20,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { RejectProposalDialog } from "@/components/proposals/RejectProposalDialog";
+import { fetchStoredImageById } from "@/components/admin/AdminImageField";
 import { FreightForm } from "@/components/ui/freightForm";
 import { AddressMapPicker, type MapPinValue } from "@/components/maps/AddressMapPicker";
 import {
@@ -122,6 +124,8 @@ const FreightDetailPage = () => {
   const [trackingOpen, setTrackingOpen] = useState(false);
   const [editOrigin, setEditOrigin] = useState<MapPinValue | null>(null);
   const [editDestination, setEditDestination] = useState<MapPinValue | null>(null);
+  const [cargoTypeImageUrl, setCargoTypeImageUrl] = useState<string | null>(null);
+  const [loadingCargoTypeImage, setLoadingCargoTypeImage] = useState(false);
   const {
     freight,
     cargoTypes,
@@ -157,6 +161,34 @@ const FreightDetailPage = () => {
       lng: freight.destination_lng,
     });
   }, [editing, freight]);
+
+  const resolvedCargoType = freight?.cargo ?? freight?.CargoType ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCargoTypeImage = async () => {
+      const imageId = resolvedCargoType?.imageCargo_id;
+      if (!imageId || imageId <= 0) {
+        setCargoTypeImageUrl(null);
+        setLoadingCargoTypeImage(false);
+        return;
+      }
+
+      setLoadingCargoTypeImage(true);
+      const stored = await fetchStoredImageById("cargo-images", imageId);
+      if (!cancelled) {
+        setCargoTypeImageUrl(stored?.url ?? null);
+        setLoadingCargoTypeImage(false);
+      }
+    };
+
+    void loadCargoTypeImage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedCargoType?.imageCargo_id]);
 
   if (!id) {
     return null;
@@ -345,9 +377,38 @@ const FreightDetailPage = () => {
                   <DetailField icon={Tag} label={t("pages.freightDetail.fieldFreightName")}>
                     {freight.name?.trim() ? freight.name.trim() : "—"}
                   </DetailField>
-                  <DetailField icon={Package} label={t("pages.freightDetail.fieldCargoType")}>
-                    {freight.CargoType?.name ?? "—"}
-                  </DetailField>
+                  <div className="flex flex-col gap-2.5">
+                    <div
+                      className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
+                      aria-hidden
+                    >
+                      <Package className="size-[18px]" strokeWidth={2} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t("pages.freightDetail.fieldCargoType")}
+                      </p>
+                      <p className="mt-1 text-sm font-bold leading-snug text-foreground">
+                        {resolvedCargoType?.name ?? "—"}
+                      </p>
+                      {loadingCargoTypeImage ? (
+                        <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Loader2 className="size-3 animate-spin" aria-hidden />
+                          {t("pages.freightDetail.loading")}
+                        </p>
+                      ) : cargoTypeImageUrl ? (
+                        <img
+                          src={cargoTypeImageUrl}
+                          alt={resolvedCargoType?.name ?? t("pages.freightForm.cargoType")}
+                          className="mt-2 h-20 w-20 rounded-lg border border-border object-cover sm:h-24 sm:w-24"
+                        />
+                      ) : (
+                        <p className="mt-2 text-xs font-normal leading-snug text-muted-foreground">
+                          {t("pages.freightForm.cargoTypeNoImage")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   <DetailField icon={Scale} label={t("pages.freightDetail.fieldWeight")}>
                     {weightKg != null ? formatFreightWeightKg(weightKg, lang) : "—"}
                   </DetailField>
