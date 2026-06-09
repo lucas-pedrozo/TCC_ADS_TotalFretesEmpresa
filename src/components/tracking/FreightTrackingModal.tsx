@@ -68,9 +68,29 @@ export function FreightTrackingModal({
   const traveledKm = useMemo(() => sumTrailDistanceKm(trail), [trail]);
   const remainingKm = Math.max(0, totalDistance - traveledKm);
 
+  const avgSpeedKmh = useMemo(() => {
+    if (trail.length < 2 || traveledKm < 0.1) return null;
+    
+    const firstPoint = trail[0];
+    const lastPoint = trail[trail.length - 1];
+    
+    const startTime = new Date(firstPoint.recordedAt).getTime();
+    const endTime = new Date(lastPoint.recordedAt).getTime();
+    const elapsedHours = (endTime - startTime) / (1000 * 60 * 60);
+    
+    if (elapsedHours <= 0) return null;
+    
+    return traveledKm / elapsedHours;
+  }, [trail, traveledKm]);
+
   const speedLabel =
     currentPosition?.speed != null && Number.isFinite(currentPosition.speed)
       ? `${Math.round(currentPosition.speed)} km/h`
+      : '—';
+
+  const avgSpeedLabel = 
+    avgSpeedKmh != null && Number.isFinite(avgSpeedKmh)
+      ? `${Math.round(avgSpeedKmh)} km/h`
       : '—';
 
   const traveledLabel = `${traveledKm.toFixed(1)} km`;
@@ -103,7 +123,7 @@ export function FreightTrackingModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="freight-tracking-title"
-        className="relative z-[101] flex max-h-[90vh] w-full max-w-[860px] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
+        className="relative z-[101] flex max-h-[92vh] w-full max-w-[1200px] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
       >
         <header className="flex items-center gap-3 border-b border-border px-4 py-3 sm:px-5">
           <MapPin className="size-5 shrink-0 text-brand-green" aria-hidden />
@@ -130,7 +150,7 @@ export function FreightTrackingModal({
           </Button>
         </header>
 
-        <div className="h-[420px] w-full shrink-0 border-b border-border bg-muted/30">
+        <div className="h-[520px] w-full shrink-0 border-b border-border bg-muted/30">
           {isLoading ? (
             <div className="relative flex h-full flex-col items-center justify-center gap-3 px-6">
               <div className="h-full w-full max-w-none animate-pulse rounded-none bg-muted" />
@@ -162,8 +182,9 @@ export function FreightTrackingModal({
           )}
         </div>
 
-        <div className="grid grid-cols-2 divide-x divide-border sm:grid-cols-4">
+        <div className="grid grid-cols-2 divide-x divide-border sm:grid-cols-5">
           <StatCell label={t('pages.freightDetail.trackingSpeed')} value={speedLabel} />
+          <StatCell label={t('pages.freightDetail.trackingAvgSpeed')} value={avgSpeedLabel} />
           <StatCell label={t('pages.freightDetail.trackingTraveled')} value={traveledLabel} />
           <StatCell label={t('pages.freightDetail.trackingRemaining')} value={remainingLabel} />
           <StatCell

@@ -20,6 +20,7 @@ import {
 } from "@/hooks/admin/useAdminDashboard";
 import { useAdminSubjectNames } from "@/hooks/admin/useAdminSubjectNames";
 import http from "@/service/http";
+import { validatePassword } from "@/utils/validation";
 import type { AdminAccount, AdminAccountType } from "@/types/admin";
 import {
   initialAdminCompanyForm,
@@ -108,6 +109,10 @@ const AdminAccountsPage = () => {
   }, []);
 
   const validatePasswords = (password: string, passwordConfirm: string) => {
+    if (!validatePassword(password)) {
+      toast.error(t("validation.passwordInvalid"));
+      return false;
+    }
     if (password !== passwordConfirm) {
       toast.error(t("pages.admin.accounts.passwordMismatch"));
       return false;

@@ -105,7 +105,6 @@ export function useLogin(options?: UseLoginOptions) {
     },
     password: {
       required: t('pages.login.passwordRequired'),
-      validate: (value: string) => validatePassword(value) || t("validation.passwordInvalid")
     },
   };
 

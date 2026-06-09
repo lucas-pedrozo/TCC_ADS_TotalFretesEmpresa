@@ -410,11 +410,11 @@ const FreightDetailPage = () => {
                 {showClosedTracking ? (
                   <Button
                     type="button"
-                    disabled
-                    className="mt-6 h-11 w-full gap-2 rounded-lg bg-brand-green text-white opacity-60"
+                    className="mt-6 h-11 w-full gap-2 rounded-lg bg-brand-green text-white hover:bg-brand-green-dark"
+                    onClick={() => setTrackingOpen(true)}
                   >
                     <MapPin className="size-4 shrink-0" aria-hidden />
-                    {t("pages.freightDetail.freightClosed")}
+                    {t("pages.freightDetail.viewTelemetryHistory")}
                   </Button>
                 ) : null}
               </section>
