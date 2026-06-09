@@ -58,8 +58,8 @@ export type FreightDto = {
   weight?: number | null;
   createdAt?: string;
   updatedAt?: string;
-  CargoType?: CargoTypeDto;
-  cargo?: CargoTypeDto;
+  CargoType?: CargoTypeDto | null;
+  cargo?: CargoTypeDto | null;
   status?: FreightStatusTypeDto | null;
   FreightStatusType?: FreightStatusTypeDto | null;
   /** Ordem cronológica (mais antigo primeiro), quando a API envia o histórico. */
