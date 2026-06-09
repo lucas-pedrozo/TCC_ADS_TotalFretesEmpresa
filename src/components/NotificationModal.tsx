@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import type { WebNotification } from '@/hooks/useNotifications';
+import { resolveNotificationRoute } from '@/utils/notificationNavigation';
 
 type NotificationModalProps = {
   open: boolean;
@@ -30,26 +31,7 @@ export function NotificationModal({
   const handleClick = async (notification: WebNotification) => {
     await onMarkAsRead(notification.id);
 
-    const freightId = notification.metadata?.freightId;
-
-    switch (notification.type) {
-      case 'PROPOSTA_ENVIADA':
-      case 'PROPOSTA_ACEITA':
-        navigate('/Proposals');
-        break;
-      case 'FRETE_EM_TRANSITO':
-      case 'FRETE_ENTREGUE':
-      case 'FRETE_CANCELADO':
-        if (typeof freightId === 'number') {
-          navigate(`/Freights/${freightId}`);
-        } else {
-          navigate('/Freights');
-        }
-        break;
-      default:
-        navigate('/Proposals');
-        break;
-    }
+    navigate(resolveNotificationRoute(notification));
 
     onClose();
   };
