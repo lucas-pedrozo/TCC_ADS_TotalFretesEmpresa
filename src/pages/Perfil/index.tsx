@@ -628,6 +628,7 @@ const PerfilPage = () => {
                           className="h-11 rounded-xl"
                           placeholder={t("pages.profile.placeholders.cnpj")}
                           autoComplete="off"
+                          disabled
                           value={maskCnpjInRfb2229(field.value ?? "")}
                           onBlur={field.onBlur}
                           onChange={(event) => field.onChange(event.target.value)}

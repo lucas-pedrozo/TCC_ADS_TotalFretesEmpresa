@@ -11,7 +11,6 @@ import {
   DEFAULT_COUNTRY,
   getCountryStateOptions,
 } from "@/utils/address";
-import { normalizeCnpj } from "@/utils/cnpjInRfb2229";
 import {
   buildPhoneE164,
   getDefaultPhoneCountryCodeByCountry,
@@ -269,7 +268,6 @@ export function useUpdateCompanyProfile({
       const website = trimValue(values.website);
       const companyPayload: Record<string, string | null> = {
         name: trimValue(values.name),
-        cnpj: normalizeCnpj(values.cnpj),
         phoneNumber: buildPhoneE164(values.phoneCountryCode, values.phoneNumber),
         birthFundation: values.birthFundation,
         website: website || null,
