@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
 
+import { TrackingMapControls } from '@/components/tracking/TrackingMapControls';
 import type { TrackingPosition } from '@/hooks/useFreightTracking';
 
 type Coords = {
@@ -27,6 +28,8 @@ const PLANNED_ROUTE_LAYER_ID = 'planned-route-line';
 const CURRENT_ROUTE_SOURCE_ID = 'current-route-source';
 const CURRENT_ROUTE_LAYER_ID = 'current-route-line';
 const ANIMATION_MS = 800;
+const ZOOM_ANIMATION_MS = 250;
+const FOLLOW_VEHICLE_ZOOM = 12;
 
 const ROUTE_LAYERS = [
   { layer: PLANNED_ROUTE_LAYER_ID, source: PLANNED_ROUTE_SOURCE_ID },
@@ -49,7 +52,24 @@ function buildLineGeoJson(points: Coords[]) {
   };
 }
 
-function createTruckMarkerElement(heading: number | null): HTMLDivElement {
+function resolveMarkerRotation(
+  heading: number | null | undefined,
+  mapBearing: number,
+  alignBearing: boolean,
+): number {
+  if (heading == null || !Number.isFinite(heading)) return 0;
+  return alignBearing ? heading - mapBearing : heading;
+}
+
+function resolveCameraBearing(
+  heading: number | null | undefined,
+  alignBearing: boolean,
+): number {
+  if (!alignBearing || heading == null || !Number.isFinite(heading)) return 0;
+  return heading;
+}
+
+function createTruckMarkerElement(): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'tracking-truck-marker';
   el.style.width = '36px';
@@ -57,7 +77,7 @@ function createTruckMarkerElement(heading: number | null): HTMLDivElement {
   el.style.display = 'flex';
   el.style.alignItems = 'center';
   el.style.justifyContent = 'center';
-  el.style.transform = `rotate(${heading ?? 0}deg)`;
+  el.style.transform = 'rotate(0deg)';
   el.style.transition = 'transform 300ms linear';
   el.innerHTML = `
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -120,14 +140,93 @@ export function TrackingMap({
   const destMarkerRef = useRef<MapboxMarker | null>(null);
   const mapLoadedRef = useRef(false);
   const animationFrameRef = useRef<number | null>(null);
+  const followVehicleRef = useRef(true);
+  const alignBearingRef = useRef(false);
+
+  const [followVehicle, setFollowVehicle] = useState(true);
+  const [alignBearing, setAlignBearing] = useState(false);
+
+  useEffect(() => {
+    followVehicleRef.current = followVehicle;
+  }, [followVehicle]);
+
+  useEffect(() => {
+    alignBearingRef.current = alignBearing;
+  }, [alignBearing]);
 
   const initialCenter = currentPosition ?? originCoords;
+
+  const applyCamera = useCallback(
+    (options: {
+      center?: [number, number];
+      zoom?: number;
+      bearing?: number;
+      duration?: number;
+    }) => {
+      const map = mapRef.current;
+      if (!map || !mapLoadedRef.current) return;
+
+      map.easeTo({
+        ...(options.center ? { center: options.center } : {}),
+        zoom: options.zoom ?? map.getZoom(),
+        ...(options.bearing != null ? { bearing: options.bearing } : {}),
+        duration: options.duration ?? ANIMATION_MS,
+      });
+    },
+    [],
+  );
+
+  const updateTruckRotation = useCallback(
+    (heading: number | null | undefined) => {
+      const map = mapRef.current;
+      const marker = truckMarkerRef.current;
+      if (!map || !marker) return;
+
+      const truckEl = marker.getElement();
+      truckEl.style.transform = `rotate(${resolveMarkerRotation(
+        heading,
+        map.getBearing(),
+        alignBearingRef.current,
+      )}deg)`;
+    },
+    [],
+  );
+
+  const handleZoomIn = useCallback(() => {
+    mapRef.current?.zoomIn({ duration: ZOOM_ANIMATION_MS });
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    mapRef.current?.zoomOut({ duration: ZOOM_ANIMATION_MS });
+  }, []);
+
+  const handleCenterVehicle = useCallback(() => {
+    if (!currentPosition) return;
+
+    setFollowVehicle(true);
+    applyCamera({
+      center: [currentPosition.longitude, currentPosition.latitude],
+      zoom: FOLLOW_VEHICLE_ZOOM,
+      bearing: resolveCameraBearing(currentPosition.heading, alignBearingRef.current),
+    });
+    updateTruckRotation(currentPosition.heading);
+  }, [applyCamera, currentPosition, updateTruckRotation]);
+
+  const handleToggleBearing = useCallback(() => {
+    const next = !alignBearingRef.current;
+    setAlignBearing(next);
+
+    const bearing = resolveCameraBearing(currentPosition?.heading, next);
+    applyCamera({ bearing, duration: 300 });
+    updateTruckRotation(currentPosition?.heading);
+  }, [applyCamera, currentPosition?.heading, updateTruckRotation]);
 
   useEffect(() => {
     if (!accessToken?.trim() || !containerRef.current) return;
 
     let mapInstance: MapboxMap | null = null;
     let onLoadHandler: (() => void) | null = null;
+    let onDragStartHandler: (() => void) | null = null;
     let cancelled = false;
 
     void (async () => {
@@ -150,6 +249,9 @@ export function TrackingMap({
           antialias: true,
         });
         mapRef.current = mapInstance;
+
+        onDragStartHandler = () => setFollowVehicle(false);
+        mapInstance.on('dragstart', onDragStartHandler);
 
         onLoadHandler = () => {
           if (!mapInstance) return;
@@ -214,7 +316,7 @@ export function TrackingMap({
             .addTo(mapInstance);
 
           const start = currentPosition ?? originCoords;
-          const truckEl = createTruckMarkerElement(currentPosition?.heading ?? null);
+          const truckEl = createTruckMarkerElement();
           truckMarkerRef.current = new mapboxgl.Marker({ element: truckEl })
             .setLngLat([start.longitude, start.latitude])
             .addTo(mapInstance);
@@ -245,8 +347,9 @@ export function TrackingMap({
       originMarkerRef.current = null;
       destMarkerRef.current = null;
 
-      if (mapInstance && onLoadHandler) {
-        mapInstance.off('load', onLoadHandler);
+      if (mapInstance) {
+        if (onLoadHandler) mapInstance.off('load', onLoadHandler);
+        if (onDragStartHandler) mapInstance.off('dragstart', onDragStartHandler);
       }
 
       if (mapInstance) {
@@ -287,10 +390,7 @@ export function TrackingMap({
     const marker = truckMarkerRef.current;
     if (!map || !marker || !mapLoadedRef.current || !currentPosition) return;
 
-    const truckEl = marker.getElement();
-    if (currentPosition.heading != null && Number.isFinite(currentPosition.heading)) {
-      truckEl.style.transform = `rotate(${currentPosition.heading}deg)`;
-    }
+    updateTruckRotation(currentPosition.heading);
 
     const from = marker.getLngLat();
     const to = {
@@ -298,42 +398,68 @@ export function TrackingMap({
       lat: currentPosition.latitude,
     };
 
-    if (from.lng === to.lng && from.lat === to.lat) return;
+    const positionChanged = from.lng !== to.lng || from.lat !== to.lat;
+    const cameraBearing = resolveCameraBearing(
+      currentPosition.heading,
+      alignBearingRef.current,
+    );
 
-    if (animationFrameRef.current != null) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-
-    const startTime = performance.now();
-
-    const step = (now: number) => {
-      const t = Math.min((now - startTime) / ANIMATION_MS, 1);
-      const eased = easeInOut(t);
-      const lng = from.lng + (to.lng - from.lng) * eased;
-      const lat = from.lat + (to.lat - from.lat) * eased;
-      marker.setLngLat([lng, lat]);
-
-      if (t < 1) {
-        animationFrameRef.current = requestAnimationFrame(step);
-      } else {
+    if (positionChanged) {
+      if (animationFrameRef.current != null) {
+        cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
-    };
 
-    animationFrameRef.current = requestAnimationFrame(step);
-    map.easeTo({
-      center: [to.lng, to.lat],
-      duration: ANIMATION_MS,
-    });
-  }, [currentPosition]);
+      const startTime = performance.now();
+
+      const step = (now: number) => {
+        const t = Math.min((now - startTime) / ANIMATION_MS, 1);
+        const eased = easeInOut(t);
+        const lng = from.lng + (to.lng - from.lng) * eased;
+        const lat = from.lat + (to.lat - from.lat) * eased;
+        marker.setLngLat([lng, lat]);
+
+        if (t < 1) {
+          animationFrameRef.current = requestAnimationFrame(step);
+        } else {
+          animationFrameRef.current = null;
+        }
+      };
+
+      animationFrameRef.current = requestAnimationFrame(step);
+    }
+
+    if (followVehicleRef.current) {
+      map.easeTo({
+        center: [to.lng, to.lat],
+        zoom: map.getZoom(),
+        bearing: cameraBearing,
+        duration: ANIMATION_MS,
+      });
+    } else if (alignBearingRef.current) {
+      map.easeTo({
+        bearing: cameraBearing,
+        duration: ANIMATION_MS,
+      });
+    }
+  }, [currentPosition, updateTruckRotation]);
 
   return (
-    <div
-      ref={containerRef}
-      className="h-full w-full"
-      role="img"
-      aria-label="Mapa de rastreamento do motorista"
-    />
+    <div className="relative h-full w-full">
+      <div
+        ref={containerRef}
+        className="h-full w-full"
+        role="img"
+        aria-label="Mapa de rastreamento do motorista"
+      />
+      <TrackingMapControls
+        alignBearing={alignBearing}
+        hasPosition={currentPosition != null}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onCenterVehicle={handleCenterVehicle}
+        onToggleBearing={handleToggleBearing}
+      />
+    </div>
   );
 }

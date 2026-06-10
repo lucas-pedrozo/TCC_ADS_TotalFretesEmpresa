@@ -497,6 +497,11 @@ export const resources = {
           trackingTraveled: "Percorrido",
           trackingRemaining: "Restante",
           trackingLastUpdate: "Última atualização",
+          trackingZoomIn: "Aumentar zoom",
+          trackingZoomOut: "Diminuir zoom",
+          trackingCenterVehicle: "Centralizar no veículo",
+          trackingHeadingUp: "Alinhar mapa na direção do veículo",
+          trackingNorthUp: "Norte para cima",
         },
         freightWizard: {
           stepOrigin: "Origem da carga",
@@ -1540,6 +1545,11 @@ export const resources = {
           trackingTraveled: "Traveled",
           trackingRemaining: "Remaining",
           trackingLastUpdate: "Last update",
+          trackingZoomIn: "Zoom in",
+          trackingZoomOut: "Zoom out",
+          trackingCenterVehicle: "Center on vehicle",
+          trackingHeadingUp: "Align map to vehicle heading",
+          trackingNorthUp: "North up",
         },
         freightWizard: {
           stepOrigin: "Pickup location",
