@@ -389,8 +389,9 @@ export const resources = {
           cargoUnavailable: "Carga não informada",
         },
         freightForm: {
-          freightName: "Nome do frete",
-          freightNamePlaceholder: "Nome do frete",
+          freightName: "Nome da carga",
+          freightNamePlaceholder: "Nome da carga: exemplo Carga de Soja",
+          invalidFreightName: "Informe entre 7 e 60 caracteres.",
           cargoType: "Tipo de carga",
           selectCargoType: "Selecione o tipo",
           status: "Status",
@@ -1431,8 +1432,9 @@ export const resources = {
           cargoUnavailable: "Cargo not specified",
         },
         freightForm: {
-          freightName: "Freight name",
-          freightNamePlaceholder: "Freight name",
+          freightName: "Cargo name",
+          freightNamePlaceholder: "Cargo name: e.g. Soybean Cargo",
+          invalidFreightName: "Enter between 7 and 60 characters.",
           cargoType: "Cargo type",
           selectCargoType: "Select type",
           status: "Status",
