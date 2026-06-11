@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useAuth } from "@/context/AuthContext";
+import { runDelayedLogoutRedirect } from "@/utils/authLogoutRedirect";
 import { AUTH_REDIRECT_DELAY_MS } from "@/utils/ui";
 
 type NavigateWithFade = (to: string, options?: NavigateOptions) => void;
@@ -17,11 +18,14 @@ export function useLogoutRedirect(navigateWithFade: NavigateWithFade) {
   const { t } = useTranslation();
 
   return useCallback(async () => {
-    await logout();
-    toast.info(t("common.logoutRedirectNotice"), {
-      duration: AUTH_REDIRECT_DELAY_MS,
+    await runDelayedLogoutRedirect({
+      showNotice: () => {
+        toast.info(t("common.logoutRedirectNotice"), {
+          duration: AUTH_REDIRECT_DELAY_MS,
+        });
+      },
+      navigateAway: () => navigateWithFade("/Start", { replace: true }),
+      completeLogout: logout,
     });
-    await new Promise((resolve) => setTimeout(resolve, AUTH_REDIRECT_DELAY_MS));
-    navigateWithFade("/Start", { replace: true });
   }, [logout, navigateWithFade, t]);
 }

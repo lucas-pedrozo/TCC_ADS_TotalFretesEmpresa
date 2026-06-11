@@ -1,11 +1,11 @@
-import { Bell, LogOut, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { AppLanguage } from "@/i18n/resources";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CompanyLogo } from "@/components/custom/CompanyLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,15 +13,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CompanyData } from "@/hooks/useGetCompany";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/NotificationBell";
 
 function companyInitials(name: string): string {
   const trimmed = name.trim();
@@ -124,27 +119,7 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
       </div>
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-        <TooltipProvider delay={200}>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative size-9 shrink-0 touch-manipulation"
-                  aria-label={t("header.notifications")}
-                >
-                  <Bell className="size-[1.15rem] sm:size-5" />
-                  <span
-                    className="absolute top-1.5 right-1.5 size-2 rounded-full border-2 border-background bg-brand-green-light"
-                    aria-hidden
-                  />
-                </Button>
-              }
-            />
-            <TooltipContent>{t("header.notifications")}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <NotificationBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -158,16 +133,12 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
               t("header.companyNameFallback")
             }
           >
-            <Avatar className="size-8">
-              {imageUrl ? <AvatarImage src={imageUrl} alt={displayName} /> : null}
-              <AvatarFallback
-                className={cn(
-                  "bg-brand-green-dark text-xs font-semibold text-white"
-                )}
-              >
-                {companyInitials(displayName)}
-              </AvatarFallback>
-            </Avatar>
+            <CompanyLogo
+              size="header"
+              imageUrl={imageUrl}
+              alt={displayName}
+              initials={companyInitials(displayName)}
+            />
             <span className="hidden min-w-0 max-w-[min(200px,40vw)] truncate text-left text-sm font-semibold sm:inline">
               {isCompanyLoading ? (
                 <Skeleton className="inline-block h-4 w-20 align-middle sm:w-24" />
@@ -189,16 +160,12 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
             )}
           >
             <div className="flex gap-3 p-3">
-              <Avatar className="size-12 shrink-0 rounded-full">
-                {imageUrl ? <AvatarImage src={imageUrl} alt={displayName} /> : null}
-                <AvatarFallback
-                  className={cn(
-                    "rounded-full bg-brand-green-dark text-sm font-semibold text-white"
-                  )}
-                >
-                  {companyInitials(displayName)}
-                </AvatarFallback>
-              </Avatar>
+              <CompanyLogo
+                size="menu"
+                imageUrl={imageUrl}
+                alt={displayName}
+                initials={companyInitials(displayName)}
+              />
               <div className="flex min-w-0 flex-1 flex-col gap-2">
                 <p className="pt-1 truncate text-sm font-semibold leading-snug text-foreground">
                   {isCompanyLoading ? (

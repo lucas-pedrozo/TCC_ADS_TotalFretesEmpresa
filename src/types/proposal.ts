@@ -5,6 +5,16 @@ export type ProposalStatusTypeDto = {
   name: string;
 };
 
+export type UserImageDto = {
+  url?: string | null;
+};
+
+export type DriverSummaryDto = {
+  id: number;
+  name?: string | null;
+  UserImage?: UserImageDto | null;
+};
+
 export type ProposalDto = {
   id: number;
   freight_id: number;
@@ -16,6 +26,7 @@ export type ProposalDto = {
   updatedAt?: string;
   ProposalStatusType?: ProposalStatusTypeDto | null;
   Freight?: FreightDto | null;
+  Driver?: DriverSummaryDto | null;
 };
 
 export type ProposalAcceptResponse = {

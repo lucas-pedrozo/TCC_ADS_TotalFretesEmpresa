@@ -1,12 +1,9 @@
 import {
   ArrowRight,
   BadgeCheck,
-  BellRing,
   CircleDollarSign,
-  FileClock,
   PackageCheck,
   Route,
-  TriangleAlert,
   Truck,
   TruckIcon,
 } from "lucide-react";
@@ -14,7 +11,7 @@ import { useMemo } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -31,21 +28,21 @@ import { cn } from "@/lib/utils";
 import { HomeKpiCard } from "@/pages/Home/components/HomeKpiCard";
 import { HomeLineChart } from "@/pages/Home/components/HomeLineChart";
 import { HomeProgressMetric } from "@/pages/Home/components/HomeProgressMetric";
+import { HomeRecentNotifications } from "@/pages/Home/components/HomeRecentNotifications";
 import type { FreightDto } from "@/types/freight";
 import { formatDateShortLabel, formatDateTimeLabel } from "@/utils/dateFormat";
+import {
+  addDays,
+  getConcludedTimestamp,
+  getPublishedTimestamp,
+  isConcludedFreight,
+  isWithinRange,
+  startOfDay,
+} from "@/utils/freightChartTimestamps";
 import { formatFreightCurrencyAmount } from "@/utils/freightFormat";
 import { initialsFromName } from "@/utils/person";
 import { getFreightFromProposal, resolveProposalSummary } from "@/utils/proposal";
 import { selectableItemHoverClassName } from "@/utils/ui";
-
-type MockNotification = {
-  id: string;
-  title: string;
-  description: string;
-  timeLabel: string;
-  icon: typeof TriangleAlert;
-  iconClassName: string;
-};
 
 function getLocaleTag(language: AppLanguage) {
   return language === "en" ? "en-US" : "pt-BR";
@@ -77,63 +74,43 @@ function formatLongDate(language: AppLanguage) {
   }).format(new Date());
 }
 
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
 function percentage(part: number, total: number) {
   if (!total) return 0;
   return (part / total) * 100;
 }
 
 function buildEvolutionSeries(freights: FreightDto[], language: AppLanguage) {
-  const pointCount = 7;
-  const endDate = startOfDay(new Date());
-  const startDate = addDays(endDate, -30);
-  const createdTimestamps = freights
-    .map((freight) => toTimestamp(freight.createdAt))
-    .filter((value) => value > 0);
-  const completedTimestamps = freights
-    .filter((freight) => resolveFreightStatusSlug({
-      statusId: freight.status_id,
-      statusName: freight.FreightStatusType?.name ?? freight.status?.name,
-    }) === "concluido")
-    .map((freight) => toTimestamp(freight.updatedAt ?? freight.createdAt))
-    .filter((value) => value > 0);
+  const bucketCount = 7;
+  const totalDays = 30;
+  const today = startOfDay(new Date());
+  const tomorrow = addDays(today, 1);
+  const bucketSize = Math.ceil(totalDays / bucketCount);
+  const rangeStart = addDays(today, -(totalDays - 1));
 
   const labels: string[] = [];
   const published: number[] = [];
   const completed: number[] = [];
 
-  for (let index = 0; index < pointCount; index += 1) {
-    const progress = index / (pointCount - 1);
-    const pointDate =
-      index === pointCount - 1
-        ? endDate
-        : addDays(startDate, Math.round(30 * progress));
-    const pointTimestamp = pointDate.getTime();
-    const startTimestamp = startDate.getTime();
+  for (let index = 0; index < bucketCount; index += 1) {
+    const start = addDays(rangeStart, index * bucketSize);
+    const end = index === bucketCount - 1 ? tomorrow : addDays(start, bucketSize);
 
     labels.push(
       new Intl.DateTimeFormat(getLocaleTag(language), {
         day: "2-digit",
         month: "2-digit",
-      }).format(pointDate)
+      }).format(start)
     );
     published.push(
-      createdTimestamps.filter(
-        (timestamp) => timestamp >= startTimestamp && timestamp <= pointTimestamp
+      freights.filter((freight) =>
+        isWithinRange(getPublishedTimestamp(freight), start, end)
       ).length
     );
     completed.push(
-      completedTimestamps.filter(
-        (timestamp) => timestamp >= startTimestamp && timestamp <= pointTimestamp
+      freights.filter(
+        (freight) =>
+          isConcludedFreight(freight) &&
+          isWithinRange(getConcludedTimestamp(freight), start, end)
       ).length
     );
   }
@@ -244,47 +221,6 @@ function HomePage() {
       .slice(0, 5);
   }, [sortedFreights]);
   const recentProposals = useMemo(() => sortedProposals.slice(0, 4), [sortedProposals]);
-
-  const mockNotifications = useMemo<MockNotification[]>(
-    () => [
-      {
-        id: "delay",
-        title: t("pages.home.notifications.delayTitle"),
-        description: t("pages.home.notifications.delayDescription"),
-        timeLabel: t("pages.home.notifications.delayTime"),
-        icon: TriangleAlert,
-        iconClassName:
-          "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100",
-      },
-      {
-        id: "proposal",
-        title: t("pages.home.notifications.proposalTitle"),
-        description: t("pages.home.notifications.proposalDescription"),
-        timeLabel: t("pages.home.notifications.proposalTime"),
-        icon: BellRing,
-        iconClassName: "bg-sky-100 text-sky-900 dark:bg-sky-950/40 dark:text-sky-100",
-      },
-      {
-        id: "completed",
-        title: t("pages.home.notifications.completedTitle"),
-        description: t("pages.home.notifications.completedDescription"),
-        timeLabel: t("pages.home.notifications.completedTime"),
-        icon: BadgeCheck,
-        iconClassName:
-          "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100",
-      },
-      {
-        id: "documents",
-        title: t("pages.home.notifications.documentsTitle"),
-        description: t("pages.home.notifications.documentsDescription"),
-        timeLabel: t("pages.home.notifications.documentsTime"),
-        icon: FileClock,
-        iconClassName:
-          "bg-violet-100 text-violet-900 dark:bg-violet-950/40 dark:text-violet-100",
-      },
-    ],
-    [t]
-  );
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-muted/20 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
@@ -525,50 +461,7 @@ function HomePage() {
             </div>
           </div>
 
-          <aside className="min-w-0 rounded-[28px] border border-border bg-background p-5 shadow-sm md:p-6">
-            <div className="mb-5 space-y-1">
-              <h3 className="text-lg font-semibold text-foreground">
-                {t("pages.home.notifications.title")}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {t("pages.home.notifications.description")}
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              {mockNotifications.map((notification) => {
-                const Icon = notification.icon;
-
-                return (
-                  <article
-                    key={notification.id}
-                    className="rounded-2xl border border-border/80 bg-muted/10 p-4"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={cn(
-                          "flex size-10 shrink-0 items-center justify-center rounded-2xl",
-                          notification.iconClassName
-                        )}
-                      >
-                        <Icon className="size-4.5" />
-                      </div>
-
-                      <div className="min-w-0 space-y-1">
-                        <p className="text-sm font-semibold text-foreground">
-                          {notification.title}
-                        </p>
-                        <p className="text-sm leading-5 text-muted-foreground">
-                          {notification.description}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{notification.timeLabel}</p>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </aside>
+          <HomeRecentNotifications />
         </section>
 
         <section className="min-w-0 rounded-[28px] border border-border bg-background p-5 shadow-sm md:p-6">
@@ -605,9 +498,11 @@ function HomePage() {
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {recentProposals.map((proposal) => {
                 const linkedFreight = getFreightFromProposal(proposal);
-                const driverLabel = t("pages.home.driverFallback", {
+                const driverFallback = t("pages.home.driverFallback", {
                   id: proposal.driver_id,
                 });
+                const driverLabel = proposal.Driver?.name?.trim() || driverFallback;
+                const driverImageUrl = proposal.Driver?.UserImage?.url?.trim() || null;
 
                 return (
                   <Link
@@ -617,6 +512,9 @@ function HomePage() {
                   >
                     <div className="flex items-start gap-3">
                       <Avatar className="size-11">
+                        {driverImageUrl ? (
+                          <AvatarImage src={driverImageUrl} alt={driverLabel} />
+                        ) : null}
                         <AvatarFallback className="bg-brand-green-light/60 text-sm font-semibold text-brand-green-dark">
                           {initialsFromName(driverLabel)}
                         </AvatarFallback>

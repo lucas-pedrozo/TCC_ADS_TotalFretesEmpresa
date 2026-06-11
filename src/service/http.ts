@@ -1,5 +1,9 @@
 import axios from "axios";
 import i18n, { normalizeLanguage } from "@/i18n";
+import {
+  isSessionInvalidHttpError,
+  notifySessionExpired,
+} from "@/service/authService";
 
 const apiBaseUrl = import.meta.env.VITE_API_URL?.trim() || "/api";
 
@@ -22,7 +26,12 @@ http.interceptors.request.use((config) => {
 
 http.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error)
+  (error) => {
+    if (isSessionInvalidHttpError(error)) {
+      notifySessionExpired();
+    }
+    return Promise.reject(error);
+  },
 );
 
 export default http;

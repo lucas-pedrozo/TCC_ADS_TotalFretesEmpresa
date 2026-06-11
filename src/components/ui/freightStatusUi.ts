@@ -58,14 +58,56 @@ export function resolveFreightStatusSlug(params: {
   statusId?: number | null;
   statusName?: string | null;
 }): FreightStatusSlug {
-  if (params.statusName) {
-    return parseStatusSlug(params.statusName);
-  }
   if (params.statusId != null) {
     const fromId = STATUS_SLUG_BY_ID[params.statusId];
     if (fromId) return fromId;
   }
+  if (params.statusName) {
+    return parseStatusSlug(params.statusName);
+  }
   return "disponivel";
+}
+
+const PIPELINE_INDEX: Record<FreightStatusSlug, number> = {
+  disponivel: 0,
+  cancelado: -1,
+  vinculado: 1,
+  em_transito: 2,
+  em_rota_entrega: 3,
+  entregue: 4,
+  concluido: 5,
+};
+
+function pipelineProgress(slug: FreightStatusSlug): number {
+  return PIPELINE_INDEX[slug] ?? 0;
+}
+
+/** Usa status_id/nome da API e avança conforme o histórico (corrige status_id desatualizado no banco). */
+export function resolveEffectiveFreightStatusSlug(params: {
+  statusId?: number | null;
+  statusName?: string | null;
+  history?: ReadonlyArray<{ slug: FreightStatusSlug; occurredAt: string }>;
+}): FreightStatusSlug {
+  const fromApi = resolveFreightStatusSlug({
+    statusId: params.statusId,
+    statusName: params.statusName,
+  });
+
+  if (!params.history?.length) return fromApi;
+
+  let best = fromApi;
+  let bestProgress = pipelineProgress(fromApi);
+
+  for (const entry of params.history) {
+    if (entry.slug === "cancelado") continue;
+    const progress = pipelineProgress(entry.slug);
+    if (progress > bestProgress) {
+      bestProgress = progress;
+      best = entry.slug;
+    }
+  }
+
+  return best;
 }
 
 export function statusBadgeClass(slug: FreightStatusSlug): string {

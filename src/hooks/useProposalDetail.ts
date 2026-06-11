@@ -25,6 +25,7 @@ export function useProposalDetail({ proposalId }: UseProposalDetailParams) {
   const [driverProfile, setDriverProfile] = useState<{
     name: string | null;
     vehicle: string | null;
+    imageUrl: string | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -64,6 +65,10 @@ export function useProposalDetail({ proposalId }: UseProposalDetailParams) {
       return;
     }
 
+    const driverFromProposal = proposal?.Driver;
+    const proposalImageUrl = driverFromProposal?.UserImage?.url?.trim() || null;
+    const proposalName = driverFromProposal?.name?.trim() || null;
+
     let cancelled = false;
 
     async function loadDriverProfile() {
@@ -72,15 +77,21 @@ export function useProposalDetail({ proposalId }: UseProposalDetailParams) {
         const vehicleTypeName = data.Vehicle?.VehicleType?.nome ?? data.Vehicle?.VehicleType?.name;
         const markModel = [data.Vehicle?.mark, data.Vehicle?.model].filter(Boolean).join(" ");
         const vehicle = vehicleTypeName || markModel || null;
+        const imageUrl = proposalImageUrl || data.UserImage?.url?.trim() || null;
         if (!cancelled) {
           setDriverProfile({
-            name: data.name?.trim() || null,
+            name: proposalName || data.name?.trim() || null,
             vehicle,
+            imageUrl,
           });
         }
       } catch {
         if (!cancelled) {
-          setDriverProfile({ name: null, vehicle: null });
+          setDriverProfile({
+            name: proposalName,
+            vehicle: null,
+            imageUrl: proposalImageUrl,
+          });
         }
       }
     }
@@ -90,7 +101,7 @@ export function useProposalDetail({ proposalId }: UseProposalDetailParams) {
     return () => {
       cancelled = true;
     };
-  }, [proposal?.driver_id]);
+  }, [proposal?.driver_id, proposal?.Driver]);
 
   const handleAccept = useCallback(async () => {
     if (!proposal?.id) return false;

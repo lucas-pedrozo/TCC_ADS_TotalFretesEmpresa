@@ -114,6 +114,7 @@ export function HomeLineChart({ labels, published, completed }: HomeLineChartPro
           className="block h-[280px] w-full"
           role="img"
           aria-label="Grafico de evolucao dos fretes"
+          onMouseLeave={() => setHoveredIndex(null)}
         >
           <defs>
             <linearGradient id="home-published-gradient" x1="0" x2="0" y1="0" y2="1">
@@ -291,7 +292,6 @@ export function HomeLineChart({ labels, published, completed }: HomeLineChartPro
                 fill="transparent"
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseMove={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex((current) => (current === index ? null : current))}
               />
             );
           })}

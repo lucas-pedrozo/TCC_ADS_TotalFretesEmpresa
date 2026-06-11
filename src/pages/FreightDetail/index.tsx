@@ -6,6 +6,7 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
+  Loader2,
   MapPin,
   Package,
   Scale,
@@ -19,15 +20,18 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { RejectProposalDialog } from "@/components/proposals/RejectProposalDialog";
+import { fetchStoredImageById } from "@/components/admin/AdminImageField";
+import { CargoTypeImage } from "@/components/freights/CargoTypeImage";
 import { FreightForm } from "@/components/ui/freightForm";
 import { AddressMapPicker, type MapPinValue } from "@/components/maps/AddressMapPicker";
 import {
   FREIGHT_STATUS_LABEL_KEY,
-  resolveFreightStatusSlug,
+  resolveEffectiveFreightStatusSlug,
   statusBadgeClass,
 } from "@/components/ui/freightStatusUi";
 import { FreightStatusTimeline } from "@/components/ui/freightStatusTimeline";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -53,6 +57,7 @@ import { haversineKm } from "@/utils/haversineKm";
 import { isValidMapPin } from "@/utils/freightCreate";
 import { formatDateTimeLabel } from "@/utils/dateFormat";
 import { initialsFromName } from "@/utils/person";
+import { FreightTrackingModal } from "@/components/tracking/FreightTrackingModal";
 import { selectableItemHoverClassName } from "@/utils/ui";
 
 function DetailField({
@@ -117,8 +122,11 @@ const FreightDetailPage = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [rejectTargetProposalId, setRejectTargetProposalId] = useState<number | null>(null);
+  const [trackingOpen, setTrackingOpen] = useState(false);
   const [editOrigin, setEditOrigin] = useState<MapPinValue | null>(null);
   const [editDestination, setEditDestination] = useState<MapPinValue | null>(null);
+  const [cargoTypeImageUrl, setCargoTypeImageUrl] = useState<string | null>(null);
+  const [loadingCargoTypeImage, setLoadingCargoTypeImage] = useState(false);
   const {
     freight,
     cargoTypes,
@@ -155,6 +163,34 @@ const FreightDetailPage = () => {
     });
   }, [editing, freight]);
 
+  const resolvedCargoType = freight?.cargo ?? freight?.CargoType ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCargoTypeImage = async () => {
+      const imageId = resolvedCargoType?.imageCargo_id;
+      if (!imageId || imageId <= 0) {
+        setCargoTypeImageUrl(null);
+        setLoadingCargoTypeImage(false);
+        return;
+      }
+
+      setLoadingCargoTypeImage(true);
+      const stored = await fetchStoredImageById("cargo-images", imageId);
+      if (!cancelled) {
+        setCargoTypeImageUrl(stored?.url ?? null);
+        setLoadingCargoTypeImage(false);
+      }
+    };
+
+    void loadCargoTypeImage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedCargoType?.imageCargo_id]);
+
   if (!id) {
     return null;
   }
@@ -178,9 +214,10 @@ const FreightDetailPage = () => {
     );
   }
 
-  const slug = resolveFreightStatusSlug({
+  const slug = resolveEffectiveFreightStatusSlug({
     statusId: freight.status_id,
     statusName: freight.FreightStatusType?.name ?? freight.status?.name,
+    history: statusTimelineHistory,
   });
   const distKm = haversineKm(
     freight.origin_lat,
@@ -214,6 +251,11 @@ const FreightDetailPage = () => {
   const bestAmount = featuredProposal?.value ?? displayValue;
   const assignedDriverProfile =
     freight.assignedDriver_id != null ? driverProfilesById[freight.assignedDriver_id] : undefined;
+
+  const canTrackLive = slug === "em_transito" || slug === "em_rota_entrega";
+  const showClosedTracking = slug === "entregue" || slug === "concluido";
+  const freightDisplayName =
+    freight.name?.trim() ? freight.name.trim() : t("pages.freightDetail.title", { id: freight.id });
 
   async function onSubmitUpdate(body: FreightCargoStepBody) {
     if (!isValidMapPin(editOrigin) || !isValidMapPin(editDestination)) {
@@ -336,9 +378,35 @@ const FreightDetailPage = () => {
                   <DetailField icon={Tag} label={t("pages.freightDetail.fieldFreightName")}>
                     {freight.name?.trim() ? freight.name.trim() : "—"}
                   </DetailField>
-                  <DetailField icon={Package} label={t("pages.freightDetail.fieldCargoType")}>
-                    {freight.CargoType?.name ?? "—"}
-                  </DetailField>
+                  <div className="flex flex-col gap-2.5">
+                    <div
+                      className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
+                      aria-hidden
+                    >
+                      <Package className="size-[18px]" strokeWidth={2} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t("pages.freightDetail.fieldCargoType")}
+                      </p>
+                      <p className="mt-1 text-sm font-bold leading-snug text-foreground">
+                        {resolvedCargoType?.name ?? "—"}
+                      </p>
+                      {loadingCargoTypeImage ? (
+                        <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Loader2 className="size-3 animate-spin" aria-hidden />
+                          {t("pages.freightDetail.loading")}
+                        </p>
+                      ) : (
+                        <CargoTypeImage
+                          imageUrl={cargoTypeImageUrl}
+                          name={resolvedCargoType?.name}
+                          size="preview"
+                          className="mt-2 rounded-lg"
+                        />
+                      )}
+                    </div>
+                  </div>
                   <DetailField icon={Scale} label={t("pages.freightDetail.fieldWeight")}>
                     {weightKg != null ? formatFreightWeightKg(weightKg, lang) : "—"}
                   </DetailField>
@@ -385,6 +453,28 @@ const FreightDetailPage = () => {
                       </DetailField>
                     </div>
                   </div>
+                ) : null}
+
+                {canTrackLive ? (
+                  <Button
+                    type="button"
+                    className="mt-6 h-11 w-full gap-2 rounded-lg bg-brand-green text-white hover:bg-brand-green-dark"
+                    onClick={() => setTrackingOpen(true)}
+                  >
+                    <MapPin className="size-4 shrink-0" aria-hidden />
+                    {t("pages.freightDetail.trackDriverLive")}
+                  </Button>
+                ) : null}
+
+                {showClosedTracking ? (
+                  <Button
+                    type="button"
+                    className="mt-6 h-11 w-full gap-2 rounded-lg bg-brand-green text-white hover:bg-brand-green-dark"
+                    onClick={() => setTrackingOpen(true)}
+                  >
+                    <MapPin className="size-4 shrink-0" aria-hidden />
+                    {t("pages.freightDetail.viewTelemetryHistory")}
+                  </Button>
                 ) : null}
               </section>
 
@@ -448,7 +538,12 @@ const FreightDetailPage = () => {
                       (proposal.ProposalStatusType?.name ?? "").toLowerCase() === "enviada";
                     const proposalDriverName =
                       driverProfilesById[proposal.driver_id]?.name ??
+                      proposal.Driver?.name?.trim() ??
                       t("pages.freightDetail.driverId", { id: proposal.driver_id });
+                    const proposalDriverImageUrl =
+                      driverProfilesById[proposal.driver_id]?.imageUrl?.trim() ||
+                      proposal.Driver?.UserImage?.url?.trim() ||
+                      null;
                     const proposalVehicle =
                       driverProfilesById[proposal.driver_id]?.vehicle ??
                       t("pages.freightDetail.vehicleUnavailable");
@@ -476,12 +571,14 @@ const FreightDetailPage = () => {
                         ) : null}
 
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                          <div
-                            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-muted-foreground"
-                            aria-hidden
-                          >
-                            {initialsFromName(proposalDriverName)}
-                          </div>
+                          <Avatar className="size-12 shrink-0">
+                            {proposalDriverImageUrl ? (
+                              <AvatarImage src={proposalDriverImageUrl} alt={proposalDriverName} />
+                            ) : null}
+                            <AvatarFallback className="bg-muted text-sm font-bold text-muted-foreground">
+                              {initialsFromName(proposalDriverName)}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="min-w-0 flex-1 space-y-1 pr-2 sm:pr-24">
                             <p className="text-base font-bold text-foreground">{proposalDriverName}</p>
                             <p className="text-sm text-muted-foreground">{proposalVehicle}</p>
@@ -674,6 +771,18 @@ const FreightDetailPage = () => {
             setRejectTargetProposalId(null);
           }
         }}
+      />
+
+      <FreightTrackingModal
+        isOpen={trackingOpen}
+        onClose={() => setTrackingOpen(false)}
+        freightId={String(freight.id)}
+        freightName={freightDisplayName}
+        originLabel={freight.origin_label}
+        destLabel={freight.destination_label}
+        originCoords={{ latitude: freight.origin_lat, longitude: freight.origin_lng }}
+        destCoords={{ latitude: freight.destination_lat, longitude: freight.destination_lng }}
+        totalDistance={distKm}
       />
     </div>
   );

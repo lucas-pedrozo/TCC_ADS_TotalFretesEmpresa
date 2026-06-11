@@ -17,13 +17,18 @@ import {
   currencyInputPlaceholder,
   formatCurrencyInputDisplay,
   formatFreightWeightAmount,
+  FREIGHT_CARGO_NAME_MAX_LENGTH,
+  FREIGHT_CARGO_NAME_MIN_LENGTH,
+  isFreightCargoNameValid,
   kgToWeightDigits,
   sanitizeCurrencyCentsInput,
+  sanitizeFreightCargoNameInput,
   sanitizeWeightDigitsInput,
   weightDigitsToKg,
   weightInputPlaceholder,
 } from "@/utils/freightFormat";
 import { cn } from "@/lib/utils";
+import { CargoTypePicker } from "@/components/freights/CargoTypePicker";
 
 type FreightFormBase = {
   cargoTypes: CargoTypeDto[];
@@ -177,6 +182,7 @@ export function FreightForm(props: FreightFormProps) {
   const lang = i18n.language as AppLanguage;
   const valueInputRef = useRef<HTMLInputElement>(null);
   const weightInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const [cargoType_id, setCargoTypeId] = useState(
     String(initial?.cargoType_id ?? "")
   );
@@ -260,12 +266,20 @@ export function FreightForm(props: FreightFormProps) {
     e.preventDefault();
     valueInputRef.current?.setCustomValidity("");
     weightInputRef.current?.setCustomValidity("");
+    nameInputRef.current?.setCustomValidity("");
 
     const cid = Number(cargoType_id);
     const val = centsDigitsToAmount(valueCentsDigits);
     const wkg = weightDigitsToKg(weightDigits);
     const dl = daysLimit.trim() ? Number(daysLimit) : undefined;
     const sid = status_id.trim() ? Number(status_id) : undefined;
+    const trimmedName = freightName.trim();
+
+    if (!isFreightCargoNameValid(trimmedName)) {
+      nameInputRef.current?.setCustomValidity(t("pages.freightForm.invalidFreightName"));
+      nameInputRef.current?.reportValidity();
+      return;
+    }
 
     if (Number.isNaN(val) || val <= 0) {
       valueInputRef.current?.setCustomValidity(t("pages.freightForm.invalidOriginalValue"));
@@ -280,7 +294,7 @@ export function FreightForm(props: FreightFormProps) {
     if (cargoFieldsOnly) {
       const body: FreightCargoStepBody = {
         cargoType_id: cid,
-        name: freightName.trim(),
+        name: trimmedName,
         originalValue: val,
         weight: wkg,
       };
@@ -300,7 +314,7 @@ export function FreightForm(props: FreightFormProps) {
 
     const body: FreightCreateBody = {
       cargoType_id: cid,
-      name: freightName.trim(),
+      name: trimmedName,
       origin_label: origin_label.trim(),
       origin_lat: olat,
       origin_lng: olng,
@@ -343,31 +357,26 @@ export function FreightForm(props: FreightFormProps) {
                 <Label htmlFor="freight-name">{t("pages.freightForm.freightName")}</Label>
                 <Input
                   id="freight-name"
+                  ref={nameInputRef}
                   required
-                  maxLength={255}
+                  minLength={FREIGHT_CARGO_NAME_MIN_LENGTH}
+                  maxLength={FREIGHT_CARGO_NAME_MAX_LENGTH}
                   autoComplete="off"
                   className={touchInput}
                   value={freightName}
-                  onChange={(e) => setFreightName(e.target.value)}
+                  onChange={(e) => setFreightName(sanitizeFreightCargoNameInput(e.target.value))}
                   placeholder={t("pages.freightForm.freightNamePlaceholder")}
                 />
               </div>
               <div className={field}>
-                <Label htmlFor="freight-cargo-type">{t("pages.freightForm.cargoType")}</Label>
-                <select
-                  id="freight-cargo-type"
-                  required
+                <CargoTypePicker
+                  cargoTypes={cargoTypes}
                   value={cargoType_id}
-                  onChange={(e) => setCargoTypeId(e.target.value)}
-                  className={selectClass}
-                >
-                  <option value="">{t("pages.freightForm.selectCargoType")}</option>
-                  {cargoTypes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setCargoTypeId}
+                  required
+                  disabled={isSubmitting}
+                  selectClassName={selectClass}
+                />
               </div>
               {showStatus ? (
                 <div className={field}>
@@ -456,31 +465,26 @@ export function FreightForm(props: FreightFormProps) {
             <Label htmlFor="freight-name-full">{t("pages.freightForm.freightName")}</Label>
             <Input
               id="freight-name-full"
+              ref={nameInputRef}
               required
-              maxLength={255}
+              minLength={FREIGHT_CARGO_NAME_MIN_LENGTH}
+              maxLength={FREIGHT_CARGO_NAME_MAX_LENGTH}
               autoComplete="off"
               className={touchInput}
               value={freightName}
-              onChange={(e) => setFreightName(e.target.value)}
+              onChange={(e) => setFreightName(sanitizeFreightCargoNameInput(e.target.value))}
               placeholder={t("pages.freightForm.freightNamePlaceholder")}
             />
           </div>
           <div className={field}>
-            <Label htmlFor="freight-cargo-type">{t("pages.freightForm.cargoType")}</Label>
-            <select
-              id="freight-cargo-type"
-              required
+            <CargoTypePicker
+              cargoTypes={cargoTypes}
               value={cargoType_id}
-              onChange={(e) => setCargoTypeId(e.target.value)}
-              className={selectClass}
-            >
-              <option value="">{t("pages.freightForm.selectCargoType")}</option>
-              {cargoTypes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              onChange={setCargoTypeId}
+              required
+              disabled={isSubmitting}
+              selectClassName={selectClass}
+            />
           </div>
 
           {showStatus ? (

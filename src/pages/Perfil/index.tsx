@@ -18,7 +18,7 @@ import { Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CompanyLogo } from "@/components/custom/CompanyLogo";
 import { Button } from "@/components/ui/button";
 import { DatePickerInput } from "@/components/custom/inputs/DatePickerInput";
 import {
@@ -322,19 +322,17 @@ const PerfilPage = () => {
         <section className="rounded-[28px] border bg-background p-5 shadow-sm md:p-6">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              <div className="relative shrink-0">
-                <Avatar className="size-20 md:size-24">
-                  {companyData.image?.url ? (
-                    <AvatarImage src={companyData.image.url} alt={liveName || companyData.name} />
-                  ) : null}
-                  <AvatarFallback className="bg-brand-green-dark text-lg font-semibold text-white md:text-xl">
-                    {companyInitials(liveName || companyData.name)}
-                  </AvatarFallback>
-                </Avatar>
+              <div className="flex shrink-0 flex-col items-center gap-3">
+                <CompanyLogo
+                  size="profile"
+                  imageUrl={companyData.image?.url}
+                  alt={liveName || companyData.name}
+                  initials={companyInitials(liveName || companyData.name)}
+                />
                 <Button
                   type="button"
                   size="sm"
-                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-green px-3 text-white hover:bg-brand-green/90 transition-all duration-200"
+                  className="rounded-full bg-brand-green px-3 text-white hover:bg-brand-green/90 transition-all duration-200"
                   onClick={openDialog}
                 >
                   <Camera className="size-4 transition-all duration-300" />
@@ -342,7 +340,7 @@ const PerfilPage = () => {
                 </Button>
               </div>
 
-              <div className="min-w-0 space-y-2 pt-8 md:pt-0">
+              <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="truncate text-xl font-semibold text-foreground md:text-2xl">
                     {liveName || t("header.companyNameFallback")}
@@ -630,6 +628,7 @@ const PerfilPage = () => {
                           className="h-11 rounded-xl"
                           placeholder={t("pages.profile.placeholders.cnpj")}
                           autoComplete="off"
+                          disabled
                           value={maskCnpjInRfb2229(field.value ?? "")}
                           onBlur={field.onBlur}
                           onChange={(event) => field.onChange(event.target.value)}

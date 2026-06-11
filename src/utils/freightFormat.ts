@@ -45,6 +45,25 @@ export function formatFreightDistanceKm(km: number, locale: AppLanguage): string
 const MAX_CENT_DIGITS = 14;
 const MAX_WEIGHT_DIGITS = 9;
 
+export const FREIGHT_CARGO_NAME_MIN_LENGTH = 7;
+export const FREIGHT_CARGO_NAME_MAX_LENGTH = 60;
+
+/** Letras, números, espaços e pontuação comum em descrições de carga. */
+export function sanitizeFreightCargoNameInput(raw: string): string {
+  return raw
+    .replace(/[^\p{L}\p{N}\s\-.,/()&]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .slice(0, FREIGHT_CARGO_NAME_MAX_LENGTH);
+}
+
+export function isFreightCargoNameValid(name: string): boolean {
+  const trimmed = name.trim();
+  return (
+    trimmed.length >= FREIGHT_CARGO_NAME_MIN_LENGTH &&
+    trimmed.length <= FREIGHT_CARGO_NAME_MAX_LENGTH
+  );
+}
+
 /** Apenas dígitos, representando centavos (ex.: "1234" → R$ 12,34). */
 export function sanitizeCurrencyCentsInput(raw: string): string {
   return raw.replace(/\D/g, "").slice(0, MAX_CENT_DIGITS);

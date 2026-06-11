@@ -15,7 +15,10 @@ import type {
   FreightUpdateResponse,
 } from "@/types/freight";
 import type { ProposalAcceptResponse, ProposalDto, ProposalRejectResponse } from "@/types/proposal";
-import type { UserDto } from "@/types/user";
+import {
+  resolveDriverProfilesFromProposals,
+  type DriverProfile,
+} from "@/utils/driverProfiles";
 import http from "@/service/http";
 import { pickBestProposal } from "@/utils/proposal";
 import { traduzMensagemApi, trataErroAxios } from "@/utils/trataErroAxios";
@@ -35,9 +38,7 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
   const [cargoTypes, setCargoTypes] = useState<CargoTypeDto[]>([]);
   const [statusTypes, setStatusTypes] = useState<FreightStatusTypeDto[]>([]);
   const [proposals, setProposals] = useState<ProposalDto[]>([]);
-  const [driverProfilesById, setDriverProfilesById] = useState<
-    Record<number, { name: string | null; vehicle: string | null }>
-  >({});
+  const [driverProfilesById, setDriverProfilesById] = useState<Record<number, DriverProfile>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -80,8 +81,7 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
   }, [visibleProposals, freight?.originalValue]);
 
   useEffect(() => {
-    const driverIds = [...new Set(proposals.map((proposal) => proposal.driver_id).filter(Boolean))];
-    if (driverIds.length === 0) {
+    if (proposals.length === 0) {
       setDriverProfilesById({});
       return;
     }
@@ -89,22 +89,9 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
     let cancelled = false;
 
     async function loadDriverProfiles() {
-      const entries = await Promise.all(
-        driverIds.map(async (driverId) => {
-          try {
-            const { data } = await http.get<UserDto>(`/user/${driverId}`);
-            const vehicleTypeName = data.Vehicle?.VehicleType?.nome ?? data.Vehicle?.VehicleType?.name;
-            const markModel = [data.Vehicle?.mark, data.Vehicle?.model].filter(Boolean).join(" ");
-            const nextVehicle = vehicleTypeName || markModel || null;
-            return [driverId, { name: data.name?.trim() || null, vehicle: nextVehicle }] as const;
-          } catch {
-            return [driverId, { name: null, vehicle: null }] as const;
-          }
-        })
-      );
-
+      const profiles = await resolveDriverProfilesFromProposals(proposals);
       if (!cancelled) {
-        setDriverProfilesById(Object.fromEntries(entries));
+        setDriverProfilesById(profiles);
       }
     }
 

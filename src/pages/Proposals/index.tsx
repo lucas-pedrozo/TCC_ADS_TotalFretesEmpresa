@@ -57,7 +57,7 @@ const ProposalsPage = () => {
     canGoNext,
     goPrev,
     goNext,
-    driverProfilesById,
+    driverProfilesById: _driverProfilesById,
   } = useProposalsListPage();
 
   const resolvedSummary = useMemo(
@@ -185,12 +185,7 @@ const ProposalsPage = () => {
           ) : (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {items.map((proposal) => (
-                <ProposalCard
-                  key={proposal.id}
-                  proposal={proposal}
-                  lang={lang}
-                  driverName={driverProfilesById[proposal.driver_id]?.name}
-                />
+                <ProposalCard key={proposal.id} proposal={proposal} lang={lang} />
               ))}
             </div>
           )}

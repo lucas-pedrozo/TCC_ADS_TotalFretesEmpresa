@@ -14,8 +14,12 @@ export const validateEmail = (email: string): boolean => {
   return z.email().safeParse(email).success;
 };
 
-export const validatePassword = (password: string): boolean => {
-  return z.string().min(8).safeParse(password).success;
+export const validatePassword = (value: string): boolean => {
+  const hasMinLength = value.length >= 8;
+  const hasUpperCase = /[A-Z]/.test(value);
+  const hasLowerCase = /[a-z]/.test(value);
+
+  return hasMinLength && hasUpperCase && hasLowerCase;
 };
 
 export const validatePasswordConfirmation = (

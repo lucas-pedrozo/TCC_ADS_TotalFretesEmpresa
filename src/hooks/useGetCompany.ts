@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
-import { useAuth } from "@/context/AuthContext";
+import { getStoredAuthSession, useAuth } from "@/context/AuthContext";
 import { normalizeDateInputValue } from "@/utils/dateFormat";
 import { parsePhoneParts } from "@/utils/phone";
 import { toast } from "sonner";
@@ -126,22 +126,32 @@ function normalizeCompanyApi(raw: CompanyApiResponse): CompanyData {
 export function useGetCompany() {
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { id } = useAuth();
+  const { id, accessLevel } = useAuth();
 
   const handleGetCompany = useCallback(async () => {
+    const storedSession = getStoredAuthSession();
+    const effectiveLevel = (storedSession?.accessLevel ?? accessLevel)?.toUpperCase();
+
+    if (effectiveLevel !== "COMPANY") {
+      setCompanyData(null);
+      return;
+    }
+
+    const companyId = storedSession?.id ?? id;
+
     try {
       setIsLoading(true);
-      if (!id) {
+      if (!companyId) {
         throw new Error(i18n.t("COMPANY.COMPANY_NOT_FOUND"));
       }
-      const response = await http.get<CompanyApiResponse>(`/company/${id}`);
+      const response = await http.get<CompanyApiResponse>(`/company/${companyId}`);
       setCompanyData(normalizeCompanyApi(response.data));
     } catch (error) {
       toast.error(trataErroAxios(error));
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [accessLevel, id]);
 
   return {
     companyData,
