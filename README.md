@@ -1,73 +1,88 @@
-# React + TypeScript + Vite
+# Total Fretes Empresa
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend web (React 19 + TypeScript + Vite) para gestão de fretes.
 
-Currently, two official plugins are available:
+## Pré-requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 20.19+ ou 22.12+
+- Backend rodando em `http://localhost:80` (repositório `TCC_ADS_backEnd-TotalFretes`: `docker compose up -d`)
 
-## React Compiler
+## Desenvolvimento local
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env.example .env
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Acesse [http://localhost:5173](http://localhost:5173).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### HTTPS local (certificado confiável)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**1. Aponte o domínio local** — adicione ao arquivo `hosts` do Windows (`C:\Windows\System32\drivers\etc\hosts`), como em [`hosts.example`](hosts.example):
+
 ```
+127.0.0.1 totalfretes.com www.totalfretes.com
+```
+
+(Requer editor aberto como Administrador.)
+
+**2. Inicie o servidor HTTPS:**
+
+```bash
+npm run dev:https
+```
+
+Acesse [https://totalfretes.com](https://totalfretes.com) (porta 443).
+
+Na primeira execução, o [mkcert](https://github.com/FiloSottile/mkcert) gera certificado para `totalfretes.com` e instala a CA local (o Windows pode pedir confirmação de administrador). O navegador não exibirá aviso de certificado inválido.
+
+**Porta 443:** no Windows, execute o terminal **como Administrador**. Se não puder usar a 443, altere em `.env.https`:
+
+```
+VITE_DEV_HTTPS_PORT=5173
+```
+
+e acesse [https://totalfretes.com:5173](https://totalfretes.com:5173).
+
+O modo HTTPS usa `.env.https`, que define `VITE_API_URL=/api` para que as chamadas passem pelo proxy do Vite (evita mixed content com o backend em HTTP). Se usar o mapa Mapbox, adicione `https://totalfretes.com` nas URLs permitidas do token no painel Mapbox.
+
+Variáveis usadas no dev:
+
+| Variável | Descrição |
+|----------|-----------|
+| `VITE_API_URL` | Base da API (`http://localhost/api`) |
+| `VITE_GATEWAY_URL` | Gateway Nginx para proxy Vite (`http://127.0.0.1:80`) |
+| `VITE_MAPBOX_ACCESS_TOKEN` | Token público Mapbox para o mapa |
+
+## Produção via Docker
+
+Com o backend já em execução no host:
+
+```bash
+cp .env.example .env   # preencha VITE_MAPBOX_ACCESS_TOKEN
+npm run docker:up      # ou: docker compose up --build -d
+```
+
+Acesse [http://localhost:8080](http://localhost:8080).
+
+O container serve o build estático com Nginx e faz proxy de `/api` para o backend em `host.docker.internal:80`.
+
+Para parar:
+
+```bash
+npm run docker:down
+```
+
+**Nota:** variáveis `VITE_*` são embutidas no build. Após alterá-las, execute `docker compose up --build` novamente.
+
+## Scripts
+
+| Script | Descrição |
+|--------|-----------|
+| `npm run dev` | Servidor de desenvolvimento (Vite, HTTP) |
+| `npm run dev:https` | Servidor de desenvolvimento com HTTPS (mkcert) |
+| `npm run build` | Build de produção |
+| `npm run preview` | Preview do build local |
+| `npm run docker:up` | Sobe o container de produção |
+| `npm run docker:down` | Para o container |

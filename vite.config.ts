@@ -2,16 +2,29 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import mkcert from 'vite-plugin-mkcert'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
+const LOCAL_DEV_DOMAIN = 'totalfretes.com'
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
+  const useHttps = mode === 'https'
+  const devHost = env.VITE_DEV_HOST || LOCAL_DEV_DOMAIN
+  const devHttpsPort = Number(env.VITE_DEV_HTTPS_PORT) || 443
 
   return {
     plugins: [
+      ...(useHttps
+        ? [
+            mkcert({
+              hosts: [devHost, `www.${devHost}`, 'localhost', '127.0.0.1'],
+            }),
+          ]
+        : []),
       react(),
       tailwindcss(),
       VitePWA({
@@ -81,7 +94,14 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: 5173,
+      port: useHttps ? devHttpsPort : 5173,
+      ...(useHttps
+        ? {
+            host: true,
+            strictPort: true,
+            https: {},
+          }
+        : {}),
       proxy: {
         '/api': {
           // Origem do gateway (nginx), sem path — ex.: http://127.0.0.1:80

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { DatePickerInput } from "@/components/custom/inputs/DatePickerInput";
 import { adminNativeSelectClass } from "@/components/admin/adminNativeSelect";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,10 +53,9 @@ export function AdminCreateDriverFields({ form, onChange }: AdminCreateDriverFie
       </div>
       <div className="space-y-2">
         <Label>{t("pages.admin.accounts.birthDate")}</Label>
-        <Input
-          type="date"
+        <DatePickerInput
           value={form.birthDate}
-          onChange={(e) => onChange("birthDate", e.target.value)}
+          onChange={(value) => onChange("birthDate", value)}
         />
       </div>
       <div className="space-y-2">
