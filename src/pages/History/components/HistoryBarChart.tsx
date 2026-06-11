@@ -1,4 +1,5 @@
 import { BarChart3 } from "lucide-react";
+import { useState } from "react";
 
 type HistoryBarChartProps = {
   labels: string[];
@@ -11,6 +12,8 @@ type HistoryBarChartProps = {
 
 type PointGeometry = {
   x: number;
+  groupX: number;
+  groupWidth: number;
   completedY: number;
   cancelledY: number;
   completedHeight: number;
@@ -25,6 +28,8 @@ const PADDING_BOTTOM = 34;
 const PADDING_LEFT = 42;
 const BAR_WIDTH = 18;
 const BAR_GAP = 8;
+const TOOLTIP_WIDTH = 148;
+const TOOLTIP_HEIGHT = 92;
 
 function buildTicks(maxValue: number) {
   if (maxValue <= 4) return [0, 1, 2, 3, 4];
@@ -55,6 +60,8 @@ function buildGeometry(
 
     return {
       x: centerX,
+      groupX,
+      groupWidth,
       completedY: SVG_HEIGHT - PADDING_BOTTOM - completedHeight,
       cancelledY: SVG_HEIGHT - PADDING_BOTTOM - cancelledHeight,
       completedHeight,
@@ -71,10 +78,33 @@ export function HistoryBarChart({
   cancelledLabel,
   emptyLabel,
 }: HistoryBarChartProps) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const yAxisTicks = buildTicks(Math.max(0, ...completed, ...cancelled));
   const yAxisMax = yAxisTicks[yAxisTicks.length - 1] ?? 4;
   const geometry = buildGeometry(labels, completed, cancelled, yAxisMax);
   const hasValues = completed.some((value) => value > 0) || cancelled.some((value) => value > 0);
+  const chartBottomY = SVG_HEIGHT - PADDING_BOTTOM;
+  const activeBar = hoveredIndex != null ? geometry[hoveredIndex] : null;
+  const activeCompletedValue = hoveredIndex != null ? (completed[hoveredIndex] ?? 0) : 0;
+  const activeCancelledValue = hoveredIndex != null ? (cancelled[hoveredIndex] ?? 0) : 0;
+
+  const tooltipX = (() => {
+    if (!activeBar) return null;
+    const preferredX = activeBar.x + 14;
+    return Math.min(
+      Math.max(PADDING_LEFT + 6, preferredX),
+      SVG_WIDTH - PADDING_RIGHT - TOOLTIP_WIDTH
+    );
+  })();
+
+  const tooltipY = (() => {
+    if (!activeBar) return null;
+    const anchorY = Math.min(activeBar.completedY, activeBar.cancelledY);
+    return Math.min(
+      Math.max(PADDING_TOP + 8, anchorY - TOOLTIP_HEIGHT / 2),
+      chartBottomY - TOOLTIP_HEIGHT - 8
+    );
+  })();
 
   if (!hasValues) {
     return (
@@ -106,6 +136,7 @@ export function HistoryBarChart({
           className="block h-[280px] min-w-[620px] w-full"
           role="img"
           aria-label={`${completedLabel} e ${cancelledLabel}`}
+          onMouseLeave={() => setHoveredIndex(null)}
         >
           {yAxisTicks.map((tick) => {
             const ratio = tick / Math.max(1, yAxisMax);
@@ -171,6 +202,69 @@ export function HistoryBarChart({
               </g>
             );
           })}
+
+          {activeBar ? (
+            <line
+              x1={activeBar.x}
+              x2={activeBar.x}
+              y1={PADDING_TOP}
+              y2={chartBottomY}
+              stroke="rgba(15, 23, 42, 0.16)"
+            />
+          ) : null}
+
+          {tooltipX != null && tooltipY != null && hoveredIndex != null ? (
+            <g pointerEvents="none">
+              <rect
+                x={tooltipX}
+                y={tooltipY}
+                rx="14"
+                ry="14"
+                width={TOOLTIP_WIDTH}
+                height={TOOLTIP_HEIGHT}
+                fill="#ffffff"
+                stroke="rgba(148, 163, 184, 0.25)"
+              />
+              <text
+                x={tooltipX + 14}
+                y={tooltipY + 24}
+                fontSize="14"
+                fontWeight="500"
+                fill="#0f172a"
+              >
+                {labels[hoveredIndex]}
+              </text>
+              <text
+                x={tooltipX + 14}
+                y={tooltipY + 52}
+                fontSize="14"
+                fill="#115339"
+              >
+                {`${completedLabel}: ${activeCompletedValue}`}
+              </text>
+              <text
+                x={tooltipX + 14}
+                y={tooltipY + 76}
+                fontSize="14"
+                fill="#f87171"
+              >
+                {`${cancelledLabel}: ${activeCancelledValue}`}
+              </text>
+            </g>
+          ) : null}
+
+          {geometry.map((bar, index) => (
+            <rect
+              key={`hover-region-${labels[index] ?? index}`}
+              x={bar.groupX}
+              y={PADDING_TOP}
+              width={bar.groupWidth}
+              height={chartBottomY - PADDING_TOP}
+              fill="transparent"
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseMove={() => setHoveredIndex(index)}
+            />
+          ))}
         </svg>
       </div>
     </div>

@@ -31,6 +31,14 @@ import { HomeProgressMetric } from "@/pages/Home/components/HomeProgressMetric";
 import { HomeRecentNotifications } from "@/pages/Home/components/HomeRecentNotifications";
 import type { FreightDto } from "@/types/freight";
 import { formatDateShortLabel, formatDateTimeLabel } from "@/utils/dateFormat";
+import {
+  addDays,
+  getConcludedTimestamp,
+  getPublishedTimestamp,
+  isConcludedFreight,
+  isWithinRange,
+  startOfDay,
+} from "@/utils/freightChartTimestamps";
 import { formatFreightCurrencyAmount } from "@/utils/freightFormat";
 import { initialsFromName } from "@/utils/person";
 import { getFreightFromProposal, resolveProposalSummary } from "@/utils/proposal";
@@ -66,63 +74,43 @@ function formatLongDate(language: AppLanguage) {
   }).format(new Date());
 }
 
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
 function percentage(part: number, total: number) {
   if (!total) return 0;
   return (part / total) * 100;
 }
 
 function buildEvolutionSeries(freights: FreightDto[], language: AppLanguage) {
-  const pointCount = 7;
-  const endDate = startOfDay(new Date());
-  const startDate = addDays(endDate, -30);
-  const createdTimestamps = freights
-    .map((freight) => toTimestamp(freight.createdAt))
-    .filter((value) => value > 0);
-  const completedTimestamps = freights
-    .filter((freight) => resolveFreightStatusSlug({
-      statusId: freight.status_id,
-      statusName: freight.FreightStatusType?.name ?? freight.status?.name,
-    }) === "concluido")
-    .map((freight) => toTimestamp(freight.updatedAt ?? freight.createdAt))
-    .filter((value) => value > 0);
+  const bucketCount = 7;
+  const totalDays = 30;
+  const today = startOfDay(new Date());
+  const tomorrow = addDays(today, 1);
+  const bucketSize = Math.ceil(totalDays / bucketCount);
+  const rangeStart = addDays(today, -(totalDays - 1));
 
   const labels: string[] = [];
   const published: number[] = [];
   const completed: number[] = [];
 
-  for (let index = 0; index < pointCount; index += 1) {
-    const progress = index / (pointCount - 1);
-    const pointDate =
-      index === pointCount - 1
-        ? endDate
-        : addDays(startDate, Math.round(30 * progress));
-    const pointTimestamp = pointDate.getTime();
-    const startTimestamp = startDate.getTime();
+  for (let index = 0; index < bucketCount; index += 1) {
+    const start = addDays(rangeStart, index * bucketSize);
+    const end = index === bucketCount - 1 ? tomorrow : addDays(start, bucketSize);
 
     labels.push(
       new Intl.DateTimeFormat(getLocaleTag(language), {
         day: "2-digit",
         month: "2-digit",
-      }).format(pointDate)
+      }).format(start)
     );
     published.push(
-      createdTimestamps.filter(
-        (timestamp) => timestamp >= startTimestamp && timestamp <= pointTimestamp
+      freights.filter((freight) =>
+        isWithinRange(getPublishedTimestamp(freight), start, end)
       ).length
     );
     completed.push(
-      completedTimestamps.filter(
-        (timestamp) => timestamp >= startTimestamp && timestamp <= pointTimestamp
+      freights.filter(
+        (freight) =>
+          isConcludedFreight(freight) &&
+          isWithinRange(getConcludedTimestamp(freight), start, end)
       ).length
     );
   }

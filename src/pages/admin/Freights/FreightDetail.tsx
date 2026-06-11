@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CheckCircle2, Pencil, Trash2, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Pencil, Trash2, XCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { fetchStoredImageById } from "@/components/admin/AdminImageField";
 import { adminNativeSelectClass } from "@/components/admin/adminNativeSelect";
+import { CargoTypeImage } from "@/components/freights/CargoTypeImage";
+import { CargoTypePicker } from "@/components/freights/CargoTypePicker";
 import { AdminFreightProposalsPanel } from "@/components/admin/AdminFreightProposalsPanel";
 import { AdminFreightStatusBadge } from "@/components/admin/AdminFreightStatusBadge";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
@@ -69,6 +72,8 @@ const AdminFreightDetailPage = () => {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [editOrigin, setEditOrigin] = useState<MapPinValue | null>(null);
   const [editDestination, setEditDestination] = useState<MapPinValue | null>(null);
+  const [cargoTypeImageUrl, setCargoTypeImageUrl] = useState<string | null>(null);
+  const [loadingCargoTypeImage, setLoadingCargoTypeImage] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -115,6 +120,42 @@ const AdminFreightDetailPage = () => {
       lng: freight.destination_lng,
     });
   }, [editing, freight]);
+
+  const resolvedCargoType = useMemo(() => {
+    if (!freight) return null;
+    return (
+      freight.CargoType ??
+      freight.cargo ??
+      cargoTypes.find((type) => type.id === freight.cargoType_id) ??
+      null
+    );
+  }, [cargoTypes, freight]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCargoTypeImage = async () => {
+      const imageId = resolvedCargoType?.imageCargo_id;
+      if (!imageId || imageId <= 0) {
+        setCargoTypeImageUrl(null);
+        setLoadingCargoTypeImage(false);
+        return;
+      }
+
+      setLoadingCargoTypeImage(true);
+      const stored = await fetchStoredImageById("cargo-images", imageId);
+      if (!cancelled) {
+        setCargoTypeImageUrl(stored?.url ?? null);
+        setLoadingCargoTypeImage(false);
+      }
+    };
+
+    void loadCargoTypeImage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedCargoType?.imageCargo_id]);
 
   const statusSlug = useMemo(
     () =>
@@ -379,23 +420,15 @@ const AdminFreightDetailPage = () => {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="freight-cargo-type">{t("pages.admin.freights.cargoType")}</Label>
-                <select
-                  id="freight-cargo-type"
+              <div className="sm:col-span-2">
+                <CargoTypePicker
+                  cargoTypes={cargoTypes}
                   value={form.cargoType_id}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, cargoType_id: event.target.value }))
+                  onChange={(cargoType_id) =>
+                    setForm((prev) => ({ ...prev, cargoType_id }))
                   }
-                  className={adminNativeSelectClass}
-                >
-                  <option value="">{t("pages.admin.freights.selectCargoType")}</option>
-                  {cargoTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="freight-status">{t("pages.admin.freights.status")}</Label>
@@ -482,10 +515,24 @@ const AdminFreightDetailPage = () => {
               <strong>{t("pages.admin.freights.company")}:</strong>{" "}
               {freight.Company?.name ?? `#${freight.company_id}`}
             </p>
-            <p>
-              <strong>{t("pages.admin.freights.cargoType")}:</strong>{" "}
-              {freight.CargoType?.name ?? freight.cargo?.name ?? "—"}
-            </p>
+            <div className="space-y-2">
+              <p>
+                <strong>{t("pages.admin.freights.cargoType")}:</strong>{" "}
+                {resolvedCargoType?.name ?? "—"}
+              </p>
+              {loadingCargoTypeImage ? (
+                <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Loader2 className="size-3 animate-spin" aria-hidden />
+                  {t("pages.freightDetail.loading")}
+                </p>
+              ) : (
+                <CargoTypeImage
+                  imageUrl={cargoTypeImageUrl}
+                  name={resolvedCargoType?.name}
+                  size="preview"
+                />
+              )}
+            </div>
             <p>
               <strong>{t("pages.admin.freights.value")}:</strong>{" "}
               {formatAdminCurrency(freight.originalValue, lang)}

@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Loader2, Package } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, Loader2, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { fetchStoredImageById } from "@/components/admin/AdminImageField";
+import { CargoTypeImage } from "@/components/freights/CargoTypeImage";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { CargoTypeDto } from "@/types/freight";
@@ -68,48 +70,6 @@ function useCargoTypeImages(cargoTypes: CargoTypeDto[]) {
   return { imageUrls, isLoading };
 }
 
-function CargoTypeThumb({
-  imageUrl,
-  name,
-  size = "sm",
-  className,
-}: {
-  imageUrl?: string;
-  name?: string | null;
-  size?: "sm" | "md" | "lg";
-  className?: string;
-}) {
-  const { t } = useTranslation();
-  const sizeClass =
-    size === "lg" ? "size-24" : size === "md" ? "size-12" : "size-8";
-
-  return (
-    <div
-      className={cn(
-        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/50",
-        sizeClass,
-        className
-      )}
-    >
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={name ?? t("pages.freightForm.cargoType")}
-          className="size-full object-cover"
-        />
-      ) : (
-        <Package
-          className={cn(
-            "text-muted-foreground opacity-60",
-            size === "lg" ? "size-10" : size === "md" ? "size-5" : "size-4"
-          )}
-          aria-hidden
-        />
-      )}
-    </div>
-  );
-}
-
 export function CargoTypePicker({
   cargoTypes,
   value,
@@ -121,6 +81,8 @@ export function CargoTypePicker({
 }: CargoTypePickerProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { imageUrls, isLoading } = useCargoTypeImages(cargoTypes);
 
   const selectedType = useMemo(
@@ -128,13 +90,33 @@ export function CargoTypePicker({
     [cargoTypes, value]
   );
 
+  const filteredCargoTypes = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return cargoTypes;
+    return cargoTypes.filter((type) => (type.name ?? "").toLowerCase().includes(query));
+  }, [cargoTypes, searchQuery]);
+
   const selectedImageUrl =
     selectedType?.imageCargo_id != null ? imageUrls[selectedType.imageCargo_id] : undefined;
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setSearchQuery("");
+    }
+  };
 
   const handleSelect = (id: string) => {
     onChange(id);
     setOpen(false);
+    setSearchQuery("");
   };
+
+  useEffect(() => {
+    if (!open) return;
+    const timer = window.setTimeout(() => searchInputRef.current?.focus(), 0);
+    return () => window.clearTimeout(timer);
+  }, [open]);
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -155,7 +137,7 @@ export function CargoTypePicker({
         readOnly
       />
 
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger
           type="button"
           id="freight-cargo-type"
@@ -168,10 +150,10 @@ export function CargoTypePicker({
           <span className="flex min-w-0 flex-1 items-center gap-2">
             {selectedType ? (
               <>
-                <CargoTypeThumb
+                <CargoTypeImage
                   imageUrl={selectedImageUrl}
                   name={selectedType.name}
-                  size="sm"
+                  size="trigger"
                 />
                 <span className="truncate">{selectedType.name}</span>
               </>
@@ -193,34 +175,62 @@ export function CargoTypePicker({
         <PopoverContent
           align="start"
           sideOffset={4}
-          className="max-h-64 w-(--anchor-width) min-w-(--anchor-width) gap-0 overflow-y-auto p-1"
+          className="w-(--anchor-width) min-w-[min(100vw-2rem,320px)] gap-0 overflow-hidden p-0"
         >
-          <ul role="listbox" aria-label={t("pages.freightForm.cargoType")} className="space-y-0.5">
-            {cargoTypes.map((type) => {
-              const isSelected = value === String(type.id);
-              const imageUrl =
-                type.imageCargo_id != null ? imageUrls[type.imageCargo_id] : undefined;
+          <div className="border-b border-border p-2">
+            <div className="relative">
+              <Search
+                className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                ref={searchInputRef}
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={t("pages.freightForm.cargoTypeSearchPlaceholder")}
+                className="h-9 pl-8"
+                aria-label={t("pages.freightForm.cargoTypeSearchPlaceholder")}
+              />
+            </div>
+          </div>
 
-              return (
-                <li key={type.id} role="presentation">
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => handleSelect(String(type.id))}
-                    className={cn(
-                      "flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition-colors",
-                      "hover:bg-accent hover:text-accent-foreground",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-1",
-                      isSelected && "bg-brand-green/10 text-foreground"
-                    )}
-                  >
-                    <CargoTypeThumb imageUrl={imageUrl} name={type.name} size="sm" />
-                    <span className="min-w-0 flex-1 truncate font-medium">{type.name}</span>
-                  </button>
-                </li>
-              );
-            })}
+          <ul
+            role="listbox"
+            aria-label={t("pages.freightForm.cargoType")}
+            className="max-h-72 space-y-0.5 overflow-y-auto p-1"
+          >
+            {filteredCargoTypes.length === 0 ? (
+              <li className="px-2 py-6 text-center text-sm text-muted-foreground">
+                {t("pages.freightForm.cargoTypeSearchEmpty")}
+              </li>
+            ) : (
+              filteredCargoTypes.map((type) => {
+                const isSelected = value === String(type.id);
+                const imageUrl =
+                  type.imageCargo_id != null ? imageUrls[type.imageCargo_id] : undefined;
+
+                return (
+                  <li key={type.id} role="presentation">
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => handleSelect(String(type.id))}
+                      className={cn(
+                        "flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition-colors",
+                        "hover:bg-accent hover:text-accent-foreground",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-1",
+                        isSelected && "bg-brand-green/10 text-foreground"
+                      )}
+                    >
+                      <CargoTypeImage imageUrl={imageUrl} name={type.name} size="list" />
+                      <span className="min-w-0 flex-1 truncate font-medium">{type.name}</span>
+                    </button>
+                  </li>
+                );
+              })
+            )}
           </ul>
         </PopoverContent>
       </Popover>
@@ -239,15 +249,15 @@ export function CargoTypePicker({
             aria-hidden
           />
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-            <CargoTypeThumb
+          <div className="flex flex-col gap-3">
+            <CargoTypeImage
               imageUrl={selectedImageUrl}
               name={selectedType.name}
-              size="lg"
-              className="rounded-lg sm:size-28"
+              size="preview"
+              className="rounded-lg"
             />
 
-            <div className="min-w-0 flex-1 space-y-1 pt-0.5">
+            <div className="min-w-0 space-y-1">
               <p className="text-base font-semibold leading-snug text-foreground">
                 {selectedType.name}
               </p>

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import type { MapPinValue } from "@/components/maps/AddressMapPicker";
 import { AddressMapPicker } from "@/components/maps/AddressMapPicker";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { CargoTypePicker } from "@/components/freights/CargoTypePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,13 +76,7 @@ const AdminFreightNewPage = () => {
     () => companies.map((company) => ({ id: company.id, label: company.name })),
     [companies]
   );
-  const cargoOptions = useMemo(
-    () => cargoTypes.map((type) => ({ id: type.id, label: type.name ?? "" })),
-    [cargoTypes]
-  );
-
   const selectedCompanyLabel = resolveSelectLabel(companyId, companyOptions);
-  const selectedCargoLabel = resolveSelectLabel(form.cargoType_id, cargoOptions);
 
   const handleSubmit = useCallback(async () => {
     if (!companyId || !isValidMapPin(origin) || !isValidMapPin(destination)) {
@@ -162,27 +157,16 @@ const AdminFreightNewPage = () => {
               }
             />
           </div>
-          <div className="space-y-2">
-            <Label>{t("pages.admin.freights.cargoType")}</Label>
-            <Select
+          <div className="sm:col-span-2">
+            <CargoTypePicker
+              cargoTypes={cargoTypes}
               value={form.cargoType_id}
-              onValueChange={(value) =>
-                setForm((prev) => ({ ...prev, cargoType_id: value ?? "" }))
+              onChange={(cargoType_id) =>
+                setForm((prev) => ({ ...prev, cargoType_id }))
               }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t("pages.admin.freights.selectCargoType")}>
-                  {selectedCargoLabel}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {cargoTypes.map((type) => (
-                  <SelectItem key={type.id} value={String(type.id)}>
-                    {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              required
+              disabled={isLoading}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="new-freight-value">{t("pages.admin.freights.value")}</Label>

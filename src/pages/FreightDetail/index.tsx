@@ -21,6 +21,7 @@ import { toast } from "sonner";
 
 import { RejectProposalDialog } from "@/components/proposals/RejectProposalDialog";
 import { fetchStoredImageById } from "@/components/admin/AdminImageField";
+import { CargoTypeImage } from "@/components/freights/CargoTypeImage";
 import { FreightForm } from "@/components/ui/freightForm";
 import { AddressMapPicker, type MapPinValue } from "@/components/maps/AddressMapPicker";
 import {
@@ -396,16 +397,13 @@ const FreightDetailPage = () => {
                           <Loader2 className="size-3 animate-spin" aria-hidden />
                           {t("pages.freightDetail.loading")}
                         </p>
-                      ) : cargoTypeImageUrl ? (
-                        <img
-                          src={cargoTypeImageUrl}
-                          alt={resolvedCargoType?.name ?? t("pages.freightForm.cargoType")}
-                          className="mt-2 h-20 w-20 rounded-lg border border-border object-cover sm:h-24 sm:w-24"
-                        />
                       ) : (
-                        <p className="mt-2 text-xs font-normal leading-snug text-muted-foreground">
-                          {t("pages.freightForm.cargoTypeNoImage")}
-                        </p>
+                        <CargoTypeImage
+                          imageUrl={cargoTypeImageUrl}
+                          name={resolvedCargoType?.name}
+                          size="preview"
+                          className="mt-2 rounded-lg"
+                        />
                       )}
                     </div>
                   </div>
