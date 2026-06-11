@@ -120,21 +120,21 @@ export const resources = {
           plans: {
             basic: {
               name: "Básico",
-              price: "R$ 49/mês",
+              price: "R$ 39/mês",
               feature1: "Até 10 fretes ativos",
               feature2: "Suporte por e-mail",
               feature3: "Relatórios essenciais",
             },
             professional: {
               name: "Profissional",
-              price: "R$ 99/mês",
+              price: "R$ 69/mês",
               feature1: "Até 50 fretes ativos",
               feature2: "Suporte prioritário",
               feature3: "Propostas e histórico completo",
             },
             enterprise: {
               name: "Empresarial",
-              price: "R$ 199/mês",
+              price: "R$ 99/mês",
               feature1: "Fretes ilimitados",
               feature2: "Suporte dedicado",
               feature3: "Recursos avançados de gestão",
@@ -412,6 +412,8 @@ export const resources = {
           sectionAmounts: "Valor, peso e prazo",
           cargoTypeNoImage: "Sem imagem",
           cargoTypeSelectHint: "Selecione o tipo de carga para este frete",
+          cargoTypeSearchPlaceholder: "Buscar tipo de carga…",
+          cargoTypeSearchEmpty: "Nenhum tipo de carga encontrado.",
         },
         freightDetail: {
           newTitle: "Novo frete",
@@ -1167,21 +1169,21 @@ export const resources = {
           plans: {
             basic: {
               name: "Basic",
-              price: "$49/mo",
+              price: "$39/mo",
               feature1: "Up to 10 active freights",
               feature2: "Email support",
               feature3: "Essential reports",
             },
             professional: {
               name: "Professional",
-              price: "$99/mo",
+              price: "$69/mo",
               feature1: "Up to 50 active freights",
               feature2: "Priority support",
               feature3: "Full proposals and history",
             },
             enterprise: {
               name: "Enterprise",
-              price: "$199/mo",
+              price: "$99/mo",
               feature1: "Unlimited freights",
               feature2: "Dedicated support",
               feature3: "Advanced management features",
@@ -1459,6 +1461,8 @@ export const resources = {
           sectionAmounts: "Value, weight and deadline",
           cargoTypeNoImage: "No image",
           cargoTypeSelectHint: "Select the cargo type for this freight",
+          cargoTypeSearchPlaceholder: "Search cargo type…",
+          cargoTypeSearchEmpty: "No cargo types found.",
         },
         freightDetail: {
           newTitle: "New freight",
