@@ -12,11 +12,16 @@ type ButtonDefaultProps = {
 }
 
 const BUTTON_STYLES = {
-  default: "bg-brand-green border border-brand-green-dark text-white font-bold p-2 rounded-md w-full hover:bg-brand-green-dark hover:text-white transition-all duration-200",
-  primary: "bg-white border border-black text-black font-bold p-2 rounded-md w-full hover:opacity-80",
-  secondary: "bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded",
-  tertiary: "bg-green-1 border border-brand-green-dark text-white font-bold p-2 rounded-md w-full hover:bg-green-2 transition-all duration-200",
-  danger: "bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded",
+  default:
+    "bg-brand-green border border-brand-green-dark text-white font-bold p-2 rounded-md w-full hover:bg-brand-green-dark hover:text-white transition-all duration-200",
+  primary:
+    "bg-background border border-border text-foreground font-bold p-2 rounded-md w-full hover:bg-muted transition-all duration-200",
+  secondary:
+    "bg-muted border border-border text-foreground font-bold py-2 px-4 rounded hover:bg-muted/80 transition-all duration-200",
+  tertiary:
+    "bg-green-1 border border-brand-green-dark text-white font-bold p-2 rounded-md w-full hover:bg-green-2 transition-all duration-200",
+  danger:
+    "bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-all duration-200",
 } as const
 
 export const ButtonDefault = (props: ButtonDefaultProps) => {

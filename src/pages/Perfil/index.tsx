@@ -46,6 +46,7 @@ import { useUpdateCompanyProfile } from "@/hooks/useUpdateCompanyProfile";
 import type { SideLayoutOutletContext } from "@/layout/sideLayoutOutletContext";
 import { cn } from "@/lib/utils";
 import { CompanyProfileImageDialog } from "@/pages/Perfil/components/CompanyProfileImageDialog";
+import { ThemeModeToggle } from "@/components/ThemeModeToggle";
 import { maskCnpjInRfb2229 } from "@/utils/cnpjInRfb2229";
 import { maskCep } from "@/utils/mask";
 import {
@@ -380,7 +381,12 @@ const PerfilPage = () => {
               </div>
             </div>
 
-
+            <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 px-4 py-3">
+              <p className="text-sm text-muted-foreground">
+                {t("pages.profile.themeDescription")}
+              </p>
+              <ThemeModeToggle size="default" showLabel />
+            </div>
           </div>
         </section>
 

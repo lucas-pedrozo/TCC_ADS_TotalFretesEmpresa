@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   Controller,
   type Control,
@@ -26,19 +27,19 @@ type InputDefaultProps<T extends FieldValues> = {
 
 export const INPUT_STYLES = {
   default: {
-    label: "text-black/80 text-base pl-2.5",
+    label: "text-foreground/80 text-base pl-2.5",
     input:
-      "w-full p-2 text-black text-base bg-white border border-black/60 rounded-lg placeholder:text-black/60 focus:outline-none",
+      "w-full p-2 text-foreground text-base bg-background border border-border rounded-lg placeholder:text-muted-foreground focus:outline-none",
   },
   error: {
     label: "text-red-500 text-base pl-2.5",
     input:
-      "w-full p-2.5 text-black text-base bg-white border border-black/60 rounded-lg placeholder:text-black/60 focus:outline-none border-red-500 focus:ring-1 focus:ring-red-500",
+      "w-full p-2.5 text-foreground text-base bg-background border border-border rounded-lg placeholder:text-muted-foreground focus:outline-none border-red-500 focus:ring-1 focus:ring-red-500",
   },
   disabled: {
-    label: "text-black/80 text-base pl-2.5 opacity-70",
+    label: "text-foreground/80 text-base pl-2.5 opacity-70",
     input:
-      "w-full p-2.5 text-black text-base bg-white border border-black/60 rounded-lg placeholder:text-black/60 focus:outline-none opacity-70 cursor-not-allowed",
+      "w-full p-2.5 text-foreground text-base bg-background border border-border rounded-lg placeholder:text-muted-foreground focus:outline-none opacity-70 cursor-not-allowed",
   },
 } as const
 

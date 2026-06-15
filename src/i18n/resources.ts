@@ -11,6 +11,8 @@ export const resources = {
         login: "Entrar",
         signup: "Cadastre-se",
         language: "Idioma",
+        darkMode: "Ativar modo escuro",
+        lightMode: "Ativar modo claro",
         showPassword: "Mostrar senha",
         hidePassword: "Ocultar senha",
         logoutRedirectNotice: "Você saiu da conta. Redirecionando para o login…",
@@ -537,6 +539,7 @@ export const resources = {
           phoneFallback: "Telefone não informado",
           websiteFallback: "Website não informado",
           locationFallback: "Localização não informada",
+          themeDescription: "Personalize a aparência do painel.",
           accountInfoTitle: "Dados da conta",
           tabs: {
             company: "Dados da empresa",
@@ -1066,6 +1069,8 @@ export const resources = {
         login: "Sign in",
         signup: "Sign up",
         language: "Language",
+        darkMode: "Enable dark mode",
+        lightMode: "Enable light mode",
         showPassword: "Show password",
         hidePassword: "Hide password",
         logoutRedirectNotice: "You have signed out. Redirecting to sign in…",
@@ -1592,6 +1597,7 @@ export const resources = {
           phoneFallback: "Phone not provided",
           websiteFallback: "Website not provided",
           locationFallback: "Location not provided",
+          themeDescription: "Customize the panel appearance.",
           accountInfoTitle: "Account details",
           tabs: {
             company: "Company details",

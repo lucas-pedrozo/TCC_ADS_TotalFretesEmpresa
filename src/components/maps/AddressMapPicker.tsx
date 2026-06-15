@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Map as MapboxMap, Marker as MapboxMarker } from "mapbox-gl";
+import { useTheme } from "next-themes";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,6 +55,7 @@ export function AddressMapPicker({
   onChange,
 }: AddressMapPickerProps) {
   const { t } = useTranslation();
+  const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapboxMap | null>(null);
   const markerRef = useRef<MapboxMarker | null>(null);
@@ -73,6 +75,10 @@ export function AddressMapPicker({
   const valueLng = value?.lng;
   const valueLat = value?.lat;
   const valueLabel = value?.label ?? "";
+  const mapStyle =
+    resolvedTheme === "dark"
+      ? "mapbox://styles/mapbox/dark-v11"
+      : "mapbox://styles/mapbox/streets-v12";
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -179,7 +185,7 @@ export function AddressMapPicker({
 
         mapInstance = new mapboxgl.Map({
           container: containerRef.current,
-          style: "mapbox://styles/mapbox/streets-v12",
+          style: mapStyle,
           center: BR_CENTER,
           zoom: 4,
           antialias: true,
@@ -221,7 +227,7 @@ export function AddressMapPicker({
       setMapLoaded(false);
       autoSearchDoneRef.current = false;
     };
-  }, [accessToken, removeMarker]);
+  }, [accessToken, mapStyle, removeMarker]);
 
   useEffect(() => {
     if (!mapLoaded || !mapRef.current) return;
