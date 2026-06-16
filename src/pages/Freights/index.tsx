@@ -56,7 +56,11 @@ const FreightsPage = () => {
     deleting,
     chips,
     clearAllFilters,
-    filtered,
+    driverProfilesById,
+    pageItems,
+    page,
+    setPage,
+    totalPages,
     total,
     from,
     to,
@@ -109,7 +113,7 @@ const FreightsPage = () => {
                   }
                 />
                 <PopoverContent
-                  className="w-[min(calc(100vw-2rem),22rem)] max-w-none sm:w-96"
+                  className="filter-popover w-[min(calc(100vw-2rem),22rem)] max-w-none sm:w-96"
                   align="end"
                   sideOffset={8}
                 >
@@ -128,7 +132,7 @@ const FreightsPage = () => {
                         id="ff-status"
                         value={chip}
                         onChange={(e) => setChip(e.target.value as ChipFilter)}
-                        className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                        className="select-native"
                       >
                         {chips.map((c) => (
                           <option key={c.id} value={c.id}>
@@ -283,7 +287,7 @@ const FreightsPage = () => {
                         id="ff-driver"
                         value={filterDriver}
                         onChange={(e) => setFilterDriver(e.target.value as DriverFilter)}
-                        className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                        className="select-native"
                       >
                         <option value="all">{t("pages.freights.filterDriverAll")}</option>
                         <option value="with">{t("pages.freights.filterDriverWith")}</option>
@@ -323,7 +327,7 @@ const FreightsPage = () => {
                 <Skeleton key={index} className="h-[320px] rounded-xl" />
               ))}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : pageItems.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center">
               <p className="text-sm font-medium text-muted-foreground">
                 {t("pages.freights.emptyTable")}
@@ -331,11 +335,12 @@ const FreightsPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {filtered.map((freight) => (
+              {pageItems.map((freight) => (
                 <FreightCard
                   key={freight.id}
                   freight={freight}
                   lang={lang}
+                  driverProfilesById={driverProfilesById}
                   onDelete={setFreightToDelete}
                 />
               ))}
@@ -398,7 +403,8 @@ const FreightsPage = () => {
               variant="outline"
               size="sm"
               className="min-h-10 rounded-lg sm:min-h-9"
-              disabled
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
             >
               {t("pages.freights.paginationPrev")}
             </Button>
@@ -407,7 +413,8 @@ const FreightsPage = () => {
               variant="outline"
               size="sm"
               className="min-h-10 rounded-lg sm:min-h-9"
-              disabled
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
             >
               {t("pages.freights.paginationNext")}
             </Button>

@@ -9,12 +9,13 @@ export const CARGO_IMAGE_HEIGHT = 83;
 
 export type CargoTypeImageSize = "preview" | "list" | "trigger";
 
-const sizeStyles: Record<CargoTypeImageSize, { container: string }> = {
+const sizeStyles: Record<CargoTypeImageSize, { container: string; allowShrink?: boolean }> = {
   preview: {
-    container: "h-[83px] w-[200px]",
+    container: "aspect-[200/83] w-full max-w-[200px] min-w-0",
+    allowShrink: true,
   },
   list: {
-    container: "h-[50px] w-[120px]",
+    container: "h-[50px] w-[120px] max-w-full",
   },
   trigger: {
     container: "h-5 w-12",
@@ -44,7 +45,8 @@ export function CargoTypeImage({
   return (
     <div
       className={cn(
-        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/60 bg-muted/50",
+        "relative flex items-center justify-center overflow-hidden rounded-md border border-border/60 bg-muted/50",
+        styles.allowShrink ? "min-w-0" : "shrink-0",
         styles.container,
         className
       )}
@@ -52,9 +54,8 @@ export function CargoTypeImage({
       <img
         src={resolvedSrc}
         alt={name ?? t("pages.freightForm.cargoType")}
-        width={CARGO_IMAGE_WIDTH}
-        height={CARGO_IMAGE_HEIGHT}
-        className="size-full object-contain"
+        className="size-full max-w-full object-contain"
+        loading="lazy"
         onError={() => setUseFallback(true)}
       />
     </div>

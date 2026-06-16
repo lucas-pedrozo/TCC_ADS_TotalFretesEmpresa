@@ -84,3 +84,11 @@ export function resolveDriverDisplayName(
   if (fromProfile) return fromProfile;
   return `#${proposal.driver_id}`;
 }
+
+export function resolveAssignedDriverDisplayName(
+  driverId: number,
+  profiles: Record<number, DriverProfile>,
+  fallback: string,
+): string {
+  return profiles[driverId]?.name?.trim() || fallback;
+}

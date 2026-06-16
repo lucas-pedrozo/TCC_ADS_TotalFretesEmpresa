@@ -171,7 +171,7 @@ export function HistoryCompletedTable({
             }
           />
           <PopoverContent
-            className="w-[min(calc(100vw-2rem),22rem)] max-w-none sm:w-96"
+            className="filter-popover w-[min(calc(100vw-2rem),22rem)] max-w-none sm:w-96"
             align="end"
             sideOffset={8}
           >
@@ -188,7 +188,7 @@ export function HistoryCompletedTable({
                   id="hf-cargo"
                   value={filterCargo}
                   onChange={(event) => onFilterCargoChange(event.target.value)}
-                  className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                  className="select-native"
                 >
                   <option value={allCargoValue}>{filterAllCargo}</option>
                   {cargoOptions.map((cargo) => (

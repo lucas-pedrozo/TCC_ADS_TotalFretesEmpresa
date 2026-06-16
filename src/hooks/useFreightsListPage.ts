@@ -15,9 +15,12 @@ import type {
   FreightDto,
   FreightListResponse,
 } from "@/types/freight";
+import { fetchDriverProfilesMap, type DriverProfile } from "@/utils/driverProfiles";
 import { haversineKm } from "@/utils/haversineKm";
 import { parseBound } from "@/utils/number";
 import { traduzMensagemApi, trataErroAxios } from "@/utils/trataErroAxios";
+
+const PAGE_SIZE = 10;
 
 export function useFreightsListPage() {
   const { t } = useTranslation();
@@ -32,9 +35,11 @@ export function useFreightsListPage() {
   const [filterMaxDistance, setFilterMaxDistance] = useState("");
   const [filterDriver, setFilterDriver] = useState<DriverFilter>("all");
   const [rows, setRows] = useState<FreightDto[]>([]);
+  const [driverProfilesById, setDriverProfilesById] = useState<Record<number, DriverProfile>>({});
   const [loading, setLoading] = useState(true);
   const [freightToDelete, setFreightToDelete] = useState<FreightDto | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [page, setPage] = useState(1);
 
   const loadFreights = useCallback(async () => {
     try {
@@ -52,6 +57,27 @@ export function useFreightsListPage() {
   useEffect(() => {
     void loadFreights();
   }, [loadFreights]);
+
+  useEffect(() => {
+    const driverIds = rows
+      .map((row) => row.assignedDriver_id)
+      .filter((id): id is number => id != null);
+
+    if (driverIds.length === 0) {
+      setDriverProfilesById({});
+      return;
+    }
+
+    let cancelled = false;
+
+    void fetchDriverProfilesMap(driverIds).then((profiles) => {
+      if (!cancelled) setDriverProfilesById(profiles);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rows]);
 
   const handleConfirmDelete = useCallback(async () => {
     if (!freightToDelete) return;
@@ -123,7 +149,22 @@ export function useFreightsListPage() {
     setFilterMinDistance("");
     setFilterMaxDistance("");
     setFilterDriver("all");
+    setPage(1);
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [
+    search,
+    chip,
+    filterMinValue,
+    filterMaxValue,
+    filterMinWeight,
+    filterMaxWeight,
+    filterMinDistance,
+    filterMaxDistance,
+    filterDriver,
+  ]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -173,7 +214,12 @@ export function useFreightsListPage() {
       if (!q) return true;
       const driverBit =
         row.assignedDriver_id != null
-          ? String(row.assignedDriver_id)
+          ? [
+              driverProfilesById[row.assignedDriver_id]?.name,
+              String(row.assignedDriver_id),
+            ]
+              .filter(Boolean)
+              .join(" ")
           : "";
       const blob = [
         row.name,
@@ -199,13 +245,24 @@ export function useFreightsListPage() {
     filterMinDistance,
     filterMaxDistance,
     filterDriver,
+    driverProfilesById,
   ]);
 
   const total = filtered.length;
-  const page = 1;
-  const pageSize = 10;
-  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const to = total === 0 ? 0 : Math.min(page * pageSize, total);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pageItems = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, safePage]);
+
+  const from = total === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
+  const to = total === 0 ? 0 : Math.min(safePage * PAGE_SIZE, total);
 
   return {
     search,
@@ -227,12 +284,18 @@ export function useFreightsListPage() {
     filterDriver,
     setFilterDriver,
     rows,
+    driverProfilesById,
     loading,
     deleting,
     chips,
     activeFilterCount,
     clearAllFilters,
     filtered,
+    pageItems,
+    page: safePage,
+    setPage,
+    pageSize: PAGE_SIZE,
+    totalPages,
     total,
     from,
     to,
