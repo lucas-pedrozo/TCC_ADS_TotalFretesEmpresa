@@ -130,7 +130,7 @@ const ProposalsPage = () => {
                   </Button>
                 }
               />
-                <PopoverContent className="w-[min(calc(100vw-2rem),20rem)]" align="end" sideOffset={8}>
+                <PopoverContent className="filter-popover w-[min(calc(100vw-2rem),20rem)]" align="end" sideOffset={8}>
                   <PopoverHeader>
                     <PopoverTitle>{t("pages.proposals.filterPanelTitle")}</PopoverTitle>
                     <PopoverDescription>{t("pages.proposals.filterPanelHint")}</PopoverDescription>
@@ -146,7 +146,7 @@ const ProposalsPage = () => {
                         onChange={(event) =>
                           setStatusFilter(event.target.value as ProposalStatusFilter)
                         }
-                        className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                        className="select-native"
                       >
                         {STATUS_FILTER_OPTIONS.map((option) => (
                           <option key={option} value={option}>

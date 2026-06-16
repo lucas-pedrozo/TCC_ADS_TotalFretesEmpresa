@@ -24,16 +24,18 @@ import {
   formatFreightDistanceKm,
   formatFreightWeightKg,
 } from "@/utils/freightFormat";
+import { resolveAssignedDriverDisplayName, type DriverProfile } from "@/utils/driverProfiles";
 import { haversineKm } from "@/utils/haversineKm";
 import { selectableItemHoverClassName } from "@/utils/ui";
 
 type FreightCardProps = {
   freight: FreightDto;
   lang: AppLanguage;
+  driverProfilesById?: Record<number, DriverProfile>;
   onDelete?: (freight: FreightDto) => void;
 };
 
-export function FreightCard({ freight, lang, onDelete }: FreightCardProps) {
+export function FreightCard({ freight, lang, driverProfilesById = {}, onDelete }: FreightCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -53,6 +55,14 @@ export function FreightCard({ freight, lang, onDelete }: FreightCardProps) {
     freight.name?.trim() || t("pages.freights.freightTitleFallback", { id: freight.id });
   const cargoName = freight.CargoType?.name ?? freight.cargo?.name ?? "—";
   const displayValue = freight.finalValue ?? freight.originalValue;
+  const assignedDriverLabel =
+    freight.assignedDriver_id != null
+      ? resolveAssignedDriverDisplayName(
+          freight.assignedDriver_id,
+          driverProfilesById,
+          t("pages.freightDetail.driverId", { id: freight.assignedDriver_id })
+        )
+      : null;
 
   const handleOpen = () => {
     void navigate(`/Freights/${freight.id}`);
@@ -168,12 +178,10 @@ export function FreightCard({ freight, lang, onDelete }: FreightCardProps) {
           </div>
         </div>
 
-        {freight.assignedDriver_id != null ? (
+        {assignedDriverLabel ? (
           <p className="mt-3 border-t border-border/50 pt-3 text-xs text-muted-foreground">
             {t("pages.freights.columnName")}:{" "}
-            <span className="font-medium text-foreground">
-              {t("pages.freightDetail.driverId", { id: freight.assignedDriver_id })}
-            </span>
+            <span className="font-medium text-foreground">{assignedDriverLabel}</span>
           </p>
         ) : null}
       </section>

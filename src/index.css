@@ -12,8 +12,6 @@
 
 body {
   font-family: 'Montserrat', sans-serif;
-  background-color: #f5f5f5;
-  color: #000000;
 } 
 
 @theme inline {
@@ -21,6 +19,7 @@ body {
   --font-sans: 'Inter Variable', sans-serif;
   --color-brand-green: #086E46;
   --color-brand-green-dark: #065437;
+  --color-brand-green-darkest: #011f14;
   --color-brand-green-light: #D1F9E2;
   --color-brand-green-light2: #a2beae;
 
@@ -151,6 +150,20 @@ body {
     @apply font-sans;
     scrollbar-gutter: stable;
   }
+
+  select {
+    @apply text-foreground;
+    color-scheme: light;
+  }
+
+  .dark select {
+    color-scheme: dark;
+  }
+
+  .dark select option {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+  }
 }
 
 /**
@@ -188,6 +201,19 @@ body {
 
   .scrollbar-brand::-webkit-scrollbar-corner {
     background: transparent;
+  }
+
+  .select-native {
+    @apply flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-border dark:bg-input/50 dark:text-foreground;
+    color-scheme: light;
+  }
+
+  .dark .select-native {
+    color-scheme: dark;
+  }
+
+  .filter-popover {
+    @apply border border-border bg-popover shadow-lg dark:border-border/70 dark:bg-popover dark:shadow-2xl;
   }
 }
 

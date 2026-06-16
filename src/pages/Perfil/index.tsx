@@ -380,7 +380,6 @@ const PerfilPage = () => {
               </div>
             </div>
 
-
           </div>
         </section>
 

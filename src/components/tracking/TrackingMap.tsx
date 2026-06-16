@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
+import { useTheme } from 'next-themes';
 
 import { TrackingMapControls } from '@/components/tracking/TrackingMapControls';
 import type { TrackingPosition } from '@/hooks/useFreightTracking';
@@ -132,6 +133,7 @@ export function TrackingMap({
   originCoords,
   destCoords,
 }: TrackingMapProps) {
+  const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapboxMap | null>(null);
   const mapboxRef = useRef<MapboxGL | null>(null);
@@ -155,6 +157,10 @@ export function TrackingMap({
   }, [alignBearing]);
 
   const initialCenter = currentPosition ?? originCoords;
+  const mapStyle =
+    resolvedTheme === "dark"
+      ? "mapbox://styles/mapbox/dark-v11"
+      : "mapbox://styles/mapbox/streets-v12";
 
   const applyCamera = useCallback(
     (options: {
@@ -243,7 +249,7 @@ export function TrackingMap({
 
         mapInstance = new mapboxgl.Map({
           container: containerRef.current,
-          style: 'mapbox://styles/mapbox/streets-v12',
+          style: mapStyle,
           center: [initialCenter.longitude, initialCenter.latitude],
           zoom: 12,
           antialias: true,
@@ -365,7 +371,7 @@ export function TrackingMap({
       mapboxRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- map init once per mount
-  }, [accessToken]);
+  }, [accessToken, mapStyle]);
 
   useEffect(() => {
     const map = mapRef.current;
