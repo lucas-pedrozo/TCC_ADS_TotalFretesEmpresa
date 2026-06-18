@@ -19,7 +19,7 @@ const StartPage = () => {
         <h3 className="mb-8 text-center text-5xl font-bold">{t('pages.start.welcome')}</h3>
         <ButtonDefault
           type="button"
-          dataTestid="login-button"
+          dataTestid="auth-start-login-button"
           onClick={() => navigateWithFade('/Login')}
           color="default"
         >
@@ -27,7 +27,7 @@ const StartPage = () => {
         </ButtonDefault>
         <ButtonDefault
           type="button"
-          dataTestid="signup-button"
+          dataTestid="auth-start-signup-button"
           onClick={() => navigateWithFade('/SignUp')}
           color="tertiary"
         >
