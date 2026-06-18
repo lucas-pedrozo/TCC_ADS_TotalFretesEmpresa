@@ -54,6 +54,7 @@ const LoginPage = () => {
             label={t('pages.login.emailLabel')}
             type="email"
             mask="email"
+            dataTestid="auth-email-input"
             autoComplete="username"
           />
 
@@ -64,10 +65,12 @@ const LoginPage = () => {
             rules={Rules.password}
             label={t('pages.login.passwordLabel')}
             type={showPassword ? 'text' : 'password'}
+            dataTestid="auth-password-input"
             autoComplete="current-password"
             rightElement={
               <button
                 type="button"
+                data-testid="auth-password-visibility-button"
                 aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                 onClick={() => setShowPassword((current) => !current)}
                 className="text-black/70 hover:text-black cursor-pointer"
@@ -79,6 +82,7 @@ const LoginPage = () => {
 
           <button
             type="button"
+            data-testid="auth-forgot-password-button"
             onClick={() => navigateWithFade('/ForgotPassword')}
             className="w-fit underline hover:text-stone-600 cursor-pointer pl-2.5"
           >
@@ -88,7 +92,7 @@ const LoginPage = () => {
           <div className="pt-5">
             <ButtonDefault
               type="submit"
-              dataTestid="login-button"
+              dataTestid="auth-submit-button"
               disabled={isDisabled}
               isLoading={isLoading}
               color="default"

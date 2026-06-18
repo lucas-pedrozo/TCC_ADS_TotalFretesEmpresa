@@ -52,11 +52,11 @@ export const SideLayout = () => {
   };
 
   const navItems = [
-    { label: t("sidebar.home"), icon: HomeIcon, to: "/Home" },
-    { label: t("sidebar.freights"), icon: TruckIcon, to: "/Freights" },
-    { label: t("sidebar.proposals"), icon: FileTextIcon, to: "/Proposals" },
-    { label: t("sidebar.history"), icon: HistoryIcon, to: "/History" },
-    { label: t("sidebar.profile"), icon: UserIcon, to: "/Perfil" },
+    { label: t("sidebar.home"), icon: HomeIcon, to: "/Home", testId: "sidebar-nav-home" },
+    { label: t("sidebar.freights"), icon: TruckIcon, to: "/Freights", testId: "sidebar-nav-freights" },
+    { label: t("sidebar.proposals"), icon: FileTextIcon, to: "/Proposals", testId: "sidebar-nav-proposals" },
+    { label: t("sidebar.history"), icon: HistoryIcon, to: "/History", testId: "sidebar-nav-history" },
+    { label: t("sidebar.profile"), icon: UserIcon, to: "/Perfil", testId: "sidebar-nav-profile" },
   ];
 
   return (
@@ -71,6 +71,7 @@ export const SideLayout = () => {
         <SidebarHeader className="gap-0 border-b border-sidebar-border/80 p-2 md:p-3 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-2">
           <Link
             to="/Home"
+            data-testid="sidebar-brand-link"
             className={cn(
               "flex min-w-0 items-center gap-2 rounded-lg p-1.5 outline-none ring-sidebar-ring transition-colors",
               "hover:bg-brand-green-light/40 focus-visible:ring-2 focus-visible:ring-brand-green/35",
@@ -106,6 +107,7 @@ export const SideLayout = () => {
                       isActive={location.pathname === item.to}
                       tooltip={item.label}
                       size="lg"
+                      data-testid={item.testId}
                       className={sidebarNavButtonClass}
                       render={<Link to={item.to} />}
                     >
@@ -129,6 +131,7 @@ export const SideLayout = () => {
               <SidebarMenuButton
                 tooltip={t("sidebar.logout")}
                 size="lg"
+                data-testid="sidebar-logout-button"
                 className={sidebarLogoutButtonClass}
                 onClick={() => void logoutAndRedirect()}
               >

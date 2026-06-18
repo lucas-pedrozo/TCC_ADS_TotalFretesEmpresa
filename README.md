@@ -83,6 +83,59 @@ npm run docker:down
 | `npm run dev` | Servidor de desenvolvimento (Vite, HTTP) |
 | `npm run dev:https` | Servidor de desenvolvimento com HTTPS (mkcert) |
 | `npm run build` | Build de produção |
+| `npm run test:e2e` | Executa testes end-to-end (Playwright, headless) |
+| `npm run test:e2e:auth` | Executa apenas o grupo de autenticação |
+| `npm run test:e2e:company` | Executa os grupos de empresa em sequência |
+| `npm run test:e2e:company:freights` | Executa apenas o grupo de Freights |
+| `npm run test:e2e:company:proposals` | Executa apenas o grupo de Proposals |
+| `npm run test:e2e:company:history` | Executa apenas o grupo de History |
+| `npm run test:e2e:headed` | Executa testes end-to-end com navegador visível |
+| `npm run test:e2e:ui` | Abre o runner interativo do Playwright |
+| `npm run test:e2e:report` | Abre relatório HTML do último run E2E |
 | `npm run preview` | Preview do build local |
 | `npm run docker:up` | Sobe o container de produção |
 | `npm run docker:down` | Para o container |
+
+## Testes end-to-end (Playwright)
+
+Os testes E2E cobrem o fluxo web de autenticação de empresa e navegação nas páginas de empresa (`Freights`, `Proposals`, `History`), usando seletores estáveis por `data-testid`.
+
+### 1) Pré-requisitos para E2E
+
+- Backend local ativo em `http://localhost:80`.
+- Frontend web disponível em `http://localhost:5173` (ou deixe o Playwright subir com `npm run dev` automaticamente).
+- Credenciais válidas de empresa para teste.
+
+### 2) Configuração das variáveis
+
+1. Copie o arquivo de exemplo:
+
+```bash
+cp tests/e2e/.env.e2e.example tests/e2e/.env.e2e
+```
+
+2. Preencha as variáveis no `tests/e2e/.env.e2e`:
+
+- `E2E_BASE_URL` (padrão: `http://localhost:5173`)
+- `E2E_COMPANY_EMAIL`
+- `E2E_COMPANY_PASSWORD`
+- `E2E_INVALID_PASSWORD` (opcional, para cenário de falha)
+
+### 3) Instalação de browsers do Playwright
+
+```bash
+npx playwright install
+```
+
+### 4) Execução dos testes
+
+```bash
+npm run test:e2e
+```
+
+Por padrão, o comando `test:e2e` executa os grupos de teste um a um (`auth` e depois `company`), para reduzir carga e facilitar diagnóstico.
+
+### 5) Observações de estabilidade
+
+- Os testes usam `data-testid` para reduzir fragilidade com i18n e mudanças de texto.
+- O arquivo `tests/e2e/.env.e2e` está no `.gitignore` para evitar commit de credenciais.
