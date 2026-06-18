@@ -111,7 +111,9 @@ export function ProposalCard({ proposal, lang }: ProposalCardProps) {
     proposal.submitted_lat != null &&
     proposal.submitted_lng != null &&
     Number.isFinite(proposal.submitted_lat) &&
-    Number.isFinite(proposal.submitted_lng);
+    Number.isFinite(proposal.submitted_lng) &&
+    proposal.submitted_lat !== 0 &&
+    proposal.submitted_lng !== 0;
 
   const distanceToPickupKm =
     hasSubmittedLocation
@@ -121,7 +123,7 @@ export function ProposalCard({ proposal, lang }: ProposalCardProps) {
           freight.origin_lat,
           freight.origin_lng
         )
-      : null;
+      : 0;
 
   return (
     <article
@@ -172,12 +174,10 @@ export function ProposalCard({ proposal, lang }: ProposalCardProps) {
           <p className="text-xs text-muted-foreground">
             {t("pages.proposals.sentAt")}: {formatDateTimeLabel(proposal.createdAt, lang)}
           </p>
-          {distanceToPickupKm != null ? (
-            <p className="text-xs text-muted-foreground">
-              {t("pages.proposals.distanceToPickup")}:{" "}
-              {formatFreightDistanceKm(Math.round(distanceToPickupKm), lang)}
-            </p>
-          ) : null}
+          <p className="text-xs text-muted-foreground">
+            {t("pages.proposals.distanceToPickup")}:{" "}
+            {formatFreightDistanceKm(Math.round(distanceToPickupKm), lang)}
+          </p>
         </div>
       </header>
 

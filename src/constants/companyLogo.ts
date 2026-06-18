@@ -14,6 +14,5 @@ export const COMPANY_LOGO_ACCEPTED_SOURCE_TYPES = [
 export const COMPANY_LOGO_ACCEPT_ATTR =
   "image/png,image/jpeg,image/webp,image/gif";
 
-/** Superfície clara/neutra para logos PNG (incl. fundo transparente) com bom contraste. */
 export const companyLogoSurfaceClassName =
   "border border-border/70 bg-white shadow-sm ring-1 ring-black/5 dark:border-border dark:bg-zinc-950 dark:ring-white/10";

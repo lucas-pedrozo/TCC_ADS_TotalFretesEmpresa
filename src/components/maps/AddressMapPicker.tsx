@@ -102,7 +102,7 @@ export function AddressMapPicker({
     labelInputRef.current = labelInput;
   }, [labelInput]);
 
-  /** Preenche a busca com o endereço da empresa (uma vez por texto distinto). */
+  /** Preenche a busca com o endereço da empresa */
   useEffect(() => {
     const q = initialSearchQuery?.trim();
     if (!q) return;
@@ -220,7 +220,6 @@ export function AddressMapPicker({
         try {
           mapInstance.remove();
         } catch {
-          /* ignore */
         }
       }
       mapRef.current = null;
