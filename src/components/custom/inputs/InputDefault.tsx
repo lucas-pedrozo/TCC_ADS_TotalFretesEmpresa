@@ -21,6 +21,7 @@ type InputDefaultProps<T extends FieldValues> = {
   disabled?: boolean
   mask?: "default" | "phone" | "cnpj" | "cep" | "email" | "uf"
   rightElement?: ReactNode
+  dataTestid?: string
   /** Importante para gerenciadores de senha do navegador (ex.: login: username + current-password). */
   autoComplete?: string
 }
@@ -72,6 +73,7 @@ export function InputDefault<T extends FieldValues>({
   disabled,
   mask = "default",
   rightElement,
+  dataTestid,
   autoComplete,
 }: InputDefaultProps<T>) {
   return (
@@ -119,6 +121,7 @@ export function InputDefault<T extends FieldValues>({
                 ref={field.ref}
                 maxLength={maxLength}
                 disabled={disabled}
+                data-testid={dataTestid}
                 className={`${inputClassName} ${rightElement ? "pr-10" : ""}`}
               />
 
