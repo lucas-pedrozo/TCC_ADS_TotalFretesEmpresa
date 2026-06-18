@@ -281,7 +281,10 @@ function buildPerformanceSeries(
 
 function HistoryPageSkeleton() {
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-muted/20 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
+    <div
+      data-testid="history-page"
+      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-muted/20 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6"
+    >
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <section className="rounded-[28px] border border-border bg-background p-5 shadow-sm md:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -527,7 +530,10 @@ const HistoryPage = () => {
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-muted/20 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
+    <div
+      data-testid="history-page"
+      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-muted/20 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6"
+    >
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <section className="rounded-[28px] border border-border bg-background p-5 shadow-sm md:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -547,6 +553,7 @@ const HistoryPage = () => {
 
             <Button
               type="button"
+              data-testid="history-export-button"
               variant="outline"
               className="min-h-11 w-full rounded-full px-5 sm:w-auto"
               onClick={handleExport}
@@ -562,6 +569,7 @@ const HistoryPage = () => {
               <Button
                 key={option.id}
                 type="button"
+                data-testid={`history-period-${option.id}`}
                 variant="ghost"
                 className={cn(
                   "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
@@ -711,7 +719,10 @@ const HistoryPage = () => {
         />
 
         {!loading && rows.length === 0 ? (
-          <section className="rounded-[28px] border border-dashed border-border bg-background px-5 py-6 text-center shadow-sm">
+          <section
+            data-testid="history-empty-state"
+            className="rounded-[28px] border border-dashed border-border bg-background px-5 py-6 text-center shadow-sm"
+          >
             <div className="mx-auto flex max-w-xl flex-col items-center gap-3">
               <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
                 <CalendarDays className="size-5" />

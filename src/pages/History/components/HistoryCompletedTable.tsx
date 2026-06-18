@@ -132,7 +132,10 @@ export function HistoryCompletedTable({
   }
 
   return (
-    <section className="rounded-[28px] border border-border bg-background p-5 shadow-sm md:p-6">
+    <section
+      data-testid="history-table-section"
+      className="rounded-[28px] border border-border bg-background p-5 shadow-sm md:p-6"
+    >
       <div className="space-y-2">
         <h3 className="text-lg font-semibold tracking-tight text-foreground">{title}</h3>
         <p className="text-sm text-muted-foreground">{description}</p>
@@ -148,6 +151,7 @@ export function HistoryCompletedTable({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder={searchPlaceholder}
+            data-testid="history-table-search-input"
             className="min-h-11 rounded-lg border-border pl-9 touch-manipulation md:min-h-9"
             aria-label={searchPlaceholder}
           />
@@ -158,6 +162,7 @@ export function HistoryCompletedTable({
             render={
               <Button
                 type="button"
+                data-testid="history-table-filter-trigger"
                 variant="outline"
                 className="min-h-11 w-full shrink-0 justify-center gap-2 rounded-lg touch-manipulation sm:min-h-9 lg:w-auto"
                 aria-label={filterActiveLabel}
@@ -171,7 +176,7 @@ export function HistoryCompletedTable({
             }
           />
           <PopoverContent
-            className="w-[min(calc(100vw-2rem),22rem)] max-w-none sm:w-96"
+            className="filter-popover w-[min(calc(100vw-2rem),22rem)] max-w-none sm:w-96"
             align="end"
             sideOffset={8}
           >
@@ -186,9 +191,10 @@ export function HistoryCompletedTable({
                 </Label>
                 <select
                   id="hf-cargo"
+                  data-testid="history-table-filter-cargo"
                   value={filterCargo}
                   onChange={(event) => onFilterCargoChange(event.target.value)}
-                  className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                  className="select-native"
                 >
                   <option value={allCargoValue}>{filterAllCargo}</option>
                   {cargoOptions.map((cargo) => (
@@ -211,6 +217,7 @@ export function HistoryCompletedTable({
                     </Label>
                     <Input
                       id="hf-min-val"
+                      data-testid="history-table-filter-min-value"
                       type="number"
                       min={0}
                       step="0.01"
@@ -226,6 +233,7 @@ export function HistoryCompletedTable({
                     </Label>
                     <Input
                       id="hf-max-val"
+                      data-testid="history-table-filter-max-value"
                       type="number"
                       min={0}
                       step="0.01"
@@ -250,6 +258,7 @@ export function HistoryCompletedTable({
                     </Label>
                     <Input
                       id="hf-min-dist"
+                      data-testid="history-table-filter-min-distance"
                       type="number"
                       min={0}
                       step="1"
@@ -265,6 +274,7 @@ export function HistoryCompletedTable({
                     </Label>
                     <Input
                       id="hf-max-dist"
+                      data-testid="history-table-filter-max-distance"
                       type="number"
                       min={0}
                       step="1"
@@ -280,7 +290,13 @@ export function HistoryCompletedTable({
               {activeFilterCount > 0 ? (
                 <>
                   <Separator />
-                  <Button type="button" variant="ghost" className="w-full" onClick={onClearFilters}>
+                  <Button
+                    type="button"
+                    data-testid="history-table-filter-clear"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={onClearFilters}
+                  >
                     {clearFiltersLabel}
                   </Button>
                 </>
@@ -295,7 +311,7 @@ export function HistoryCompletedTable({
           <p className="text-sm font-medium text-muted-foreground">{emptyLabel}</p>
         </div>
       ) : (
-        <div className="mt-5 rounded-2xl border border-border/70 bg-card">
+        <div data-testid="history-table-container" className="mt-5 rounded-2xl border border-border/70 bg-card">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -312,6 +328,7 @@ export function HistoryCompletedTable({
               {rows.map((row) => (
                 <TableRow
                   key={row.id}
+                  data-testid="history-table-row"
                   role="button"
                   tabIndex={0}
                   className={cn("cursor-pointer", selectableItemHoverClassName)}
@@ -363,6 +380,7 @@ export function HistoryCompletedTable({
         <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
           <Button
             type="button"
+            data-testid="history-table-pagination-prev"
             variant="outline"
             size="sm"
             className="min-h-10 rounded-lg sm:min-h-9"
@@ -373,6 +391,7 @@ export function HistoryCompletedTable({
           </Button>
           <Button
             type="button"
+            data-testid="history-table-pagination-next"
             variant="outline"
             size="sm"
             className="min-h-10 rounded-lg sm:min-h-9"

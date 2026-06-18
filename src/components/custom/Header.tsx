@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { AppLanguage } from "@/i18n/resources";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/custom/CompanyLogo";
 import {
   DropdownMenu,
@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { CompanyData } from "@/hooks/useGetCompany";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
+import { ThemeModeToggle } from "@/components/ThemeModeToggle";
 
 function companyInitials(name: string): string {
   const trimmed = name.trim();
@@ -119,6 +120,7 @@ const Header = ({ companyData, isCompanyLoading, onLogout }: HeaderProps) => {
       </div>
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <ThemeModeToggle />
         <NotificationBell />
 
         <DropdownMenu>

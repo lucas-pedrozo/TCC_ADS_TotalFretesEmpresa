@@ -22,6 +22,8 @@ export type ProposalDto = {
   status_id?: number | null;
   value: number;
   rejection_comment?: string | null;
+  submitted_lat?: number | null;
+  submitted_lng?: number | null;
   createdAt?: string;
   updatedAt?: string;
   ProposalStatusType?: ProposalStatusTypeDto | null;

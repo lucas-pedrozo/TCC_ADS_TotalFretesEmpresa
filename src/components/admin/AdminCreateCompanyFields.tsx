@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { DatePickerInput } from "@/components/custom/inputs/DatePickerInput";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { parseCnpjInput } from "@/utils/cnpjInRfb2229";
@@ -98,10 +99,9 @@ export function AdminCreateCompanyFields({
       </div>
       <div className="space-y-2">
         <Label>{t("pages.admin.accounts.companyBirthFundation")}</Label>
-        <Input
-          type="date"
+        <DatePickerInput
           value={form.birthFundation}
-          onChange={(e) => onChange("birthFundation", e.target.value)}
+          onChange={(value) => onChange("birthFundation", value)}
         />
       </div>
       <div className="space-y-2">

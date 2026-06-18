@@ -78,8 +78,11 @@ const ProposalsPage = () => {
             : "pages.proposals.emptyAll";
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div
+      data-testid="proposals-page"
+      className="flex min-h-0 min-w-0 flex-1 flex-col p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6"
+    >
+      <div data-testid="proposals-kpi-grid" className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {loading && items.length === 0 ? (
           Array.from({ length: 4 }).map((_, index) => (
             <Skeleton key={index} className="h-[76px] rounded-xl" />
@@ -104,6 +107,7 @@ const ProposalsPage = () => {
               />
               <Input
                 type="search"
+                data-testid="proposals-search-input"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={t("pages.proposals.searchPlaceholder")}
@@ -116,6 +120,7 @@ const ProposalsPage = () => {
                 render={
                   <Button
                     type="button"
+                    data-testid="proposals-filter-trigger"
                     variant="outline"
                     className="h-11 w-full shrink-0 justify-center gap-2 rounded-lg sm:h-9 sm:w-auto"
                     aria-label={t("pages.proposals.filterActiveStatus", {
@@ -130,7 +135,7 @@ const ProposalsPage = () => {
                   </Button>
                 }
               />
-                <PopoverContent className="w-[min(calc(100vw-2rem),20rem)]" align="end" sideOffset={8}>
+                <PopoverContent className="filter-popover w-[min(calc(100vw-2rem),20rem)]" align="end" sideOffset={8}>
                   <PopoverHeader>
                     <PopoverTitle>{t("pages.proposals.filterPanelTitle")}</PopoverTitle>
                     <PopoverDescription>{t("pages.proposals.filterPanelHint")}</PopoverDescription>
@@ -142,11 +147,12 @@ const ProposalsPage = () => {
                       </Label>
                       <select
                         id="proposal-status-filter"
+                        data-testid="proposals-filter-status"
                         value={statusFilter}
                         onChange={(event) =>
                           setStatusFilter(event.target.value as ProposalStatusFilter)
                         }
-                        className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                        className="select-native"
                       >
                         {STATUS_FILTER_OPTIONS.map((option) => (
                           <option key={option} value={option}>
@@ -157,6 +163,7 @@ const ProposalsPage = () => {
                     </div>
                     <Button
                       type="button"
+                      data-testid="proposals-filter-clear"
                       variant="outline"
                       size="sm"
                       className="w-full rounded-lg"
@@ -173,17 +180,20 @@ const ProposalsPage = () => {
 
         <div className="p-3 sm:p-5">
           {loading ? (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div data-testid="proposals-list" className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {Array.from({ length: 4 }).map((_, index) => (
                 <Skeleton key={index} className="h-[320px] rounded-xl" />
               ))}
             </div>
           ) : items.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center">
+            <div
+              data-testid="proposals-empty-state"
+              className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center"
+            >
               <p className="text-sm font-medium text-muted-foreground">{t(emptyMessageKey)}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div data-testid="proposals-list" className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {items.map((proposal) => (
                 <ProposalCard key={proposal.id} proposal={proposal} lang={lang} />
               ))}
@@ -204,6 +214,7 @@ const ProposalsPage = () => {
           <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
             <Button
               type="button"
+              data-testid="proposals-pagination-prev"
               variant="outline"
               size="sm"
               className="min-h-10 rounded-lg sm:min-h-9"
@@ -214,6 +225,7 @@ const ProposalsPage = () => {
             </Button>
             <Button
               type="button"
+              data-testid="proposals-pagination-next"
               variant="outline"
               size="sm"
               className="min-h-10 rounded-lg sm:min-h-9"

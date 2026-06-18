@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { ThemeModeToggle } from "@/components/ThemeModeToggle";
 
 type AdminHeaderProps = {
   onLogout: () => void | Promise<void>;
@@ -74,6 +75,7 @@ const AdminHeader = ({ onLogout }: AdminHeaderProps) => {
           {title}
         </h1>
       </div>
+      <ThemeModeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger
           className={cn(

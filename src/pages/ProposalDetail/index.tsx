@@ -23,6 +23,7 @@ import {
   statusBadgeClass,
 } from "@/components/ui/freightStatusUi";
 import { useProposalDetail } from "@/hooks/useProposalDetail";
+import { useSubmittedLocationCity } from "@/hooks/useSubmittedLocationCity";
 import type { AppLanguage } from "@/i18n/resources";
 import { cn } from "@/lib/utils";
 import { selectableItemHoverClassName } from "@/utils/ui";
@@ -61,6 +62,13 @@ const ProposalDetailPage = () => {
     goBack,
     openFreight,
   } = useProposalDetail({ proposalId });
+
+  const {
+    hasCoords: hasSubmittedLocation,
+    loading: submittedLocationLoading,
+    city: submittedCity,
+    coordinatesLabel,
+  } = useSubmittedLocationCity(proposal?.submitted_lat, proposal?.submitted_lng);
 
   const onConfirmReject = async (comment: string) => {
     const ok = await handleReject(comment);
@@ -130,6 +138,22 @@ const ProposalDetailPage = () => {
   const cargoName =
     freight?.CargoType?.name ?? freight?.cargo?.name ?? t("pages.proposalDetail.cargoUnavailable");
 
+  const distanceToPickupKm =
+    hasSubmittedLocation && freight
+      ? haversineKm(
+          proposal!.submitted_lat!,
+          proposal!.submitted_lng!,
+          freight.origin_lat,
+          freight.origin_lng
+        )
+      : null;
+
+  const submittedLocationLabel = !hasSubmittedLocation
+    ? t("pages.proposalDetail.submittedLocationUnavailable")
+    : submittedLocationLoading
+      ? t("pages.proposalDetail.submittedLocationLoading")
+      : submittedCity ?? coordinatesLabel ?? t("pages.proposalDetail.submittedLocationUnavailable");
+
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
       <div className="flex flex-wrap items-center gap-3">
@@ -188,6 +212,28 @@ const ProposalDetailPage = () => {
               {formatDateTimeLabel(proposal.createdAt, lang)}
             </p>
           </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-4 border-t border-border pt-4 sm:grid-cols-2">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("pages.proposalDetail.submittedLocation")}
+            </p>
+            <p className="mt-1 flex items-start gap-1.5 text-sm font-medium text-foreground">
+              <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+              <span className="min-w-0 break-words">{submittedLocationLabel}</span>
+            </p>
+          </div>
+          {distanceToPickupKm != null ? (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {t("pages.proposalDetail.distanceToPickup")}
+              </p>
+              <p className="mt-1 text-sm font-medium text-foreground">
+                {formatFreightDistanceKm(Math.round(distanceToPickupKm), lang)}
+              </p>
+            </div>
+          ) : null}
         </div>
 
         {canActOnProposal ? (

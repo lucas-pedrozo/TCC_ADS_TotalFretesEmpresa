@@ -378,14 +378,14 @@ const FreightDetailPage = () => {
                   <DetailField icon={Tag} label={t("pages.freightDetail.fieldFreightName")}>
                     {freight.name?.trim() ? freight.name.trim() : "—"}
                   </DetailField>
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex min-w-0 flex-col gap-2.5">
                     <div
                       className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
                       aria-hidden
                     >
                       <Package className="size-[18px]" strokeWidth={2} />
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 max-w-full overflow-hidden">
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                         {t("pages.freightDetail.fieldCargoType")}
                       </p>

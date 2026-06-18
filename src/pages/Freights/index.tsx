@@ -56,7 +56,11 @@ const FreightsPage = () => {
     deleting,
     chips,
     clearAllFilters,
-    filtered,
+    driverProfilesById,
+    pageItems,
+    page,
+    setPage,
+    totalPages,
     total,
     from,
     to,
@@ -71,7 +75,10 @@ const FreightsPage = () => {
   );
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6">
+    <div
+      data-testid="freights-page"
+      className="flex min-h-0 min-w-0 flex-1 flex-col p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6"
+    >
       <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
         <div className="flex flex-col gap-4 border-b border-border p-3 sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -84,6 +91,7 @@ const FreightsPage = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("pages.freights.searchPlaceholder")}
+                data-testid="freights-search-input"
                 className="min-h-11 rounded-lg border-border pl-9 touch-manipulation md:min-h-9"
                 aria-label={t("pages.freights.searchPlaceholder")}
               />
@@ -94,6 +102,7 @@ const FreightsPage = () => {
                   render={
                     <Button
                       type="button"
+                      data-testid="freights-filter-trigger"
                       variant="outline"
                       className="min-h-11 w-full shrink-0 justify-center gap-2 rounded-lg touch-manipulation sm:min-h-9 sm:w-auto"
                       aria-label={t("pages.freights.filterActiveStatus", {
@@ -109,7 +118,7 @@ const FreightsPage = () => {
                   }
                 />
                 <PopoverContent
-                  className="w-[min(calc(100vw-2rem),22rem)] max-w-none sm:w-96"
+                  className="filter-popover w-[min(calc(100vw-2rem),22rem)] max-w-none sm:w-96"
                   align="end"
                   sideOffset={8}
                 >
@@ -126,9 +135,10 @@ const FreightsPage = () => {
                       </Label>
                       <select
                         id="ff-status"
+                        data-testid="freights-filter-status"
                         value={chip}
                         onChange={(e) => setChip(e.target.value as ChipFilter)}
-                        className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                        className="select-native"
                       >
                         {chips.map((c) => (
                           <option key={c.id} value={c.id}>
@@ -154,6 +164,7 @@ const FreightsPage = () => {
                           </Label>
                           <Input
                             id="ff-min-val"
+                            data-testid="freights-filter-min-value"
                             type="number"
                             min={0}
                             step="0.01"
@@ -170,6 +181,7 @@ const FreightsPage = () => {
                           </Label>
                           <Input
                             id="ff-max-val"
+                            data-testid="freights-filter-max-value"
                             type="number"
                             min={0}
                             step="0.01"
@@ -199,6 +211,7 @@ const FreightsPage = () => {
                           </Label>
                           <Input
                             id="ff-min-w"
+                            data-testid="freights-filter-min-weight"
                             type="number"
                             min={0}
                             step="1"
@@ -215,6 +228,7 @@ const FreightsPage = () => {
                           </Label>
                           <Input
                             id="ff-max-w"
+                            data-testid="freights-filter-max-weight"
                             type="number"
                             min={0}
                             step="1"
@@ -244,6 +258,7 @@ const FreightsPage = () => {
                           </Label>
                           <Input
                             id="ff-min-d"
+                            data-testid="freights-filter-min-distance"
                             type="number"
                             min={0}
                             step="1"
@@ -260,6 +275,7 @@ const FreightsPage = () => {
                           </Label>
                           <Input
                             id="ff-max-d"
+                            data-testid="freights-filter-max-distance"
                             type="number"
                             min={0}
                             step="1"
@@ -281,9 +297,10 @@ const FreightsPage = () => {
                       </Label>
                       <select
                         id="ff-driver"
+                        data-testid="freights-filter-driver"
                         value={filterDriver}
                         onChange={(e) => setFilterDriver(e.target.value as DriverFilter)}
-                        className="flex h-9 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-background px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                        className="select-native"
                       >
                         <option value="all">{t("pages.freights.filterDriverAll")}</option>
                         <option value="with">{t("pages.freights.filterDriverWith")}</option>
@@ -293,6 +310,7 @@ const FreightsPage = () => {
 
                     <Button
                       type="button"
+                      data-testid="freights-filter-clear"
                       variant="outline"
                       size="sm"
                       className="w-full rounded-lg"
@@ -306,6 +324,7 @@ const FreightsPage = () => {
 
               <Button
                 type="button"
+                data-testid="freights-new-button"
                 className="min-h-11 w-full shrink-0 gap-2 rounded-lg bg-brand-green text-white touch-manipulation hover:bg-brand-green-dark sm:min-h-9 sm:w-auto"
                 onClick={() => navigate("/Freights/new")}
               >
@@ -318,24 +337,28 @@ const FreightsPage = () => {
 
         <div className="p-3 sm:p-5">
           {loading ? (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div data-testid="freights-list" className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {Array.from({ length: 4 }).map((_, index) => (
                 <Skeleton key={index} className="h-[320px] rounded-xl" />
               ))}
             </div>
-          ) : filtered.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center">
+          ) : pageItems.length === 0 ? (
+            <div
+              data-testid="freights-empty-state"
+              className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center"
+            >
               <p className="text-sm font-medium text-muted-foreground">
                 {t("pages.freights.emptyTable")}
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {filtered.map((freight) => (
+            <div data-testid="freights-list" className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {pageItems.map((freight) => (
                 <FreightCard
                   key={freight.id}
                   freight={freight}
                   lang={lang}
+                  driverProfilesById={driverProfilesById}
                   onDelete={setFreightToDelete}
                 />
               ))}
@@ -348,7 +371,7 @@ const FreightsPage = () => {
             if (!open && !deleting) setFreightToDelete(null);
           }}
         >
-          <DialogContent showCloseButton={!deleting}>
+          <DialogContent data-testid="freights-delete-dialog" showCloseButton={!deleting}>
             <DialogHeader>
               <DialogTitle>{t("pages.freightDetail.deleteConfirmTitle")}</DialogTitle>
               <DialogDescription>{t("pages.freightDetail.deleteConfirmBody")}</DialogDescription>
@@ -356,6 +379,7 @@ const FreightsPage = () => {
             <DialogFooter>
               <Button
                 type="button"
+                data-testid="freights-delete-cancel"
                 variant="outline"
                 className="rounded-lg"
                 disabled={deleting}
@@ -365,6 +389,7 @@ const FreightsPage = () => {
               </Button>
               <Button
                 type="button"
+                data-testid="freights-delete-confirm"
                 variant="destructive"
                 className="rounded-lg"
                 disabled={deleting}
@@ -395,19 +420,23 @@ const FreightsPage = () => {
           <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
             <Button
               type="button"
+              data-testid="freights-pagination-prev"
               variant="outline"
               size="sm"
               className="min-h-10 rounded-lg sm:min-h-9"
-              disabled
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
             >
               {t("pages.freights.paginationPrev")}
             </Button>
             <Button
               type="button"
+              data-testid="freights-pagination-next"
               variant="outline"
               size="sm"
               className="min-h-10 rounded-lg sm:min-h-9"
-              disabled
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
             >
               {t("pages.freights.paginationNext")}
             </Button>

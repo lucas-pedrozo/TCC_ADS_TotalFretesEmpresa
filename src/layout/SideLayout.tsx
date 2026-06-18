@@ -27,25 +27,11 @@ import {
 
 import { AppSpacerFooter } from "@/components/custom/AppSpacerFooter";
 import Header from "@/components/custom/Header";
-
-const sidebarNavButtonClass =
-  "min-h-11 h-auto min-w-0 touch-manipulation rounded-lg py-2.5 text-sm font-semibold shadow-none transition-all duration-200 md:min-h-10 md:py-2 " +
-  "border border-brand-green-dark/30 bg-transparent text-brand-green-dark " +
-  "hover:border-brand-green-dark hover:bg-brand-green-dark hover:text-white " +
-  "data-active:border-brand-green-dark data-active:bg-brand-green data-active:text-white " +
-  "focus-visible:ring-2 focus-visible:ring-brand-green/40 " +
-  "group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:!h-8 group-data-[collapsible=icon]:!w-8 group-data-[collapsible=icon]:min-h-0! group-data-[collapsible=icon]:min-w-0! " +
-  "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-2! group-data-[collapsible=icon]:py-0! " +
-  "group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:max-w-8";
-
-const sidebarLogoutButtonClass =
-  "min-h-11 h-auto min-w-0 touch-manipulation rounded-lg py-2.5 text-sm font-semibold shadow-none transition-all duration-200 md:min-h-10 md:py-2 " +
-  "border-2 border-red-600 bg-transparent text-red-600 " +
-  "hover:border-red-700 hover:bg-red-600 hover:text-white " +
-  "focus-visible:ring-2 focus-visible:ring-red-500/40 " +
-  "group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:!h-8 group-data-[collapsible=icon]:!w-8 group-data-[collapsible=icon]:min-h-0! group-data-[collapsible=icon]:min-w-0! " +
-  "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-2! group-data-[collapsible=icon]:py-0! " +
-  "group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:max-w-8";
+import {
+  sidebarBrandTitleClass,
+  sidebarLogoutButtonClass,
+  sidebarNavButtonClass,
+} from "@/layout/sidebarNavStyles";
 
 export const SideLayout = () => {
   const location = useLocation();
@@ -66,11 +52,11 @@ export const SideLayout = () => {
   };
 
   const navItems = [
-    { label: t("sidebar.home"), icon: HomeIcon, to: "/Home" },
-    { label: t("sidebar.freights"), icon: TruckIcon, to: "/Freights" },
-    { label: t("sidebar.proposals"), icon: FileTextIcon, to: "/Proposals" },
-    { label: t("sidebar.history"), icon: HistoryIcon, to: "/History" },
-    { label: t("sidebar.profile"), icon: UserIcon, to: "/Perfil" },
+    { label: t("sidebar.home"), icon: HomeIcon, to: "/Home", testId: "sidebar-nav-home" },
+    { label: t("sidebar.freights"), icon: TruckIcon, to: "/Freights", testId: "sidebar-nav-freights" },
+    { label: t("sidebar.proposals"), icon: FileTextIcon, to: "/Proposals", testId: "sidebar-nav-proposals" },
+    { label: t("sidebar.history"), icon: HistoryIcon, to: "/History", testId: "sidebar-nav-history" },
+    { label: t("sidebar.profile"), icon: UserIcon, to: "/Perfil", testId: "sidebar-nav-profile" },
   ];
 
   return (
@@ -85,6 +71,7 @@ export const SideLayout = () => {
         <SidebarHeader className="gap-0 border-b border-sidebar-border/80 p-2 md:p-3 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-2">
           <Link
             to="/Home"
+            data-testid="sidebar-brand-link"
             className={cn(
               "flex min-w-0 items-center gap-2 rounded-lg p-1.5 outline-none ring-sidebar-ring transition-colors",
               "hover:bg-brand-green-light/40 focus-visible:ring-2 focus-visible:ring-brand-green/35",
@@ -100,10 +87,7 @@ export const SideLayout = () => {
               className="size-9 shrink-0 rounded-lg object-contain group-data-[collapsible=icon]:size-8 md:size-10"
             />
             <span
-              className={cn(
-                "min-w-0 flex-1 text-left text-sm font-semibold leading-snug text-brand-green-dark md:text-base",
-                "group-data-[collapsible=icon]:hidden"
-              )}
+              className={cn(sidebarBrandTitleClass, "group-data-[collapsible=icon]:hidden")}
             >
               {t("sidebar.brandName")}
             </span>
@@ -123,6 +107,7 @@ export const SideLayout = () => {
                       isActive={location.pathname === item.to}
                       tooltip={item.label}
                       size="lg"
+                      data-testid={item.testId}
                       className={sidebarNavButtonClass}
                       render={<Link to={item.to} />}
                     >
@@ -146,6 +131,7 @@ export const SideLayout = () => {
               <SidebarMenuButton
                 tooltip={t("sidebar.logout")}
                 size="lg"
+                data-testid="sidebar-logout-button"
                 className={sidebarLogoutButtonClass}
                 onClick={() => void logoutAndRedirect()}
               >

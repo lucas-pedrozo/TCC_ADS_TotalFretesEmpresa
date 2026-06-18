@@ -20,6 +20,11 @@ import {
 } from "@/hooks/admin/useAdminDashboard";
 import { useAdminSubjectNames } from "@/hooks/admin/useAdminSubjectNames";
 import http from "@/service/http";
+import {
+  validateAdminCompanyForm,
+  validateAdminDriverForm,
+  validateAdminEmail,
+} from "@/utils/adminAccountValidation";
 import { validatePassword } from "@/utils/validation";
 import type { AdminAccount, AdminAccountType } from "@/types/admin";
 import {
@@ -137,6 +142,26 @@ const AdminAccountsPage = () => {
       return;
     }
 
+    if (selectedCreateTypeName === "ADMIN") {
+      const emailError = validateAdminEmail(adminForm.email, t);
+      if (emailError) {
+        toast.error(emailError);
+        return;
+      }
+    } else if (selectedCreateTypeName === "COMPANY") {
+      const companyError = validateAdminCompanyForm(companyForm, t);
+      if (companyError) {
+        toast.error(companyError);
+        return;
+      }
+    } else if (selectedCreateTypeName === "USER") {
+      const driverError = validateAdminDriverForm(driverForm, t);
+      if (driverError) {
+        toast.error(driverError);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     const toastId = toast.loading(t("pages.admin.common.saving"));
 
@@ -181,6 +206,18 @@ const AdminAccountsPage = () => {
 
   const handleSave = async () => {
     if (!editing) return;
+
+    const emailError = validateAdminEmail(form.email, t);
+    if (emailError) {
+      toast.error(emailError);
+      return;
+    }
+
+    if (!form.account_type_id) {
+      toast.error(t("pages.admin.accounts.selectLevel"));
+      return;
+    }
+
     setIsSubmitting(true);
     const toastId = toast.loading(t("pages.admin.common.saving"));
     try {
