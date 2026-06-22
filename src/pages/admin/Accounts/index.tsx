@@ -37,6 +37,7 @@ import {
   type AdminCreateDriverForm,
 } from "@/utils/adminCreateAccountPayload";
 import { trataErroAxios, traduzMensagemApi } from "@/utils/trataErroAxios";
+import { mapFieldErrorsToRecord, parseApiFieldErrors } from "@/utils/apiFieldErrors";
 import { maskEmail } from "@/utils/mask";
 
 function resolveAccountTypeName(type: AdminAccountType | undefined): string {
@@ -57,6 +58,7 @@ const AdminAccountsPage = () => {
   const [adminForm, setAdminForm] = useState(initialAdminCredentialsForm);
   const [companyForm, setCompanyForm] = useState<AdminCreateCompanyForm>(initialAdminCompanyForm);
   const [driverForm, setDriverForm] = useState<AdminCreateDriverForm>(initialAdminDriverForm);
+  const [createFieldErrors, setCreateFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const accountTypeLabel = useCallback(
@@ -110,6 +112,7 @@ const AdminAccountsPage = () => {
     setAdminForm(initialAdminCredentialsForm());
     setCompanyForm(initialAdminCompanyForm());
     setDriverForm(initialAdminDriverForm());
+    setCreateFieldErrors({});
     setCreateOpen(true);
   }, []);
 
@@ -163,6 +166,7 @@ const AdminAccountsPage = () => {
     }
 
     setIsSubmitting(true);
+    setCreateFieldErrors({});
     const toastId = toast.loading(t("pages.admin.common.saving"));
 
     try {
@@ -198,7 +202,11 @@ const AdminAccountsPage = () => {
       setCreateOpen(false);
       await list.reload();
     } catch (error) {
-      toast.error(trataErroAxios(error), { id: toastId });
+      const parsed = parseApiFieldErrors(error);
+      if (parsed?.fieldErrors.length) {
+        setCreateFieldErrors(mapFieldErrorsToRecord(parsed.fieldErrors));
+      }
+      toast.error(parsed?.summary ?? trataErroAxios(error), { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -407,9 +415,16 @@ const AdminAccountsPage = () => {
         {selectedCreateTypeName === "COMPANY" ? (
           <AdminCreateCompanyFields
             form={companyForm}
-            onChange={(key, value) =>
-              setCompanyForm((prev) => ({ ...prev, [key]: value }))
-            }
+            fieldErrors={createFieldErrors}
+            onChange={(key, value) => {
+              setCreateFieldErrors((prev) => {
+                if (!prev[key]) return prev;
+                const next = { ...prev };
+                delete next[key];
+                return next;
+              });
+              setCompanyForm((prev) => ({ ...prev, [key]: value }));
+            }}
             onPatch={(partial) => setCompanyForm((prev) => ({ ...prev, ...partial }))}
           />
         ) : null}
@@ -417,7 +432,16 @@ const AdminAccountsPage = () => {
         {selectedCreateTypeName === "USER" ? (
           <AdminCreateDriverFields
             form={driverForm}
-            onChange={(key, value) => setDriverForm((prev) => ({ ...prev, [key]: value }))}
+            fieldErrors={createFieldErrors}
+            onChange={(key, value) => {
+              setCreateFieldErrors((prev) => {
+                if (!prev[key]) return prev;
+                const next = { ...prev };
+                delete next[key];
+                return next;
+              });
+              setDriverForm((prev) => ({ ...prev, [key]: value }));
+            }}
           />
         ) : null}
       </AdminEntityDialog>

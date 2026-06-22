@@ -19,6 +19,8 @@ import type { AdminCompany } from "@/types/admin";
 import { maskCep, maskCnpj, maskEmail, maskPhone, maskUf, normalizeCepInput, normalizePhoneForStorage } from "@/utils/mask";
 import { formatDateShortLabel, formatDateTimeLabel } from "@/utils/dateFormat";
 import { trataErroAxios } from "@/utils/trataErroAxios";
+import { mapFieldErrorsToRecord, parseApiFieldErrors } from "@/utils/apiFieldErrors";
+import { AdminFieldError, adminFieldInputClass } from "@/components/admin/AdminFieldError";
 
 function companyInitials(name: string) {
   const trimmed = name.trim();
@@ -60,6 +62,7 @@ const AdminCompanyDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -106,6 +109,7 @@ const AdminCompanyDetailPage = () => {
     if (!id) return;
     const isBrazilAddress = form.country.trim().toUpperCase() === "BR";
     setIsSaving(true);
+    setFieldErrors({});
     const toastId = toast.loading(t("pages.admin.common.saving"));
     try {
       await http.put(`/company/${id}`, {
@@ -130,7 +134,11 @@ const AdminCompanyDetailPage = () => {
       toast.success(t("pages.admin.common.saved"), { id: toastId });
       await load();
     } catch (error) {
-      toast.error(trataErroAxios(error), { id: toastId });
+      const parsed = parseApiFieldErrors(error);
+      if (parsed?.fieldErrors.length) {
+        setFieldErrors(mapFieldErrorsToRecord(parsed.fieldErrors));
+      }
+      toast.error(parsed?.summary ?? trataErroAxios(error), { id: toastId });
     } finally {
       setIsSaving(false);
     }
@@ -258,6 +266,7 @@ const AdminCompanyDetailPage = () => {
                 <Input
                   id={`company-${key}`}
                   type={key === "email" ? "email" : key === "phoneNumber" ? "tel" : "text"}
+                  className={adminFieldInputClass(Boolean(fieldErrors[key]))}
                   value={
                     key === "email"
                       ? form[key]
@@ -265,7 +274,14 @@ const AdminCompanyDetailPage = () => {
                         ? maskPhone(form[key])
                         : form[key]
                   }
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    if (fieldErrors[key]) {
+                      setFieldErrors((prev) => {
+                        const next = { ...prev };
+                        delete next[key];
+                        return next;
+                      });
+                    }
                     setForm((prev) => ({
                       ...prev,
                       [key]:
@@ -274,9 +290,10 @@ const AdminCompanyDetailPage = () => {
                           : key === "phoneNumber"
                             ? maskPhone(event.target.value)
                             : event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
+                <AdminFieldError message={fieldErrors[key]} />
               </div>
             ))}
           </div>

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
 import { DEFAULT_PHONE_COUNTRY_CODE } from "@/utils/phone";
+import type { ApiFieldIssue } from "@/utils/apiFieldErrors";
 
 /** Alinhado ao seed do authentication-service (USER=1, COMPANY=2, ADMIN=3). */
 export const ACCOUNT_TYPE_COMPANY = 2;
@@ -33,9 +34,12 @@ export type RegisterCompanyDraftData = RegisterCompanyDataBasic & RegisterCompan
 type RegisterCompanyContextValue = {
   basicData: RegisterCompanyDataBasic;
   addressData: RegisterCompanyDataAddress;
+  fieldErrors: ApiFieldIssue[];
 
   setDataBasic: (data: RegisterCompanyDataBasic) => void;
   setDataAddress: (data: RegisterCompanyDataAddress) => void;
+  setFieldErrors: (errors: ApiFieldIssue[]) => void;
+  clearFieldErrors: () => void;
   getPayload: () => RegisterCompanyDraftData;
   reset: () => void;
 }
@@ -66,6 +70,7 @@ const RegisterCompanyContext = createContext<RegisterCompanyContextValue | undef
 export function RegisterCompanyProvider({ children }: { children: React.ReactNode }) {
   const [basicData, setBasicData] = useState<RegisterCompanyDataBasic>(defultBasicData);
   const [addressData, setAddressData] = useState<RegisterCompanyDataAddress>(defaultAddressData);
+  const [fieldErrors, setFieldErrorsState] = useState<ApiFieldIssue[]>([]);
 
   const setDataBasic = (data: RegisterCompanyDataBasic) => {
     setBasicData(data);
@@ -75,6 +80,14 @@ export function RegisterCompanyProvider({ children }: { children: React.ReactNod
     setAddressData(data);
   };
 
+  const setFieldErrors = (errors: ApiFieldIssue[]) => {
+    setFieldErrorsState(errors);
+  };
+
+  const clearFieldErrors = () => {
+    setFieldErrorsState([]);
+  };
+
   const getPayload = () => {
     return { ...basicData, ...addressData, account_type_id: ACCOUNT_TYPE_COMPANY };
   };
@@ -82,10 +95,21 @@ export function RegisterCompanyProvider({ children }: { children: React.ReactNod
   const reset = () => {
     setBasicData(defultBasicData);
     setAddressData(defaultAddressData);
+    setFieldErrorsState([]);
   };
 
   return (
-    <RegisterCompanyContext.Provider value={{ basicData, addressData, setDataBasic, setDataAddress, getPayload, reset }}>
+    <RegisterCompanyContext.Provider value={{
+      basicData,
+      addressData,
+      fieldErrors,
+      setDataBasic,
+      setDataAddress,
+      setFieldErrors,
+      clearFieldErrors,
+      getPayload,
+      reset,
+    }}>
       {children}
     </RegisterCompanyContext.Provider>
   );

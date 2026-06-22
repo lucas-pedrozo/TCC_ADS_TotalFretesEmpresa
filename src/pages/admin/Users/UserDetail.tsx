@@ -19,6 +19,8 @@ import {
   normalizePhoneForStorage,
 } from "@/utils/mask";
 import { trataErroAxios, traduzMensagemApi } from "@/utils/trataErroAxios";
+import { mapFieldErrorsToRecord, parseApiFieldErrors } from "@/utils/apiFieldErrors";
+import { AdminFieldError, adminFieldInputClass } from "@/components/admin/AdminFieldError";
 
 const AdminUserDetailPage = () => {
   const { id } = useParams();
@@ -30,6 +32,7 @@ const AdminUserDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -57,6 +60,7 @@ const AdminUserDetailPage = () => {
   const handleSave = async () => {
     if (!id) return;
     setIsSaving(true);
+    setFieldErrors({});
     const toastId = toast.loading(t("pages.admin.common.saving"));
     try {
       const { data } = await http.patch(`/user/${id}`, {
@@ -70,7 +74,11 @@ const AdminUserDetailPage = () => {
       });
       await load();
     } catch (error) {
-      toast.error(trataErroAxios(error), { id: toastId });
+      const parsed = parseApiFieldErrors(error);
+      if (parsed?.fieldErrors.length) {
+        setFieldErrors(mapFieldErrorsToRecord(parsed.fieldErrors));
+      }
+      toast.error(parsed?.summary ?? trataErroAxios(error), { id: toastId });
     } finally {
       setIsSaving(false);
     }
@@ -150,22 +158,40 @@ const AdminUserDetailPage = () => {
           <Input
             id="user-email"
             type="email"
+            className={adminFieldInputClass(Boolean(fieldErrors.email))}
             value={form.email}
-            onChange={(event) =>
-              setForm((prev) => ({ ...prev, email: maskEmail(event.target.value) }))
-            }
+            onChange={(event) => {
+              if (fieldErrors.email) {
+                setFieldErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.email;
+                  return next;
+                });
+              }
+              setForm((prev) => ({ ...prev, email: maskEmail(event.target.value) }));
+            }}
           />
+          <AdminFieldError message={fieldErrors.email} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="user-phone">{t("pages.admin.common.phone")}</Label>
           <Input
             id="user-phone"
             type="tel"
+            className={adminFieldInputClass(Boolean(fieldErrors.phoneNumber))}
             value={form.phoneNumber}
-            onChange={(event) =>
-              setForm((prev) => ({ ...prev, phoneNumber: maskPhone(event.target.value) }))
-            }
+            onChange={(event) => {
+              if (fieldErrors.phoneNumber) {
+                setFieldErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.phoneNumber;
+                  return next;
+                });
+              }
+              setForm((prev) => ({ ...prev, phoneNumber: maskPhone(event.target.value) }));
+            }}
           />
+          <AdminFieldError message={fieldErrors.phoneNumber} />
         </div>
         <AdminImageField
           label={t("pages.admin.common.image")}

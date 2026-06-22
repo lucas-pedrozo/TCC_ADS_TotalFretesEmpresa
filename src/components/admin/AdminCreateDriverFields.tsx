@@ -17,16 +17,22 @@ import {
   normalizeCnhInput,
   normalizeCpfInput,
 } from "@/utils/mask";
+import { AdminFieldError, adminFieldInputClass } from "@/components/admin/AdminFieldError";
 
 type AdminCreateDriverFieldsProps = {
   form: AdminCreateDriverForm;
+  fieldErrors?: Record<string, string>;
   onChange: <K extends keyof AdminCreateDriverForm>(
     key: K,
     value: AdminCreateDriverForm[K]
   ) => void;
 };
 
-export function AdminCreateDriverFields({ form, onChange }: AdminCreateDriverFieldsProps) {
+export function AdminCreateDriverFields({
+  form,
+  fieldErrors = {},
+  onChange,
+}: AdminCreateDriverFieldsProps) {
   const { t } = useTranslation();
   const [cnhTypes, setCnhTypes] = useState<AdminCnhType[]>([]);
 
@@ -47,9 +53,11 @@ export function AdminCreateDriverFields({ form, onChange }: AdminCreateDriverFie
         <Input
           type="email"
           autoComplete="email"
+          className={adminFieldInputClass(Boolean(fieldErrors.email))}
           value={form.email}
           onChange={(e) => onChange("email", maskEmail(e.target.value))}
         />
+        <AdminFieldError message={fieldErrors.email} />
       </div>
       <div className="space-y-2">
         <Label>{t("pages.admin.accounts.birthDate")}</Label>
@@ -64,9 +72,11 @@ export function AdminCreateDriverFields({ form, onChange }: AdminCreateDriverFie
           inputMode="tel"
           autoComplete="tel"
           maxLength={15}
+          className={adminFieldInputClass(Boolean(fieldErrors.phoneNumber))}
           value={maskBrazilianPhone(form.phoneNumber)}
           onChange={(e) => onChange("phoneNumber", normalizeBrazilianPhoneInput(e.target.value))}
         />
+        <AdminFieldError message={fieldErrors.phoneNumber} />
       </div>
       <div className="space-y-2">
         <Label>{t("pages.admin.accounts.cpf")}</Label>
@@ -74,9 +84,11 @@ export function AdminCreateDriverFields({ form, onChange }: AdminCreateDriverFie
           inputMode="numeric"
           autoComplete="off"
           maxLength={14}
+          className={adminFieldInputClass(Boolean(fieldErrors.cpf))}
           value={maskCpf(form.cpf)}
           onChange={(e) => onChange("cpf", normalizeCpfInput(e.target.value))}
         />
+        <AdminFieldError message={fieldErrors.cpf} />
       </div>
       <div className="space-y-2">
         <Label>{t("pages.admin.accounts.sex")}</Label>
@@ -95,9 +107,11 @@ export function AdminCreateDriverFields({ form, onChange }: AdminCreateDriverFie
           inputMode="numeric"
           autoComplete="off"
           maxLength={11}
+          className={adminFieldInputClass(Boolean(fieldErrors.cnhNumber))}
           value={maskCnhNumber(form.cnhNumber)}
           onChange={(e) => onChange("cnhNumber", normalizeCnhInput(e.target.value))}
         />
+        <AdminFieldError message={fieldErrors.cnhNumber} />
       </div>
       <div className="space-y-2">
         <Label>{t("pages.admin.groupVehicleTypes.cnhType")}</Label>

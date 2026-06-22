@@ -80,7 +80,7 @@ export const resources = {
           emailPlaceholder: "seu@email.com",
           cnpjLabel: "CNPJ",
           cnpjPlaceholder: "00.000.000/0000-00 ou 12.ABC.345/01DE-35",
-          phoneCountryCodeLabel: "Código do país (DDI)",
+          phoneCountryCodeLabel: "DDI",
           phoneCountryCodePlaceholder: "55",
           phoneNumberLabel: "Número do telefone",
           phoneNumberPlaceholder: "Ex.: (11) 98765-4321",

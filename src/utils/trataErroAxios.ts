@@ -4,6 +4,8 @@ import i18n from "@/i18n";
 type ApiErrorResponse = {
   message?: string;
   errors?: Array<{ message?: string }>;
+  conflicts?: Array<{ field?: string; message?: string }>;
+  issues?: Array<{ field?: string; message?: string }>;
 };
 
 /** Chaves no estilo `FREIGHT.DELETED_SUCCESSFULLY` enviadas pela API. */
@@ -58,11 +60,19 @@ function messageFromApiPayload(data: ApiErrorResponse | string | undefined): str
     return undefined;
   }
 
-  const fieldErrors = data.errors
-    ?.map((fieldError) => traduzMensagemApi(fieldError.message))
-    .filter((message): message is string => Boolean(message));
+  const fieldErrors = [
+    ...(data.conflicts
+      ?.map((fieldError) => traduzMensagemApi(fieldError.message))
+      .filter((message): message is string => Boolean(message)) ?? []),
+    ...(data.issues
+      ?.map((fieldError) => traduzMensagemApi(fieldError.message))
+      .filter((message): message is string => Boolean(message)) ?? []),
+    ...(data.errors
+      ?.map((fieldError) => traduzMensagemApi(fieldError.message))
+      .filter((message): message is string => Boolean(message)) ?? []),
+  ];
 
-  if (fieldErrors?.length) return fieldErrors.join("\n");
+  if (fieldErrors.length) return fieldErrors.join("\n");
 
   return traduzMensagemApi(data.message);
 }
