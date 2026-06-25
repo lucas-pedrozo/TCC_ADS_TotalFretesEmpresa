@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import {
+  FREIGHT_FILTER_STATUS_SLUGS,
   FREIGHT_STATUS_LABEL_KEY,
-  FREIGHT_STATUS_SLUGS,
-  resolveFreightStatusSlug,
+  resolveEffectiveFreightStatusSlug,
 } from "@/components/ui/freightStatusUi";
 import http from "@/service/http";
 import type {
@@ -15,6 +15,7 @@ import type {
   FreightDto,
   FreightListResponse,
 } from "@/types/freight";
+import type { ProposalDto } from "@/types/proposal";
 import { fetchDriverProfilesMap, type DriverProfile } from "@/utils/driverProfiles";
 import { haversineKm } from "@/utils/haversineKm";
 import { parseBound } from "@/utils/number";
@@ -35,6 +36,7 @@ export function useFreightsListPage() {
   const [filterMaxDistance, setFilterMaxDistance] = useState("");
   const [filterDriver, setFilterDriver] = useState<DriverFilter>("all");
   const [rows, setRows] = useState<FreightDto[]>([]);
+  const [awaitingDriverProposals, setAwaitingDriverProposals] = useState<ProposalDto[]>([]);
   const [driverProfilesById, setDriverProfilesById] = useState<Record<number, DriverProfile>>({});
   const [loading, setLoading] = useState(true);
   const [freightToDelete, setFreightToDelete] = useState<FreightDto | null>(null);
@@ -44,11 +46,18 @@ export function useFreightsListPage() {
   const loadFreights = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await http.get<FreightListResponse>("/freight");
-      setRows(Array.isArray(data) ? data : []);
+      const [freightRes, awaitingRes] = await Promise.all([
+        http.get<FreightListResponse>("/freight"),
+        http.get<ProposalDto[]>("/proposal", {
+          params: { proposal_status: "esperando_caminhoneiro" },
+        }),
+      ]);
+      setRows(Array.isArray(freightRes.data) ? freightRes.data : []);
+      setAwaitingDriverProposals(Array.isArray(awaitingRes.data) ? awaitingRes.data : []);
     } catch (e) {
       toast.error(trataErroAxios(e));
       setRows([]);
+      setAwaitingDriverProposals([]);
     } finally {
       setLoading(false);
     }
@@ -95,10 +104,29 @@ export function useFreightsListPage() {
     }
   }, [freightToDelete, t]);
 
+  const awaitingDriverByFreightId = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const proposal of awaitingDriverProposals) {
+      const occurredAt = proposal.updatedAt ?? proposal.createdAt;
+      if (occurredAt) map.set(proposal.freight_id, String(occurredAt));
+    }
+    return map;
+  }, [awaitingDriverProposals]);
+
+  const resolveRowDisplaySlug = useCallback(
+    (row: FreightDto) =>
+      resolveEffectiveFreightStatusSlug({
+        statusId: row.status_id,
+        statusName: row.FreightStatusType?.name ?? row.status?.name,
+        awaitingDriverSince: awaitingDriverByFreightId.get(row.id) ?? null,
+      }),
+    [awaitingDriverByFreightId]
+  );
+
   const chips: { id: ChipFilter; label: string }[] = useMemo(
     () => [
       { id: "all", label: t("pages.freights.chipAll") },
-      ...FREIGHT_STATUS_SLUGS.map((slug) => ({
+      ...FREIGHT_FILTER_STATUS_SLUGS.map((slug) => ({
         id: slug,
         label: t(FREIGHT_STATUS_LABEL_KEY[slug]),
       })),
@@ -177,10 +205,7 @@ export function useFreightsListPage() {
 
     return rows.filter((row) => {
       const statusName = row.FreightStatusType?.name ?? row.status?.name;
-      const slug = resolveFreightStatusSlug({
-        statusId: row.status_id,
-        statusName,
-      });
+      const slug = resolveRowDisplaySlug(row);
       if (chip !== "all" && slug !== chip) return false;
 
       const displayValue = row.finalValue ?? row.originalValue;
@@ -246,6 +271,8 @@ export function useFreightsListPage() {
     filterMaxDistance,
     filterDriver,
     driverProfilesById,
+    resolveRowDisplaySlug,
+    awaitingDriverByFreightId,
   ]);
 
   const total = filtered.length;
@@ -302,5 +329,6 @@ export function useFreightsListPage() {
     freightToDelete,
     setFreightToDelete,
     handleConfirmDelete,
+    awaitingDriverByFreightId,
   };
 }

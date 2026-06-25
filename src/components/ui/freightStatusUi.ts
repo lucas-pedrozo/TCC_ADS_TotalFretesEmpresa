@@ -3,9 +3,22 @@ import { FREIGHT_STATUS_SLUGS } from "@/types/freight";
 
 export { FREIGHT_STATUS_SLUGS };
 
+/** Ordem exibida nos filtros da listagem (fluxo principal + cancelado). */
+export const FREIGHT_FILTER_STATUS_SLUGS = [
+  "disponivel",
+  "esperando_caminhoneiro",
+  "vinculado",
+  "em_transito",
+  "em_rota_entrega",
+  "entregue",
+  "concluido",
+  "cancelado",
+] as const satisfies readonly FreightStatusSlug[];
+
 export const FREIGHT_STATUS_LABEL_KEY: Record<FreightStatusSlug, string> = {
   disponivel: "pages.freights.statusDisponivel",
   cancelado: "pages.freights.statusCancelado",
+  esperando_caminhoneiro: "pages.freights.statusEsperandoCaminhoneiro",
   vinculado: "pages.freights.statusVinculado",
   em_transito: "pages.freights.statusEmTransito",
   em_rota_entrega: "pages.freights.statusEmRotaEntrega",
@@ -39,6 +52,7 @@ export function parseStatusSlug(name: string | undefined | null): FreightStatusS
   const aliasMap: Record<string, FreightStatusSlug> = {
     disponivel: "disponivel",
     cancelado: "cancelado",
+    esperando_caminhoneiro: "esperando_caminhoneiro",
     vinculado: "vinculado",
     em_transito: "em_transito",
     em_rota_entrega: "em_rota_entrega",
@@ -71,11 +85,12 @@ export function resolveFreightStatusSlug(params: {
 const PIPELINE_INDEX: Record<FreightStatusSlug, number> = {
   disponivel: 0,
   cancelado: -1,
-  vinculado: 1,
-  em_transito: 2,
-  em_rota_entrega: 3,
-  entregue: 4,
-  concluido: 5,
+  esperando_caminhoneiro: 1,
+  vinculado: 2,
+  em_transito: 3,
+  em_rota_entrega: 4,
+  entregue: 5,
+  concluido: 6,
 };
 
 function pipelineProgress(slug: FreightStatusSlug): number {
@@ -87,11 +102,17 @@ export function resolveEffectiveFreightStatusSlug(params: {
   statusId?: number | null;
   statusName?: string | null;
   history?: ReadonlyArray<{ slug: FreightStatusSlug; occurredAt: string }>;
+  /** Quando a empresa aceitou proposta e aguarda confirmação do motorista (status virtual). */
+  awaitingDriverSince?: string | null;
 }): FreightStatusSlug {
   const fromApi = resolveFreightStatusSlug({
     statusId: params.statusId,
     statusName: params.statusName,
   });
+
+  if (fromApi === "disponivel" && params.awaitingDriverSince) {
+    return "esperando_caminhoneiro";
+  }
 
   if (!params.history?.length) return fromApi;
 
@@ -116,6 +137,8 @@ export function statusBadgeClass(slug: FreightStatusSlug): string {
       return "border-sky-200/80 bg-sky-100 text-sky-950 dark:bg-sky-950/40 dark:text-sky-100";
     case "cancelado":
       return "border-red-200/80 bg-red-100 text-red-950 dark:bg-red-950/35 dark:text-red-100";
+    case "esperando_caminhoneiro":
+      return "border-amber-200/80 bg-amber-100 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100";
     case "vinculado":
       return "border-violet-200/80 bg-violet-100 text-violet-950 dark:bg-violet-950/40 dark:text-violet-100";
     case "em_transito":

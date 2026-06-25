@@ -67,6 +67,7 @@ const FreightsPage = () => {
     freightToDelete,
     setFreightToDelete,
     handleConfirmDelete,
+    awaitingDriverByFreightId,
   } = useFreightsListPage();
 
   const activeStatusLabel = useMemo(
@@ -359,6 +360,7 @@ const FreightsPage = () => {
                   freight={freight}
                   lang={lang}
                   driverProfilesById={driverProfilesById}
+                  awaitingDriverSince={awaitingDriverByFreightId.get(freight.id) ?? null}
                   onDelete={setFreightToDelete}
                 />
               ))}

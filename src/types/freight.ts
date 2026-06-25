@@ -1,6 +1,7 @@
 export const FREIGHT_STATUS_SLUGS = [
   "disponivel",
   "cancelado",
+  "esperando_caminhoneiro",
   "vinculado",
   "em_transito",
   "em_rota_entrega",

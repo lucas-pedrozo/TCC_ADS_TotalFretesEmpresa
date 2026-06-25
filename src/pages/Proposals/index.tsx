@@ -31,6 +31,7 @@ function KpiCard({ label, value }: { label: string; value: string | number }) {
 
 const STATUS_FILTER_OPTIONS: ProposalStatusFilter[] = [
   "enviada",
+  "esperando_caminhoneiro",
   "aceita",
   "recusada",
   "nao_selecionada",
@@ -69,13 +70,15 @@ const ProposalsPage = () => {
     ? "pages.proposals.emptySearch"
     : statusFilter === "enviada"
       ? "pages.proposals.emptyPending"
-      : statusFilter === "aceita"
-        ? "pages.proposals.emptyAccepted"
-        : statusFilter === "recusada"
-          ? "pages.proposals.emptyRejected"
-          : statusFilter === "nao_selecionada"
-            ? "pages.proposals.emptyNotSelected"
-            : "pages.proposals.emptyAll";
+      : statusFilter === "esperando_caminhoneiro"
+        ? "pages.proposals.emptyAwaitingDriver"
+        : statusFilter === "aceita"
+          ? "pages.proposals.emptyAccepted"
+          : statusFilter === "recusada"
+            ? "pages.proposals.emptyRejected"
+            : statusFilter === "nao_selecionada"
+              ? "pages.proposals.emptyNotSelected"
+              : "pages.proposals.emptyAll";
 
   return (
     <div

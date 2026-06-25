@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import type { FreightStatusTimelineEntry } from "@/components/ui/freightStatusTimeline";
-import { parseStatusSlug } from "@/components/ui/freightStatusUi";
+import { parseStatusSlug, resolveEffectiveFreightStatusSlug } from "@/components/ui/freightStatusUi";
 import type {
   CargoTypeDto,
   FreightDeleteResponse,
@@ -20,7 +20,7 @@ import {
   type DriverProfile,
 } from "@/utils/driverProfiles";
 import http from "@/service/http";
-import { pickBestProposal } from "@/utils/proposal";
+import { isAwaitingDriverProposalStatus, pickBestProposal } from "@/utils/proposal";
 import { traduzMensagemApi, trataErroAxios } from "@/utils/trataErroAxios";
 
 type UseFreightDetailParams = {
@@ -63,8 +63,49 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
     return mapped.length > 0 ? mapped : undefined;
   }, [freight]);
 
+  const awaitingDriverProposal = useMemo(
+    () => proposals.find((p) => isAwaitingDriverProposalStatus(p.ProposalStatusType?.name)),
+    [proposals]
+  );
+
+  const enrichedStatusTimelineHistory = useMemo((): FreightStatusTimelineEntry[] | undefined => {
+    if (!awaitingDriverProposal) return statusTimelineHistory;
+
+    const occurredAt = awaitingDriverProposal.updatedAt ?? awaitingDriverProposal.createdAt;
+    if (!occurredAt) return statusTimelineHistory;
+
+    const entry: FreightStatusTimelineEntry = {
+      slug: "esperando_caminhoneiro",
+      occurredAt: String(occurredAt),
+    };
+
+    const base = statusTimelineHistory ?? [];
+    if (base.some((h) => h.slug === "esperando_caminhoneiro")) {
+      return base.length > 0 ? base : [entry];
+    }
+
+    return [...base, entry];
+  }, [statusTimelineHistory, awaitingDriverProposal]);
+
+  const displayStatusSlug = useMemo(() => {
+    if (!freight) return "disponivel" as const;
+    const awaitingSince =
+      awaitingDriverProposal?.updatedAt ?? awaitingDriverProposal?.createdAt ?? null;
+    return resolveEffectiveFreightStatusSlug({
+      statusId: freight.status_id,
+      statusName: freight.FreightStatusType?.name ?? freight.status?.name,
+      history: enrichedStatusTimelineHistory,
+      awaitingDriverSince: awaitingSince,
+    });
+  }, [freight, enrichedStatusTimelineHistory, awaitingDriverProposal]);
+
   const visibleProposals = useMemo(() => {
     if (proposals.length === 0) return [];
+
+    const awaitingDriver = proposals.filter((proposal) =>
+      isAwaitingDriverProposalStatus(proposal.ProposalStatusType?.name)
+    );
+    if (awaitingDriver.length > 0) return awaitingDriver;
 
     const accepted = proposals.filter((proposal) =>
       ACCEPTED_STATUS_NAMES.has((proposal.ProposalStatusType?.name ?? "").toLowerCase())
@@ -291,7 +332,8 @@ export function useFreightDetail({ id }: UseFreightDetailParams) {
     cancelling,
     completing,
     proposalActionId,
-    statusTimelineHistory,
+    statusTimelineHistory: enrichedStatusTimelineHistory,
+    displayStatusSlug,
     proposals: visibleProposals,
     bestProposal,
     driverProfilesById,

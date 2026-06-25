@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   FREIGHT_STATUS_LABEL_KEY,
-  resolveFreightStatusSlug,
+  resolveEffectiveFreightStatusSlug,
   statusBadgeClass,
 } from "@/components/ui/freightStatusUi";
 import type { AppLanguage } from "@/i18n/resources";
@@ -32,16 +32,24 @@ type FreightCardProps = {
   freight: FreightDto;
   lang: AppLanguage;
   driverProfilesById?: Record<number, DriverProfile>;
+  awaitingDriverSince?: string | null;
   onDelete?: (freight: FreightDto) => void;
 };
 
-export function FreightCard({ freight, lang, driverProfilesById = {}, onDelete }: FreightCardProps) {
+export function FreightCard({
+  freight,
+  lang,
+  driverProfilesById = {},
+  awaitingDriverSince,
+  onDelete,
+}: FreightCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const slug = resolveFreightStatusSlug({
+  const slug = resolveEffectiveFreightStatusSlug({
     statusId: freight.status_id,
     statusName: freight.FreightStatusType?.name ?? freight.status?.name,
+    awaitingDriverSince,
   });
 
   const distKm = haversineKm(

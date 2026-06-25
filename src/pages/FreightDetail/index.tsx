@@ -26,7 +26,6 @@ import { FreightForm } from "@/components/ui/freightForm";
 import { AddressMapPicker, type MapPinValue } from "@/components/maps/AddressMapPicker";
 import {
   FREIGHT_STATUS_LABEL_KEY,
-  resolveEffectiveFreightStatusSlug,
   statusBadgeClass,
 } from "@/components/ui/freightStatusUi";
 import { FreightStatusTimeline } from "@/components/ui/freightStatusTimeline";
@@ -137,6 +136,7 @@ const FreightDetailPage = () => {
     cancelling,
     completing,
     statusTimelineHistory,
+    displayStatusSlug,
     proposals,
     bestProposal,
     driverProfilesById,
@@ -214,11 +214,7 @@ const FreightDetailPage = () => {
     );
   }
 
-  const slug = resolveEffectiveFreightStatusSlug({
-    statusId: freight.status_id,
-    statusName: freight.FreightStatusType?.name ?? freight.status?.name,
-    history: statusTimelineHistory,
-  });
+  const slug = displayStatusSlug;
   const distKm = haversineKm(
     freight.origin_lat,
     freight.origin_lng,

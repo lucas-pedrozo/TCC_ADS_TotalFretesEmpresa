@@ -235,6 +235,7 @@ export const resources = {
           filterActiveStatus: "Filtrando: {{status}}",
           statusFilter: {
             enviada: "Pendentes",
+            esperando_caminhoneiro: "Esperando caminhoneiro",
             aceita: "Aceitas",
             recusada: "Recusadas",
             nao_selecionada: "Não selecionadas",
@@ -261,6 +262,7 @@ export const resources = {
           freightUnavailable: "Frete indisponível",
           openProposalHint: "Clique para ver detalhes da proposta",
           emptyPending: "Nenhuma proposta pendente no momento.",
+          emptyAwaitingDriver: "Nenhuma proposta aguardando confirmação do motorista.",
           emptyAccepted: "Nenhuma proposta aceita no momento.",
           emptyRejected: "Nenhuma proposta recusada no momento.",
           emptyNotSelected: "Nenhuma proposta não selecionada no momento.",
@@ -1300,6 +1302,7 @@ export const resources = {
           filterActiveStatus: "Filtering: {{status}}",
           statusFilter: {
             enviada: "Pending",
+            esperando_caminhoneiro: "Awaiting driver",
             aceita: "Accepted",
             recusada: "Rejected",
             nao_selecionada: "Not selected",
@@ -1326,6 +1329,7 @@ export const resources = {
           freightUnavailable: "Freight unavailable",
           openProposalHint: "Click to view proposal details",
           emptyPending: "No pending proposals at the moment.",
+          emptyAwaitingDriver: "No proposals awaiting driver confirmation.",
           emptyAccepted: "No accepted proposals at the moment.",
           emptyRejected: "No rejected proposals at the moment.",
           emptyNotSelected: "No not-selected proposals at the moment.",
