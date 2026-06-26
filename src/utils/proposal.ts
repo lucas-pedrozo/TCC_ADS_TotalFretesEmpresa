@@ -15,13 +15,21 @@ export function isPendingProposalStatus(name: string | null | undefined): boolea
   return (name ?? "").toLowerCase() === "enviada";
 }
 
-export function isAcceptedProposalStatus(name: string | null | undefined): boolean {
-  const normalized = (name ?? "")
+function normalizeProposalStatusName(name: string | null | undefined): string {
+  return (name ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase()
     .replace(/\s+/g, "_");
+}
+
+export function isAwaitingDriverProposalStatus(name: string | null | undefined): boolean {
+  return normalizeProposalStatusName(name) === "esperando_caminhoneiro";
+}
+
+export function isAcceptedProposalStatus(name: string | null | undefined): boolean {
+  const normalized = normalizeProposalStatusName(name);
 
   return (
     normalized === "aceita" ||

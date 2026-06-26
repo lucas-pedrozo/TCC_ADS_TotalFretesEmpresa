@@ -9,6 +9,7 @@ import type { FreightStatusSlug } from "@/types/freight";
 /** Ordem do fluxo “feliz” (sem cancelado). */
 const PIPELINE: readonly FreightStatusSlug[] = [
   "disponivel",
+  "esperando_caminhoneiro",
   "vinculado",
   "em_transito",
   "em_rota_entrega",

@@ -1,5 +1,6 @@
 
 import { useRegisterCompanyContext, type RegisterCompanyDataBasic } from "@/context/RegisterCompanyContext";
+import { applyRhfFieldErrors } from "@/utils/apiFieldErrors";
 import { trataErroAxios } from "@/utils/trataErroAxios";
 import {
   validateCNPJ,
@@ -10,16 +11,22 @@ import {
   validatePhone,
   validatePhoneCountryCode,
 } from "@/utils/validation";
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 export function useRegisterCompanyBasic(onClickNext: () => void) {
-  const { basicData, setDataBasic } = useRegisterCompanyContext();
+  const { basicData, setDataBasic, fieldErrors, clearFieldErrors } = useRegisterCompanyContext();
   const { t } = useTranslation();
-  const { control, handleSubmit, formState: { errors } } =
+  const { control, handleSubmit, setError, formState: { errors } } =
     useForm<RegisterCompanyDataBasic>({ mode: "onSubmit", defaultValues: basicData });
+
+  useEffect(() => {
+    if (fieldErrors.length === 0) return;
+    applyRhfFieldErrors(setError, fieldErrors);
+    clearFieldErrors();
+  }, [clearFieldErrors, fieldErrors, setError]);
 
   const handleNextCompanyBasic = useCallback(() => {
     try {

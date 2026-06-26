@@ -14,6 +14,7 @@ import {
   normalizePhoneCountryCodeInput,
   normalizePhoneNationalNumberInput,
 } from "@/utils/phone";
+import { AdminFieldError, adminFieldInputClass } from "@/components/admin/AdminFieldError";
 
 type ViaCepResponse = {
   erro?: boolean;
@@ -25,6 +26,7 @@ type ViaCepResponse = {
 
 type AdminCreateCompanyFieldsProps = {
   form: AdminCreateCompanyForm;
+  fieldErrors?: Record<string, string>;
   onChange: <K extends keyof AdminCreateCompanyForm>(
     key: K,
     value: AdminCreateCompanyForm[K]
@@ -34,6 +36,7 @@ type AdminCreateCompanyFieldsProps = {
 
 export function AdminCreateCompanyFields({
   form,
+  fieldErrors = {},
   onChange,
   onPatch,
 }: AdminCreateCompanyFieldsProps) {
@@ -93,9 +96,11 @@ export function AdminCreateCompanyFields({
         <Input
           type="email"
           autoComplete="email"
+          className={adminFieldInputClass(Boolean(fieldErrors.email))}
           value={form.email}
           onChange={(e) => onChange("email", maskEmail(e.target.value))}
         />
+        <AdminFieldError message={fieldErrors.email} />
       </div>
       <div className="space-y-2">
         <Label>{t("pages.admin.accounts.companyBirthFundation")}</Label>
@@ -110,12 +115,14 @@ export function AdminCreateCompanyFields({
           value={maskCnpj(form.cnpj)}
           maxLength={18}
           autoComplete="off"
+          className={adminFieldInputClass(Boolean(fieldErrors.cnpj))}
           onChange={(e) => onChange("cnpj", parseCnpjInput(e.target.value))}
         />
+        <AdminFieldError message={fieldErrors.cnpj} />
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 sm:col-span-2">
         <Label>{t("pages.admin.accounts.phone")}</Label>
-        <div className="flex gap-2">
+        <div className="flex items-start gap-2">
           <Input
             className="w-20"
             inputMode="numeric"
@@ -127,10 +134,10 @@ export function AdminCreateCompanyFields({
             }
           />
           <Input
-            className="flex-1"
             inputMode="tel"
             autoComplete="tel-national"
             maxLength={20}
+            className={`flex-1 ${adminFieldInputClass(Boolean(fieldErrors.phoneNumber)) ?? ""}`.trim()}
             value={maskPhoneNationalNumber(form.phoneNumber, form.phoneCountryCode)}
             onChange={(e) =>
               onChange(
@@ -140,6 +147,7 @@ export function AdminCreateCompanyFields({
             }
           />
         </div>
+        <AdminFieldError message={fieldErrors.phoneNumber} />
       </div>
       <div className="space-y-2">
         <Label>{t("pages.admin.accounts.website")}</Label>

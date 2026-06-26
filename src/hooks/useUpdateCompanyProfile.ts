@@ -16,6 +16,7 @@ import {
   getDefaultPhoneCountryCodeByCountry,
 } from "@/utils/phone";
 import { trataErroAxios, traduzMensagemApi } from "@/utils/trataErroAxios";
+import { applyRhfFieldErrors, parseApiFieldErrors } from "@/utils/apiFieldErrors";
 import {
   validateCepByCountry,
   validateCNPJ,
@@ -99,6 +100,7 @@ export function useUpdateCompanyProfile({
     handleSubmit,
     reset,
     setValue,
+    setError,
     watch,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<CompanyProfileFormData>({
@@ -312,7 +314,11 @@ export function useUpdateCompanyProfile({
         { id: toastId }
       );
     } catch (error) {
-      toast.error(trataErroAxios(error), { id: toastId });
+      const parsed = parseApiFieldErrors(error);
+      if (parsed?.fieldErrors.length) {
+        applyRhfFieldErrors(setError, parsed.fieldErrors);
+      }
+      toast.error(parsed?.summary ?? trataErroAxios(error), { id: toastId });
     }
   });
 

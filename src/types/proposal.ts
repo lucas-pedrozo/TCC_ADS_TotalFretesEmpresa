@@ -52,6 +52,7 @@ export type ProposalListPaginatedResponse = {
 
 export type ProposalStatusFilter =
   | "enviada"
+  | "esperando_caminhoneiro"
   | "aceita"
   | "recusada"
   | "nao_selecionada"

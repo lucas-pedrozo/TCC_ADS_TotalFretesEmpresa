@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import http from "@/service/http";
 import { trataErroAxios } from "@/utils/trataErroAxios";
+import { parseApiFieldErrors } from "@/utils/apiFieldErrors";
 import { normalizeCnpj } from "@/utils/cnpjInRfb2229";
 import { buildPhoneE164 } from "@/utils/phone";
 import { useRegisterCompanyContext, type RegisterCompanyDraftData } from "@/context/RegisterCompanyContext";
@@ -32,7 +33,7 @@ const normalizeCompanyPayload = (data: RegisterCompanyDraftData) => {
 };
 
 export function useRegisterCompany(navigateOverride?: NavigateFunction) {
-  const { getPayload, reset } = useRegisterCompanyContext();
+  const { getPayload, reset, setFieldErrors } = useRegisterCompanyContext();
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const navigateDefault = useNavigate();
@@ -58,12 +59,20 @@ export function useRegisterCompany(navigateOverride?: NavigateFunction) {
       toast.success(t("register.accountCreated"), { id: toastId });
       navigate("/SignUpPlan");
     } catch (error) {
-      toast.error(trataErroAxios(error), { id: toastId });
+      const parsed = parseApiFieldErrors(error);
+      if (parsed?.fieldErrors.length) {
+        setFieldErrors(parsed.fieldErrors);
+        const basicFields = new Set(["email", "cnpj", "phoneNumber"]);
+        if (parsed.fieldErrors.some((item) => basicFields.has(item.field))) {
+          navigate("/SignUp");
+        }
+      }
+      toast.error(parsed?.summary ?? trataErroAxios(error), { id: toastId });
     } finally {
       setIsLoading(false);
       setIsDisabled(false);
     }
-  }, [getPayload, reset, navigate, t]);
+  }, [getPayload, reset, navigate, setFieldErrors, t]);
 
   return {
     handleRegisterCompany,

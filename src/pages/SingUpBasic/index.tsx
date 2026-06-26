@@ -20,7 +20,7 @@ import {
 const SingUpBasicPage = () => {
     const { t } = useTranslation()
     const { isExiting, navigateWithFade } = useFadeNavigate()
-    const { Rules, control, handleNextCompanyBasic } = useRegisterCompanyBasic(() =>
+    const { Rules, control, errors, handleNextCompanyBasic } = useRegisterCompanyBasic(() =>
         navigateWithFade('/SignUpAddress'),
     )
     const [showPassword, setShowPassword] = useState(false)
@@ -75,106 +75,104 @@ const SingUpBasicPage = () => {
                         maxLength={18}
                     />
 
-                    <div className="grid gap-3 md:items-end md:grid-cols-[140px_minmax(0,1fr)]">
-                        <Controller
-                            name="phoneCountryCode"
-                            control={control}
-                            rules={Rules.phoneCountryCode}
-                            render={({ field, fieldState: { error } }) => (
-                                <div className="flex flex-col gap-1">
-                                    <label
-                                        htmlFor="signup-phone-country-code"
-                                        className={
-                                            error
-                                                ? INPUT_STYLES.error.label
-                                                : INPUT_STYLES.default.label
-                                        }
-                                    >
-                                        {t('pages.singupBasic.phoneCountryCodeLabel')}
-                                    </label>
-                                    <input
-                                        id="signup-phone-country-code"
-                                        name={field.name}
-                                        type="text"
-                                        inputMode="numeric"
-                                        autoComplete="tel-country-code"
-                                        placeholder={t('pages.singupBasic.phoneCountryCodePlaceholder')}
-                                        value={formatPhoneCountryCode(field.value ?? '')}
-                                        onChange={(event) =>
-                                            field.onChange(
-                                                normalizePhoneCountryCodeInput(event.target.value),
-                                            )
-                                        }
-                                        onBlur={field.onBlur}
-                                        ref={field.ref}
-                                        maxLength={4}
-                                        className={
-                                            error
-                                                ? INPUT_STYLES.error.input
-                                                : INPUT_STYLES.default.input
-                                        }
-                                    />
-                                    {error && (
-                                        <span className="pl-2.5 text-red-500 text-sm">
-                                            {error.message}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                        />
+                    <div className="flex flex-col gap-1">
+                        <div className="grid gap-3 md:grid-cols-[140px_minmax(0,1fr)] md:items-start">
+                            <Controller
+                                name="phoneCountryCode"
+                                control={control}
+                                rules={Rules.phoneCountryCode}
+                                render={({ field, fieldState: { error } }) => (
+                                    <div className="flex flex-col gap-1">
+                                        <label
+                                            htmlFor="signup-phone-country-code"
+                                            className={
+                                                error
+                                                    ? INPUT_STYLES.error.label
+                                                    : INPUT_STYLES.default.label
+                                            }
+                                        >
+                                            {t('pages.singupBasic.phoneCountryCodeLabel')}
+                                        </label>
+                                        <input
+                                            id="signup-phone-country-code"
+                                            name={field.name}
+                                            type="text"
+                                            inputMode="numeric"
+                                            autoComplete="tel-country-code"
+                                            placeholder={t('pages.singupBasic.phoneCountryCodePlaceholder')}
+                                            value={formatPhoneCountryCode(field.value ?? '')}
+                                            onChange={(event) =>
+                                                field.onChange(
+                                                    normalizePhoneCountryCodeInput(event.target.value),
+                                                )
+                                            }
+                                            onBlur={field.onBlur}
+                                            ref={field.ref}
+                                            maxLength={4}
+                                            className={
+                                                error
+                                                    ? INPUT_STYLES.error.input
+                                                    : INPUT_STYLES.default.input
+                                            }
+                                        />
+                                    </div>
+                                )}
+                            />
 
-                        <Controller
-                            name="phoneNumber"
-                            control={control}
-                            rules={Rules.phoneNumber}
-                            render={({ field, fieldState: { error } }) => (
-                                <div className="flex flex-col gap-1">
-                                    <label
-                                        htmlFor="signup-phone-number"
-                                        className={
-                                            error
-                                                ? INPUT_STYLES.error.label
-                                                : INPUT_STYLES.default.label
-                                        }
-                                    >
-                                        {t('pages.singupBasic.phoneNumberLabel')}
-                                    </label>
-                                    <input
-                                        id="signup-phone-number"
-                                        name={field.name}
-                                        type="text"
-                                        inputMode="tel"
-                                        autoComplete="tel-national"
-                                        placeholder={t('pages.singupBasic.phoneNumberPlaceholder')}
-                                        value={maskPhoneNationalNumber(
-                                            field.value ?? '',
-                                            phoneCountryCode ?? '',
-                                        )}
-                                        onChange={(event) =>
-                                            field.onChange(
-                                                normalizePhoneNationalNumberInput(
-                                                    event.target.value,
-                                                    phoneCountryCode ?? '',
-                                                ),
-                                            )
-                                        }
-                                        onBlur={field.onBlur}
-                                        ref={field.ref}
-                                        maxLength={20}
-                                        className={
-                                            error
-                                                ? INPUT_STYLES.error.input
-                                                : INPUT_STYLES.default.input
-                                        }
-                                    />
-                                    {error && (
-                                        <span className="pl-2.5 text-red-500 text-sm">
-                                            {error.message}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                        />
+                            <Controller
+                                name="phoneNumber"
+                                control={control}
+                                rules={Rules.phoneNumber}
+                                render={({ field, fieldState: { error } }) => (
+                                    <div className="flex flex-col gap-1">
+                                        <label
+                                            htmlFor="signup-phone-number"
+                                            className={
+                                                error
+                                                    ? INPUT_STYLES.error.label
+                                                    : INPUT_STYLES.default.label
+                                            }
+                                        >
+                                            {t('pages.singupBasic.phoneNumberLabel')}
+                                        </label>
+                                        <input
+                                            id="signup-phone-number"
+                                            name={field.name}
+                                            type="text"
+                                            inputMode="tel"
+                                            autoComplete="tel-national"
+                                            placeholder={t('pages.singupBasic.phoneNumberPlaceholder')}
+                                            value={maskPhoneNationalNumber(
+                                                field.value ?? '',
+                                                phoneCountryCode ?? '',
+                                            )}
+                                            onChange={(event) =>
+                                                field.onChange(
+                                                    normalizePhoneNationalNumberInput(
+                                                        event.target.value,
+                                                        phoneCountryCode ?? '',
+                                                    ),
+                                                )
+                                            }
+                                            onBlur={field.onBlur}
+                                            ref={field.ref}
+                                            maxLength={20}
+                                            className={
+                                                error
+                                                    ? INPUT_STYLES.error.input
+                                                    : INPUT_STYLES.default.input
+                                            }
+                                        />
+                                    </div>
+                                )}
+                            />
+                        </div>
+
+                        {(errors.phoneCountryCode?.message || errors.phoneNumber?.message) && (
+                            <span className="pl-2.5 text-red-500 text-sm">
+                                {errors.phoneNumber?.message ?? errors.phoneCountryCode?.message}
+                            </span>
+                        )}
                     </div>
 
                     <Controller
