@@ -22,7 +22,6 @@ type InputDefaultProps<T extends FieldValues> = {
   mask?: "default" | "phone" | "cnpj" | "cep" | "email" | "uf"
   rightElement?: ReactNode
   dataTestid?: string
-  /** Importante para gerenciadores de senha do navegador (ex.: login: username + current-password). */
   autoComplete?: string
 }
 

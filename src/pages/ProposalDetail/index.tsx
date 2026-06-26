@@ -63,12 +63,25 @@ const ProposalDetailPage = () => {
     openFreight,
   } = useProposalDetail({ proposalId });
 
+  const submittedLat = proposal?.submitted_lat;
+  const submittedLng = proposal?.submitted_lng;
+  const hasMeaningfulSubmittedCoords =
+    submittedLat != null &&
+    submittedLng != null &&
+    Number.isFinite(submittedLat) &&
+    Number.isFinite(submittedLng) &&
+    submittedLat !== 0 &&
+    submittedLng !== 0;
+
   const {
     hasCoords: hasSubmittedLocation,
     loading: submittedLocationLoading,
     city: submittedCity,
     coordinatesLabel,
-  } = useSubmittedLocationCity(proposal?.submitted_lat, proposal?.submitted_lng);
+  } = useSubmittedLocationCity(
+    hasMeaningfulSubmittedCoords ? submittedLat : null,
+    hasMeaningfulSubmittedCoords ? submittedLng : null
+  );
 
   const onConfirmReject = async (comment: string) => {
     const ok = await handleReject(comment);
@@ -139,17 +152,17 @@ const ProposalDetailPage = () => {
     freight?.CargoType?.name ?? freight?.cargo?.name ?? t("pages.proposalDetail.cargoUnavailable");
 
   const distanceToPickupKm =
-    hasSubmittedLocation && freight
+    hasSubmittedLocation && freight && submittedLat != null && submittedLng != null
       ? haversineKm(
-          proposal!.submitted_lat!,
-          proposal!.submitted_lng!,
+          submittedLat,
+          submittedLng,
           freight.origin_lat,
           freight.origin_lng
         )
-      : null;
+      : 0;
 
   const submittedLocationLabel = !hasSubmittedLocation
-    ? t("pages.proposalDetail.submittedLocationUnavailable")
+    ? t("pages.proposalDetail.submittedLocationUnavailableShort", { defaultValue: "Local não informado" })
     : submittedLocationLoading
       ? t("pages.proposalDetail.submittedLocationLoading")
       : submittedCity ?? coordinatesLabel ?? t("pages.proposalDetail.submittedLocationUnavailable");
@@ -224,16 +237,14 @@ const ProposalDetailPage = () => {
               <span className="min-w-0 break-words">{submittedLocationLabel}</span>
             </p>
           </div>
-          {distanceToPickupKm != null ? (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {t("pages.proposalDetail.distanceToPickup")}
-              </p>
-              <p className="mt-1 text-sm font-medium text-foreground">
-                {formatFreightDistanceKm(Math.round(distanceToPickupKm), lang)}
-              </p>
-            </div>
-          ) : null}
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("pages.proposalDetail.distanceToPickup")}
+            </p>
+            <p className="mt-1 text-sm font-medium text-foreground">
+              {formatFreightDistanceKm(Math.round(distanceToPickupKm), lang)}
+            </p>
+          </div>
         </div>
 
         {canActOnProposal ? (
